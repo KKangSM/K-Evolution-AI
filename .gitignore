@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Claude 에이전트 작업 메모 (프로젝트와 무관) ###
+memory/
+
+### 환경설정 (로컬 전용, 커밋 금지) ###
+src/main/resources/application.properties

@@ -19,11 +19,6 @@ public class ProductController {
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
 
-    @GetMapping("/")
-    public String home() {
-        return "redirect:/products";
-    }
-
     @GetMapping("/products")
     public String list(
         @RequestParam(required = false) String keyword,

@@ -1,0 +1,48 @@
+/* ===== 메인 페이지 스타일 ===== */
+
+/* 레이아웃 / 푸터 하단 고정 */
+body { min-height: 100vh; display: flex; flex-direction: column; }
+.site-footer { margin-top: auto; }
+
+/* 이벤트 캐러셀 */
+.event-carousel .carousel-inner { border-radius: 1rem; }
+.event-slide {
+    display: flex; align-items: center; justify-content: center;
+    height: 280px; background: #e9ecef;
+}
+
+/* 히어로 배너 */
+.hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    padding: 5rem 0;
+}
+.hero h1 { font-weight: 800; letter-spacing: -1px; }
+
+/* 카테고리 칩 */
+.category-chip {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 84px; height: 84px; border-radius: 16px;
+    background: #fff; border: 1px solid #eee; color: #333;
+    text-decoration: none; font-size: 0.85rem; font-weight: 600;
+    transition: all 0.15s;
+}
+.category-chip:hover { border-color: #0f3460; color: #0f3460; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.category-chip .emoji { font-size: 1.6rem; margin-bottom: 4px; }
+
+/* 섹션 제목 */
+.section-title { font-weight: 700; border-left: 4px solid #0f3460; padding-left: 12px; }
+
+/* 상품 카드 */
+.product-card { cursor: pointer; transition: transform 0.2s; }
+.product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.product-img { height: 200px; object-fit: cover; }
+
+/* 인기상품 순위 배지 */
+.rank-badge {
+    position: absolute; top: 8px; left: 8px; z-index: 2;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(15,52,96,0.9); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem;
+}

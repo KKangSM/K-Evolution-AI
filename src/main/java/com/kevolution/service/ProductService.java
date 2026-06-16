@@ -6,9 +6,12 @@ import com.kevolution.repository.CategoryRepository;
 import com.kevolution.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -37,5 +40,15 @@ public class ProductService {
     public Product getProduct(Long productId) {
         return productRepository.findById(productId)
             .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+    }
+
+    /** 메인 페이지 신상품 목록 (등록일 최신순) */
+    public List<Product> getNewProducts(int size) {
+        return productRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, size));
+    }
+
+    /** 메인 페이지 인기상품 목록 (판매량 순) */
+    public List<Product> getPopularProducts(int size) {
+        return productRepository.findPopularProducts(PageRequest.of(0, size));
     }
 }
