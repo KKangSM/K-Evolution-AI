@@ -2,7 +2,7 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/products">K-Evolution</a>
+        <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/">K-Evolution</a>
         <div class="navbar-nav ms-auto align-items-center">
             <sec:authorize access="isAuthenticated()">
                 <a class="nav-link" href="${pageContext.request.contextPath}/cart">장바구니</a>

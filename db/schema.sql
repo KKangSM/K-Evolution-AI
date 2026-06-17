@@ -38,17 +38,20 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- member (회원)
 -- ---------------------------------------------------------------------
 CREATE TABLE member (
-    member_id   BIGINT          NOT NULL AUTO_INCREMENT COMMENT '회원 ID',
-    email       VARCHAR(100)    NOT NULL                COMMENT '이메일 (로그인 ID)',
+    member_id   CHAR(36)        NOT NULL                COMMENT 'PK · UUID (비순차/비추측)',
+    user_id     VARCHAR(50)     NOT NULL                COMMENT '로그인 아이디',
     password    VARCHAR(255)    NOT NULL                COMMENT '암호화된 비밀번호(BCrypt)',
+    ci          VARCHAR(255)    NULL                    COMMENT '휴대폰 본인인증 고유번호(CI)',
+    role        ENUM('USER','ADMIN')        NOT NULL    COMMENT '권한',
+    status      ENUM('ACTIVE','WITHDRAWN')  NOT NULL    COMMENT '계정 상태(soft-delete)',
     name        VARCHAR(50)     NOT NULL                COMMENT '회원명',
     phone       VARCHAR(20)     NULL                    COMMENT '전화번호',
     address     VARCHAR(255)    NULL                    COMMENT '기본 배송지',
-    role        ENUM('USER','ADMIN') NOT NULL           COMMENT '권한',
     created_at  DATETIME        NOT NULL                COMMENT '가입일시',
     updated_at  DATETIME        NOT NULL                COMMENT '수정일시',
     PRIMARY KEY (member_id),
-    UNIQUE KEY uk_member_email (email)
+    UNIQUE KEY uk_member_user_id (user_id),
+    UNIQUE KEY uk_member_ci (ci)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='회원';
 
 -- ---------------------------------------------------------------------
@@ -82,8 +85,8 @@ CREATE TABLE product (
 -- cart (장바구니) - 회원당 1개
 -- ---------------------------------------------------------------------
 CREATE TABLE cart (
-    cart_id     BIGINT  NOT NULL AUTO_INCREMENT COMMENT '장바구니 ID',
-    member_id   BIGINT  NOT NULL                COMMENT '회원 ID (FK, UNIQUE)',
+    cart_id     BIGINT   NOT NULL AUTO_INCREMENT COMMENT '장바구니 ID',
+    member_id   CHAR(36) NOT NULL                COMMENT '회원 ID (FK, UNIQUE)',
     PRIMARY KEY (cart_id),
     UNIQUE KEY uk_cart_member (member_id),
     CONSTRAINT fk_cart_member FOREIGN KEY (member_id) REFERENCES member (member_id)
@@ -121,8 +124,8 @@ CREATE TABLE coupon (
 -- member_coupon (회원 보유 쿠폰)
 -- ---------------------------------------------------------------------
 CREATE TABLE member_coupon (
-    member_coupon_id BIGINT  NOT NULL AUTO_INCREMENT COMMENT '회원 쿠폰 ID',
-    member_id        BIGINT  NOT NULL                COMMENT '회원 ID (FK)',
+    member_coupon_id BIGINT   NOT NULL AUTO_INCREMENT COMMENT '회원 쿠폰 ID',
+    member_id        CHAR(36) NOT NULL                COMMENT '회원 ID (FK)',
     coupon_id        BIGINT  NOT NULL                COMMENT '쿠폰 ID (FK)',
     is_used          BOOLEAN NOT NULL DEFAULT FALSE  COMMENT '사용 여부',
     used_at          DATETIME NULL                   COMMENT '사용일시',
@@ -138,7 +141,7 @@ CREATE TABLE member_coupon (
 -- ---------------------------------------------------------------------
 CREATE TABLE orders (
     order_id         BIGINT       NOT NULL AUTO_INCREMENT COMMENT '주문 ID',
-    member_id        BIGINT       NOT NULL                COMMENT '회원 ID (FK)',
+    member_id        CHAR(36)     NOT NULL                COMMENT '회원 ID (FK)',
     member_coupon_id BIGINT       NULL                    COMMENT '적용 쿠폰 ID (FK, nullable)',
     receiver_name    VARCHAR(50)  NOT NULL                COMMENT '수령인 이름',
     receiver_phone   VARCHAR(20)  NOT NULL                COMMENT '수령인 전화번호',

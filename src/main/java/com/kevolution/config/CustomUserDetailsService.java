@@ -15,13 +15,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final MemberRepository memberRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
-        return new User(
-            member.getEmail(),
-            member.getPassword(),
-            List.of(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()))
-        );
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+        Member member = memberRepository.findByUserId(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
+
+        boolean enabled = member.getStatus() == Member.Status.ACTIVE; // 탈퇴 계정은 로그인 차단
+
+        return User.builder()
+            .username(member.getUserId())
+            .password(member.getPassword())
+            .disabled(!enabled)
+            .authorities(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()))
+            .build();
     }
 }
