@@ -34,6 +34,21 @@
     </div>
 </section>
 
+<!-- 카테고리 분류 -->
+<c:if test="${not empty categories}">
+    <div class="container mt-4">
+        <div class="d-flex flex-wrap gap-3 justify-content-center">
+            <c:forEach var="cat" items="${categories}">
+                <a class="category-chip"
+                   href="${pageContext.request.contextPath}/products?categoryId=${cat.categoryId}">
+                    <span class="emoji">🛍️</span>
+                    <span>${cat.name}</span>
+                </a>
+            </c:forEach>
+        </div>
+    </div>
+</c:if>
+
 <!-- 이벤트 캐러셀 (슬라이드 내용은 추후 채움) -->
 <div class="container mt-4">
     <div id="eventCarousel" class="carousel slide event-carousel shadow-sm" data-bs-ride="carousel">
@@ -65,19 +80,6 @@
 </div>
 
 <div class="container my-5">
-
-    <!-- 카테고리 바로가기 -->
-    <c:if test="${not empty categories}">
-        <div class="d-flex flex-wrap gap-3 justify-content-center mb-5">
-            <c:forEach var="cat" items="${categories}">
-                <a class="category-chip"
-                   href="${pageContext.request.contextPath}/products?categoryId=${cat.categoryId}">
-                    <span class="emoji">🛍️</span>
-                    <span>${cat.name}</span>
-                </a>
-            </c:forEach>
-        </div>
-    </c:if>
 
     <!-- 신상품 -->
     <div class="d-flex justify-content-between align-items-center mb-3">
