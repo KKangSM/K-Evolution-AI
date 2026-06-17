@@ -1,0 +1,218 @@
+====================================================
+ K-Evolution 쇼핑몰 프로젝트 작업 흐름 정리
+====================================================
+
+■ 기술 스택
+  - Backend  : Spring Boot 3.5.3 (Java 17)
+  - View     : JSP + JSTL
+  - Security : Spring Security 6
+  - ORM      : Spring Data JPA + Hibernate
+  - DB       : MySQL 8.0
+  - Build    : Maven (mvnw)
+
+
+====================================================
+1. 프로젝트 초기 세팅
+====================================================
+
+▶ 패키지 구조
+  com.kevolution
+  ├── config/       (Security, AES 등 설정)
+  ├── controller/   (HTTP 요청 처리)
+  ├── entity/       (DB 테이블 매핑 클래스)
+  ├── repository/   (DB 쿼리 인터페이스)
+  └── service/      (비즈니스 로직)
+
+▶ JSP 뷰 경로
+  src/main/webapp/WEB-INF/views/
+  ├── fragments/header.jsp   (공통 헤더)
+  ├── main.jsp               (메인 페이지)
+  ├── auth/login.jsp         (로그인 폼)
+  ├── auth/signup.jsp        (회원가입 폼)
+  └── products/list.jsp      (상품 목록)
+
+▶ application.properties 주요 설정
+  - spring.datasource.*       → MySQL 연결 정보
+  - spring.jpa.ddl-auto=update → 엔티티 기반 테이블 자동 관리
+  - spring.mvc.view.prefix/suffix → JSP 뷰 경로 설정
+  - aes.secret-key            → AES-256 암호화 키 (Base64, 32바이트)
+
+
+====================================================
+2. Member 엔티티 설계
+====================================================
+
+▶ PK를 Long(AUTO_INCREMENT) → UUID(CHAR 36)로 변경한 이유
+  - 숫자 PK는 순차적이라 URL에 노출되면 /members/1, /members/2 형태로
+    전체 회원 수나 존재 여부를 추측할 수 있음 (보안 취약)
+  - UUID는 비순차/비추측 → 외부에 노출해도 안전
+
+▶ 로그인 식별자를 email → userId로 변경한 이유
+  - 이메일은 개인정보이므로 로그인 ID로 쓰면 노출 위험
+  - 별도 userId를 두면 이메일과 로그인 ID를 분리 관리 가능
+
+▶ Status enum 추가 (ACTIVE / WITHDRAWN)
+  - 탈퇴 회원 row를 DB에서 삭제하지 않고 상태만 변경 (Soft Delete)
+  - 이유 : 탈퇴 회원의 주문 내역, 결제 이력 등 연관 데이터를 유지해야 함
+  - CustomUserDetailsService에서 WITHDRAWN 계정은 로그인 차단
+
+▶ @PrePersist 활용
+  - 저장 직전 자동 실행되는 JPA 훅
+  - role, status 기본값(USER, ACTIVE) 자동 세팅
+  - createdAt, updatedAt 자동 기록
+
+▶ 핵심 어노테이션
+  @Entity         → 이 클래스가 DB 테이블임을 선언
+  @Table          → 테이블 이름 지정
+  @Id             → PK 컬럼
+  @UuidGenerator  → Hibernate가 UUID 자동 생성
+  @Enumerated     → Enum 값을 STRING으로 DB 저장
+  @Builder        → Lombok, 빌더 패턴으로 객체 생성
+  @NoArgsConstructor(access = PROTECTED) → JPA 기본 생성자 (외부 직접 생성 막기)
+
+
+====================================================
+3. Spring Security 로그인 설정
+====================================================
+
+▶ 전체 흐름
+  브라우저 → POST /auth/login → Spring Security 필터가 가로챔
+  → CustomUserDetailsService.loadUserByUsername(userId) 호출
+  → DB에서 회원 조회 → 비밀번호 BCrypt 비교
+  → 성공 시 / 로 리다이렉트 / 실패 시 /auth/login?error=true
+
+▶ SecurityConfig 주요 설정
+  - permitAll()   : /auth/**, /products/**, / 등은 비로그인도 접근 가능
+  - hasRole()     : /admin/** 은 ADMIN 권한만 접근
+  - formLogin     : 로그인 폼 URL, 성공/실패 URL 지정
+  - logout        : 세션 무효화 + JSESSIONID 쿠키 삭제
+  - CSRF 보호     : 기본 활성화 → form에 반드시 hidden 토큰 포함해야 함
+
+▶ BCrypt
+  - 비밀번호는 절대 평문 저장 금지
+  - BCrypt는 단방향 해시 (복호화 불가) → 로그인 시 입력값을 해시해서 비교
+  - 같은 비밀번호도 매번 다른 해시값 → 레인보우 테이블 공격 방어
+
+▶ CSRF 토큰 (form에 필수)
+  <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+  - POST 요청 시 서버가 이 토큰을 검증 → 없으면 403 Forbidden
+  - 타 사이트에서 위조된 요청을 차단하는 보안 장치
+
+
+====================================================
+4. 회원가입 기능
+====================================================
+
+▶ 파일 구성
+  AuthController.java  → GET/POST /auth/signup, GET /auth/check-id
+  MemberService.java   → signup(), isUserIdDuplicated()
+  signup.jsp           → 회원가입 폼 + 아이디 중복확인 (AJAX)
+
+▶ 아이디 중복 확인 (AJAX 방식)
+  - 중복확인 버튼 클릭 → JS에서 fetch()로 GET /auth/check-id?userId=xxx 호출
+  - 서버는 DB 조회 후 { "duplicated": true/false } JSON 응답
+  - 중복확인 완료 전에 제출하면 form submit을 JS로 차단 (idChecked 플래그)
+
+▶ JSP에서 JS 템플릿 리터럴 주의점
+  - JSP는 ${...} 를 EL(Expression Language)로 파싱함
+  - JS 템플릿 리터럴 `${encodeURIComponent(val)}`을 JSP가 EL로 오해 → 500 에러
+  - 해결 : 문자열 연결 방식 사용
+    ctx + '/auth/check-id?userId=' + encodeURIComponent(val)
+
+▶ RedirectAttributes (Flash Attribute)
+  - POST → Redirect → GET 패턴에서 메시지 전달할 때 사용
+  - 리다이렉트 후 1회만 존재, 이후 자동 소멸
+  - ra.addFlashAttribute("signupSuccess", true) → 로그인 페이지에서 표시
+
+▶ 비밀번호 암호화
+  MemberService에서 저장 직전 BCrypt 인코딩
+  passwordEncoder.encode(password) → 해시값을 DB에 저장
+
+
+====================================================
+5. AES-256 암호화 (개인정보 보호)
+====================================================
+
+▶ AES-256을 쓰는 이유
+  - BCrypt는 단방향(복호화 불가) → 비밀번호에만 적합
+  - 전화번호, 주소, CI 등은 나중에 꺼내서 써야 함 → 양방향 암호화 필요
+  - 개인정보보호법: 개인정보는 암호화해서 보관 의무
+
+▶ AES/CBC/PKCS5Padding 방식
+  - AES-256 : 키 길이 256bit(32바이트)
+  - CBC 모드 : 이전 블록 결과를 다음 블록 암호화에 활용
+  - IV (초기화 벡터) : 매 암호화마다 랜덤 16바이트 생성
+    → 같은 평문도 매번 다른 암호문 생성 (보안 강화)
+  - 저장 형식 : Base64(IV) + ":" + Base64(암호문)
+
+▶ 파일 구성
+  AesUtil.java              → encrypt(), decrypt() 핵심 로직
+  AesAttributeConverter.java → JPA AttributeConverter 구현체
+
+▶ JPA AttributeConverter 동작 원리
+  - DB 저장 시 : convertToDatabaseColumn() → 평문을 암호화해서 저장
+  - DB 조회 시 : convertToEntityAttribute() → 암호문을 복호화해서 반환
+  - 엔티티 필드에 @Convert(converter = AesAttributeConverter.class) 추가하면 자동 적용
+
+▶ 적용 필드 및 컬럼 길이 변경
+  phone   : VARCHAR(20) → VARCHAR(100)   (암호화 후 길이 증가)
+  address : VARCHAR(255) → VARCHAR(500)
+  ci      : VARCHAR(255) → VARCHAR(500)
+
+▶ CI 필드의 유니크 제약 주의사항
+  - CBC + 랜덤 IV → 같은 CI도 매번 다른 암호문
+  - DB UNIQUE 제약은 암호문 기준이라 논리적 중복 감지 불가
+  - 나중에 본인인증 구현 시 애플리케이션 레이어에서 처리 필요
+
+▶ 키 관리
+  - application.properties에 Base64 인코딩된 32바이트 키 저장
+  - 운영 환경에서는 반드시 랜덤 생성 키로 교체
+  - 키 유출 시 전체 개인정보 복호화 가능 → 별도 비밀 관리 시스템 권장
+
+
+====================================================
+6. 메인 페이지 UI
+====================================================
+
+▶ 히어로 섹션
+  - 다크 그라디언트 배경 + 브랜드명 + 슬로건
+  - 상품 검색 폼 (GET /products?keyword=xxx)
+
+▶ 카테고리 섹션
+  - 히어로 바로 아래 배치
+  - DB의 Category 데이터를 동적으로 렌더링
+  - 클릭 시 해당 카테고리 상품 목록으로 이동
+
+▶ 헤더 인증 연동 (Spring Security 태그)
+  <sec:authorize access="isAnonymous()"> → 비로그인 시 로그인/회원가입 표시
+  <sec:authorize access="isAuthenticated()"> → 로그인 시 장바구니/로그아웃 표시
+  <sec:authorize access="hasRole('ROLE_ADMIN')"> → 관리자만 관리자 메뉴 표시
+
+
+====================================================
+7. 트러블슈팅 모음
+====================================================
+
+▶ DB 연결 실패 (Access denied)
+  원인 : MySQL에 'k-evolution' 유저 미생성
+  해결 : CREATE USER + GRANT 로 유저/권한 생성
+
+▶ 회원가입 페이지 500 에러
+  원인 : JSP EL 파서가 JS 템플릿 리터럴의 ${...}를 EL로 오해
+  해결 : 템플릿 리터럴 대신 문자열 연결(+) 사용
+
+▶ 탈퇴 계정 로그인 차단
+  원인/방법 : UserDetails.disabled 플래그 활용
+  → User.builder().disabled(!enabled) 설정 시 Spring Security가 자동 차단
+
+
+====================================================
+★ 핵심 설계 원칙 정리
+====================================================
+
+1. PK는 UUID  → 순차 노출 방지
+2. 비밀번호는 BCrypt  → 단방향, 복호화 불가
+3. 개인정보(전화번호/주소/CI)는 AES-256  → 양방향, 복호화 필요
+4. 탈퇴는 Soft Delete  → row 삭제 대신 status 변경
+5. CSRF 토큰은 모든 POST form에 필수
+6. 로그인 식별자는 userId  → email 직접 노출 방지
