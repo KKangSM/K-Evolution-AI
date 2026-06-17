@@ -1,5 +1,6 @@
 package com.kevolution.entity;
 
+import com.kevolution.config.AesAttributeConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -25,8 +26,9 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-    /** 휴대폰 본인인증 고유번호(CI). 인증 전이면 NULL 가능 */
-    @Column(name = "ci", unique = true, length = 255)
+    /** 휴대폰 본인인증 고유번호(CI). 인증 전이면 NULL 가능. AES-256 암호화 저장 */
+    @Convert(converter = AesAttributeConverter.class)
+    @Column(name = "ci", unique = true, length = 500)
     private String ci;
 
     @Enumerated(EnumType.STRING)
@@ -41,10 +43,12 @@ public class Member {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(length = 20)
+    @Convert(converter = AesAttributeConverter.class)
+    @Column(length = 100)
     private String phone;
 
-    @Column(length = 255)
+    @Convert(converter = AesAttributeConverter.class)
+    @Column(length = 500)
     private String address;
 
     @Column(nullable = false, updatable = false)

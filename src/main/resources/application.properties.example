@@ -22,6 +22,9 @@ spring.mvc.view.suffix=.jsp
 # Hidden Method Filter
 spring.mvc.hiddenmethod.filter.enabled=true
 
+# AES-256 암호화 키 (32바이트를 Base64로 인코딩한 값 — 운영 시 반드시 교체)
+aes.secret-key=
+
 # Toss Payments
 toss.secret-key=
 toss.client-key=
