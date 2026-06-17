@@ -15,9 +15,11 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .hero {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     color: #fff;
-    padding: 5rem 0;
+    padding: 3rem 0 2rem;
 }
-.hero h1 { font-weight: 800; letter-spacing: -1px; }
+.hero h1 { font-weight: 800; letter-spacing: -1px; font-size: 3rem; }
+.hero .lead { font-size: 0.8rem; }
+.hero-search { max-width: 560px; }
 
 /* 카테고리 칩 */
 .category-chip {

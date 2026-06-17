@@ -17,7 +17,20 @@
 <section class="hero text-center">
     <div class="container">
         <h1 class="mb-3">K-Evolution</h1>
-        <p class="lead mb-0 text-light opacity-75">당신의 일상을 진화시키는 셀렉트 쇼핑</p>
+        <p class="lead mb-4 text-light opacity-75">당신의 일상을 진화시키는 셀렉트 쇼핑</p>
+
+        <!-- 상품 검색 -->
+        <form action="${pageContext.request.contextPath}/products" method="get" class="hero-search mx-auto">
+            <div class="input-group input-group-lg shadow">
+                <input type="text" name="keyword" class="form-control border-0"
+                       placeholder="어떤 상품을 찾으세요?" aria-label="상품 검색">
+                <button class="btn bg-white text-dark px-4 d-flex align-items-center" type="submit" aria-label="검색">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
     </div>
 </section>
 
