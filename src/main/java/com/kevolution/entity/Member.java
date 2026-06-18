@@ -73,6 +73,10 @@ public class Member {
         updatedAt = LocalDateTime.now();
     }
 
+    public void changeRole(Role role) {
+        this.role = role;
+    }
+
     @Builder
     public Member(String userId, String password, String ci, String name,
                   String phone, String address, Role role, Status status) {

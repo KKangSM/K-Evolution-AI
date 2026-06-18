@@ -9,7 +9,8 @@
                 <a class="nav-link" href="${pageContext.request.contextPath}/orders">주문내역</a>
             </sec:authorize>
             <sec:authorize access="hasRole('ROLE_ADMIN')">
-                <a class="nav-link" href="${pageContext.request.contextPath}/admin/products">관리자</a>
+                <a class="nav-link" href="${pageContext.request.contextPath}/admin/products">상품 관리</a>
+                <a class="nav-link" href="${pageContext.request.contextPath}/admin/members">회원 관리</a>
             </sec:authorize>
             <sec:authorize access="isAnonymous()">
                 <a class="nav-link" href="${pageContext.request.contextPath}/auth/login">로그인</a>
