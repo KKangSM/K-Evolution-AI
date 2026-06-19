@@ -81,69 +81,93 @@
 
 <div class="container my-5">
 
-    <!-- 신상품 -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="section-title mb-0">신상품</h4>
-        <a href="${pageContext.request.contextPath}/products" class="text-decoration-none text-muted small">더보기 →</a>
-    </div>
-    <div class="row g-4 mb-5">
-        <c:if test="${empty newProducts}">
-            <div class="col-12 text-center py-4 text-muted">등록된 상품이 없습니다.</div>
-        </c:if>
-        <c:forEach var="product" items="${newProducts}">
-            <div class="col-6 col-md-3">
-                <div class="card product-card h-100"
-                     onclick="location.href='${pageContext.request.contextPath}/products/${product.productId}'">
-                    <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
-                         class="card-img-top product-img" alt="상품 이미지">
-                    <div class="card-body d-flex flex-column">
-                        <p class="card-text text-muted small mb-1">${product.category.name}</p>
-                        <h6 class="card-title flex-grow-1">${product.name}</h6>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <span class="fw-bold">
-                                <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
-                            </span>
-                            <c:if test="${product.stock == 0}">
-                                <span class="badge bg-secondary">품절</span>
-                            </c:if>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </c:forEach>
-    </div>
-
-    <!-- 인기상품 -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="section-title mb-0">인기상품</h4>
-        <a href="${pageContext.request.contextPath}/products" class="text-decoration-none text-muted small">더보기 →</a>
-    </div>
     <div class="row g-4">
-        <c:if test="${empty popularProducts}">
-            <div class="col-12 text-center py-4 text-muted">등록된 상품이 없습니다.</div>
-        </c:if>
-        <c:forEach var="product" items="${popularProducts}" varStatus="status">
-            <div class="col-6 col-md-3">
-                <div class="card product-card h-100 position-relative"
-                     onclick="location.href='${pageContext.request.contextPath}/products/${product.productId}'">
-                    <span class="rank-badge">${status.index + 1}</span>
-                    <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
-                         class="card-img-top product-img" alt="상품 이미지">
-                    <div class="card-body d-flex flex-column">
-                        <p class="card-text text-muted small mb-1">${product.category.name}</p>
-                        <h6 class="card-title flex-grow-1">${product.name}</h6>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <span class="fw-bold">
-                                <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
-                            </span>
-                            <c:if test="${product.stock == 0}">
-                                <span class="badge bg-secondary">품절</span>
-                            </c:if>
+
+        <!-- 인기상품 (왼쪽) -->
+        <div class="col-lg-6">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="section-title mb-0">인기상품</h6>            </div>
+            <div class="row g-3">
+                <c:if test="${empty popularProducts}">
+                    <c:forEach begin="1" end="3">
+                        <div class="col-4">
+                            <div class="card product-card h-100">
+                                <div class="product-img bg-light"></div>
+                                <div class="card-body">
+                                    <p class="placeholder-glow mb-1"><span class="placeholder col-7"></span></p>
+                                    <p class="placeholder-glow mb-0"><span class="placeholder col-5"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </c:if>
+                <c:forEach var="product" items="${popularProducts}" varStatus="status">
+                    <div class="col-4">
+                        <div class="card product-card h-100 position-relative"
+                             onclick="location.href='${pageContext.request.contextPath}/products/${product.productId}'">
+                            <span class="rank-badge">${status.index + 1}</span>
+                            <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
+                                 class="card-img-top product-img" alt="상품 이미지">
+                            <div class="card-body d-flex flex-column">
+                                <p class="card-text text-muted small mb-1">${product.category.name}</p>
+                                <h6 class="card-title flex-grow-1">${product.name}</h6>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="fw-bold">
+                                        <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
+                                    </span>
+                                    <c:if test="${product.stock == 0}">
+                                        <span class="badge bg-secondary">품절</span>
+                                    </c:if>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </c:forEach>
             </div>
-        </c:forEach>
+        </div>
+
+        <!-- 신상품 (오른쪽) -->
+        <div class="col-lg-6">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="section-title mb-0">신상품</h6>            </div>
+            <div class="row g-3">
+                <c:if test="${empty newProducts}">
+                    <c:forEach begin="1" end="3">
+                        <div class="col-4">
+                            <div class="card product-card h-100">
+                                <div class="product-img bg-light"></div>
+                                <div class="card-body">
+                                    <p class="placeholder-glow mb-1"><span class="placeholder col-7"></span></p>
+                                    <p class="placeholder-glow mb-0"><span class="placeholder col-5"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </c:if>
+                <c:forEach var="product" items="${newProducts}">
+                    <div class="col-4">
+                        <div class="card product-card h-100"
+                             onclick="location.href='${pageContext.request.contextPath}/products/${product.productId}'">
+                            <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
+                                 class="card-img-top product-img" alt="상품 이미지">
+                            <div class="card-body d-flex flex-column">
+                                <p class="card-text text-muted small mb-1">${product.category.name}</p>
+                                <h6 class="card-title flex-grow-1">${product.name}</h6>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="fw-bold">
+                                        <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
+                                    </span>
+                                    <c:if test="${product.stock == 0}">
+                                        <span class="badge bg-secondary">품절</span>
+                                    </c:if>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </c:forEach>
+            </div>
+        </div>
+
     </div>
 
     <!-- 전체 상품 보러가기 -->

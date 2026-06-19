@@ -8,7 +8,7 @@
                 <a class="nav-link" href="${pageContext.request.contextPath}/cart">장바구니</a>
                 <a class="nav-link" href="${pageContext.request.contextPath}/orders">주문내역</a>
             </sec:authorize>
-            <sec:authorize access="hasRole('ROLE_ADMIN')">
+            <sec:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_SYSTEM')">
                 <a class="nav-link" href="${pageContext.request.contextPath}/admin/products">상품 관리</a>
                 <a class="nav-link" href="${pageContext.request.contextPath}/admin/members">회원 관리</a>
             </sec:authorize>

@@ -3,6 +3,8 @@ package com.kevolution.config;
 import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,6 +21,19 @@ public class SecurityConfig {
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * 권한 계층: SYSTEM > ADMIN > USER.
+     * 상위 권한이 하위 권한의 접근을 자동으로 포함하므로,
+     * 예) /admin/** 에 hasRole("ADMIN") 만 걸어도 SYSTEM 계정이 함께 통과한다.
+     */
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.withDefaultRolePrefix()
+            .role("SYSTEM").implies("ADMIN")
+            .role("ADMIN").implies("USER")
+            .build();
     }
 
     @Bean

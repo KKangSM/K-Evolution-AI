@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 public class MainController {
 
-    private static final int SECTION_SIZE = 8;
+    private static final int SECTION_SIZE = 3;
 
     private final ProductService productService;
     private final CategoryRepository categoryRepository;

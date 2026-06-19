@@ -51,4 +51,47 @@ public class ProductService {
     public List<Product> getPopularProducts(int size) {
         return productRepository.findPopularProducts(PageRequest.of(0, size));
     }
+
+    // ---------------------------------------------------------------
+    // 관리자 상품 관리 (등록/수정/삭제)
+    // ---------------------------------------------------------------
+
+    @Transactional
+    public Long createProduct(Long categoryId, String name, int price, int stock,
+                              String description, String imageUrl) {
+        Product product = Product.builder()
+            .category(findCategoryOrNull(categoryId))
+            .name(name)
+            .price(price)
+            .stock(stock)
+            .description(description)
+            .imageUrl(emptyToNull(imageUrl))
+            .build();
+        return productRepository.save(product).getProductId();
+    }
+
+    @Transactional
+    public void updateProduct(Long productId, Long categoryId, String name, int price, int stock,
+                              String description, String imageUrl) {
+        Product product = getProduct(productId);
+        product.update(findCategoryOrNull(categoryId), name, price, stock,
+                       description, emptyToNull(imageUrl));
+    }
+
+    @Transactional
+    public void deleteProduct(Long productId) {
+        if (!productRepository.existsById(productId)) {
+            throw new IllegalArgumentException("상품을 찾을 수 없습니다.");
+        }
+        productRepository.deleteById(productId);
+    }
+
+    private Category findCategoryOrNull(Long categoryId) {
+        if (categoryId == null) return null;
+        return categoryRepository.findById(categoryId).orElse(null);
+    }
+
+    private String emptyToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value;
+    }
 }
