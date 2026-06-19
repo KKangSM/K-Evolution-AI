@@ -37,3 +37,7 @@ memory/
 
 ### 환경설정 (로컬 전용, 커밋 금지) ###
 src/main/resources/application.properties
+
+### 로컬 실행 로그 ###
+app-run.log
+*.log

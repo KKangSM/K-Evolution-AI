@@ -1,0 +1,109 @@
+/* ===== K-Evolution 관리자 레이아웃 ===== */
+body.admin-body {
+    background: #f4f6fb;
+    margin: 0;
+}
+
+/* 상단바 */
+.admin-topbar {
+    height: 56px;
+    background: #0f3460;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+.admin-topbar .brand {
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: -0.3px;
+}
+.admin-topbar .brand .tag {
+    font-size: .7rem;
+    background: #e94560;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+.admin-topbar .topbar-right { display: flex; align-items: center; gap: .5rem; }
+
+/* 본문 레이아웃 */
+.admin-layout {
+    display: flex;
+    min-height: calc(100vh - 56px);
+}
+
+/* 사이드바 */
+.admin-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #1a1a2e;
+    padding: 1rem 0;
+}
+.admin-sidebar .menu-title {
+    color: #6c6f85;
+    font-size: .72rem;
+    letter-spacing: .5px;
+    padding: .5rem 1.25rem;
+    margin-top: .5rem;
+    text-transform: uppercase;
+}
+.admin-sidebar .menu-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .65rem 1.25rem;
+    color: #c5c6d0;
+    text-decoration: none;
+    font-size: .94rem;
+    border-left: 3px solid transparent;
+}
+.admin-sidebar .menu-link:hover { background: #16213e; color: #fff; }
+.admin-sidebar .menu-link.active {
+    background: #0f3460;
+    color: #fff;
+    border-left-color: #e94560;
+    font-weight: 600;
+}
+.admin-sidebar .menu-link .soon {
+    font-size: .62rem;
+    color: #8a8da3;
+    border: 1px solid #3a3d55;
+    border-radius: 4px;
+    padding: 0 4px;
+}
+
+/* 본문 */
+.admin-main {
+    flex: 1;
+    padding: 1.75rem 2rem;
+    min-width: 0;
+}
+.admin-main .page-title { font-weight: 700; }
+
+/* 지표 카드 */
+.stat-card {
+    border: none;
+    border-radius: .85rem;
+    box-shadow: 0 1px 3px rgba(16, 52, 96, .08);
+}
+.stat-card .stat-icon {
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 12px;
+    font-size: 1.35rem;
+}
+.stat-card .stat-label { color: #6c757d; font-size: .82rem; }
+.stat-card .stat-value { font-size: 1.55rem; font-weight: 700; line-height: 1.2; }
+
+.bg-soft-blue   { background: #e7f0ff; }
+.bg-soft-green  { background: #e3f9ec; }
+.bg-soft-purple { background: #f0e9ff; }
+.bg-soft-amber  { background: #fff4e0; }
+.bg-soft-red    { background: #ffe9e9; }

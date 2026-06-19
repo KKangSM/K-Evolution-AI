@@ -22,6 +22,18 @@ USE `k-evolution`;
 
 -- 재실행 대비: 자식 → 부모 역순으로 제거
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS return_request;
+DROP TABLE IF EXISTS point_history;
+DROP TABLE IF EXISTS notice;
+DROP TABLE IF EXISTS qna;
+DROP TABLE IF EXISTS wishlist;
+DROP TABLE IF EXISTS banner;
+DROP TABLE IF EXISTS delivery;
+DROP TABLE IF EXISTS member_address;
+DROP TABLE IF EXISTS review_image;
+DROP TABLE IF EXISTS review;
+DROP TABLE IF EXISTS product_option;
+DROP TABLE IF EXISTS product_image;
 DROP TABLE IF EXISTS payment;
 DROP TABLE IF EXISTS order_item;
 DROP TABLE IF EXISTS orders;
@@ -42,7 +54,7 @@ CREATE TABLE member (
     user_id     VARCHAR(50)     NOT NULL                COMMENT '로그인 아이디',
     password    VARCHAR(255)    NOT NULL                COMMENT '암호화된 비밀번호(BCrypt)',
     ci          VARCHAR(255)    NULL                    COMMENT '휴대폰 본인인증 고유번호(CI)',
-    role        ENUM('USER','ADMIN')        NOT NULL    COMMENT '권한',
+    role        ENUM('SYSTEM','ADMIN','USER') NOT NULL  COMMENT '권한 (SYSTEM>ADMIN>USER)',
     status      ENUM('ACTIVE','WITHDRAWN')  NOT NULL    COMMENT '계정 상태(soft-delete)',
     name        VARCHAR(50)     NOT NULL                COMMENT '회원명',
     phone       VARCHAR(20)     NULL                    COMMENT '전화번호',
@@ -59,8 +71,11 @@ CREATE TABLE member (
 -- ---------------------------------------------------------------------
 CREATE TABLE category (
     category_id BIGINT      NOT NULL AUTO_INCREMENT COMMENT '카테고리 ID',
+    parent_id   BIGINT      NULL                    COMMENT '상위 카테고리 ID (대분류면 NULL)',
     name        VARCHAR(50) NOT NULL                COMMENT '카테고리명',
-    PRIMARY KEY (category_id)
+    PRIMARY KEY (category_id),
+    KEY idx_category_parent (parent_id),
+    CONSTRAINT fk_category_parent FOREIGN KEY (parent_id) REFERENCES category (category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='상품 카테고리';
 
 -- ---------------------------------------------------------------------
@@ -190,3 +205,202 @@ CREATE TABLE payment (
     UNIQUE KEY uk_payment_order (order_id),
     CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES orders (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='결제';
+
+-- =====================================================================
+-- 확장 테이블 (리뷰/이미지/옵션/배송/배송지/배너/찜/문의/공지/적립금/반품)
+-- =====================================================================
+
+-- ---------------------------------------------------------------------
+-- product_image (상품 이미지 - 상품당 여러 장)
+-- ---------------------------------------------------------------------
+CREATE TABLE product_image (
+    image_id     BIGINT       NOT NULL AUTO_INCREMENT COMMENT '이미지 ID',
+    product_id   BIGINT       NOT NULL                COMMENT '상품 ID (FK)',
+    image_url    VARCHAR(500) NOT NULL                COMMENT '이미지 URL',
+    sort_order   INT          NOT NULL DEFAULT 0      COMMENT '노출 순서',
+    is_thumbnail BOOLEAN      NOT NULL DEFAULT FALSE  COMMENT '대표(썸네일) 여부',
+    PRIMARY KEY (image_id),
+    KEY idx_product_image_product (product_id),
+    CONSTRAINT fk_product_image_product FOREIGN KEY (product_id) REFERENCES product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='상품 이미지';
+
+-- ---------------------------------------------------------------------
+-- product_option (상품 옵션 + 옵션별 재고)
+-- ---------------------------------------------------------------------
+CREATE TABLE product_option (
+    option_id    BIGINT      NOT NULL AUTO_INCREMENT COMMENT '옵션 ID',
+    product_id   BIGINT      NOT NULL                COMMENT '상품 ID (FK)',
+    option_name  VARCHAR(50) NOT NULL                COMMENT '옵션 종류명 (예: 색상)',
+    option_value VARCHAR(50) NOT NULL                COMMENT '옵션 값 (예: 블랙)',
+    extra_price  INT         NOT NULL DEFAULT 0      COMMENT '옵션 추가금',
+    stock        INT         NOT NULL DEFAULT 0      COMMENT '옵션별 재고',
+    PRIMARY KEY (option_id),
+    KEY idx_product_option_product (product_id),
+    CONSTRAINT fk_product_option_product FOREIGN KEY (product_id) REFERENCES product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='상품 옵션';
+
+-- ---------------------------------------------------------------------
+-- review (상품 리뷰)
+-- ---------------------------------------------------------------------
+CREATE TABLE review (
+    review_id     BIGINT   NOT NULL AUTO_INCREMENT COMMENT '리뷰 ID',
+    product_id    BIGINT   NOT NULL                COMMENT '상품 ID (FK)',
+    member_id     CHAR(36) NOT NULL                COMMENT '작성 회원 ID (FK)',
+    order_item_id BIGINT   NULL                    COMMENT '구매 주문 상품 ID (FK, 구매 검증용)',
+    rating        INT      NOT NULL                COMMENT '별점 1~5',
+    content       TEXT     NULL                    COMMENT '리뷰 내용',
+    created_at    DATETIME NOT NULL                COMMENT '작성일시',
+    PRIMARY KEY (review_id),
+    KEY idx_review_product (product_id),
+    KEY idx_review_member (member_id),
+    KEY idx_review_order_item (order_item_id),
+    CONSTRAINT fk_review_product    FOREIGN KEY (product_id)    REFERENCES product (product_id),
+    CONSTRAINT fk_review_member     FOREIGN KEY (member_id)     REFERENCES member (member_id),
+    CONSTRAINT fk_review_order_item FOREIGN KEY (order_item_id) REFERENCES order_item (order_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='상품 리뷰';
+
+-- ---------------------------------------------------------------------
+-- review_image (리뷰 첨부 이미지)
+-- ---------------------------------------------------------------------
+CREATE TABLE review_image (
+    image_id   BIGINT       NOT NULL AUTO_INCREMENT COMMENT '이미지 ID',
+    review_id  BIGINT       NOT NULL                COMMENT '리뷰 ID (FK)',
+    image_url  VARCHAR(500) NOT NULL                COMMENT '이미지 URL',
+    sort_order INT          NOT NULL DEFAULT 0      COMMENT '노출 순서',
+    PRIMARY KEY (image_id),
+    KEY idx_review_image_review (review_id),
+    CONSTRAINT fk_review_image_review FOREIGN KEY (review_id) REFERENCES review (review_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='리뷰 이미지';
+
+-- ---------------------------------------------------------------------
+-- member_address (회원 배송지 주소록) - 개인정보 AES-256 암호화 저장
+-- ---------------------------------------------------------------------
+CREATE TABLE member_address (
+    address_id     BIGINT       NOT NULL AUTO_INCREMENT COMMENT '배송지 ID',
+    member_id      CHAR(36)     NOT NULL                COMMENT '회원 ID (FK)',
+    recipient      VARCHAR(50)  NOT NULL                COMMENT '받는 사람',
+    phone          VARCHAR(100) NULL                    COMMENT '연락처(암호화)',
+    zipcode        VARCHAR(20)  NULL                    COMMENT '우편번호',
+    address        VARCHAR(500) NULL                    COMMENT '주소(암호화)',
+    address_detail VARCHAR(500) NULL                    COMMENT '상세주소(암호화)',
+    default_address BOOLEAN     NOT NULL DEFAULT FALSE  COMMENT '기본 배송지 여부',
+    PRIMARY KEY (address_id),
+    KEY idx_member_address_member (member_id),
+    CONSTRAINT fk_member_address_member FOREIGN KEY (member_id) REFERENCES member (member_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='회원 배송지';
+
+-- ---------------------------------------------------------------------
+-- delivery (배송 정보) - 주문당 1건
+-- ---------------------------------------------------------------------
+CREATE TABLE delivery (
+    delivery_id  BIGINT       NOT NULL AUTO_INCREMENT COMMENT '배송 ID',
+    order_id     BIGINT       NOT NULL                COMMENT '주문 ID (FK, UNIQUE)',
+    courier      VARCHAR(50)  NULL                    COMMENT '택배사',
+    tracking_no  VARCHAR(100) NULL                    COMMENT '송장번호',
+    status       ENUM('READY','SHIPPED','IN_TRANSIT','DELIVERED') NOT NULL COMMENT '배송 상태',
+    recipient    VARCHAR(50)  NULL                    COMMENT '받는 사람',
+    address      VARCHAR(255) NULL                    COMMENT '배송지',
+    delivered_at DATETIME     NULL                    COMMENT '배송 완료일시',
+    PRIMARY KEY (delivery_id),
+    UNIQUE KEY uk_delivery_order (order_id),
+    CONSTRAINT fk_delivery_order FOREIGN KEY (order_id) REFERENCES orders (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='배송';
+
+-- ---------------------------------------------------------------------
+-- banner (메인 캐러셀/이벤트 배너)
+-- ---------------------------------------------------------------------
+CREATE TABLE banner (
+    banner_id  BIGINT       NOT NULL AUTO_INCREMENT COMMENT '배너 ID',
+    image_url  VARCHAR(500) NOT NULL                COMMENT '배너 이미지 URL',
+    link_url   VARCHAR(500) NULL                    COMMENT '클릭 이동 URL',
+    title      VARCHAR(100) NULL                    COMMENT '배너 제목',
+    sort_order INT          NOT NULL DEFAULT 0      COMMENT '노출 순서',
+    is_active  BOOLEAN      NOT NULL DEFAULT TRUE   COMMENT '노출 여부',
+    start_at   DATETIME     NULL                    COMMENT '노출 시작',
+    end_at     DATETIME     NULL                    COMMENT '노출 종료',
+    PRIMARY KEY (banner_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='배너';
+
+-- ---------------------------------------------------------------------
+-- wishlist (찜) - 회원+상품 유일
+-- ---------------------------------------------------------------------
+CREATE TABLE wishlist (
+    wishlist_id BIGINT   NOT NULL AUTO_INCREMENT COMMENT '찜 ID',
+    member_id   CHAR(36) NOT NULL                COMMENT '회원 ID (FK)',
+    product_id  BIGINT   NOT NULL                COMMENT '상품 ID (FK)',
+    created_at  DATETIME NOT NULL                COMMENT '찜한 일시',
+    PRIMARY KEY (wishlist_id),
+    UNIQUE KEY uk_wishlist_member_product (member_id, product_id),
+    KEY idx_wishlist_product (product_id),
+    CONSTRAINT fk_wishlist_member  FOREIGN KEY (member_id)  REFERENCES member (member_id),
+    CONSTRAINT fk_wishlist_product FOREIGN KEY (product_id) REFERENCES product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='찜';
+
+-- ---------------------------------------------------------------------
+-- qna (상품 문의 / 1:1 문의) - product_id NULL이면 일반 문의
+-- ---------------------------------------------------------------------
+CREATE TABLE qna (
+    qna_id      BIGINT       NOT NULL AUTO_INCREMENT COMMENT '문의 ID',
+    member_id   CHAR(36)     NOT NULL                COMMENT '작성 회원 ID (FK)',
+    product_id  BIGINT       NULL                    COMMENT '상품 ID (FK, 상품문의면)',
+    title       VARCHAR(200) NOT NULL                COMMENT '제목',
+    content     TEXT         NOT NULL                COMMENT '내용',
+    answer      TEXT         NULL                    COMMENT '답변',
+    answered_at DATETIME     NULL                    COMMENT '답변일시',
+    is_secret   BOOLEAN      NOT NULL DEFAULT FALSE  COMMENT '비밀글 여부',
+    created_at  DATETIME     NOT NULL                COMMENT '작성일시',
+    PRIMARY KEY (qna_id),
+    KEY idx_qna_member (member_id),
+    KEY idx_qna_product (product_id),
+    CONSTRAINT fk_qna_member  FOREIGN KEY (member_id)  REFERENCES member (member_id),
+    CONSTRAINT fk_qna_product FOREIGN KEY (product_id) REFERENCES product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='문의';
+
+-- ---------------------------------------------------------------------
+-- notice (공지사항)
+-- ---------------------------------------------------------------------
+CREATE TABLE notice (
+    notice_id  BIGINT       NOT NULL AUTO_INCREMENT COMMENT '공지 ID',
+    title      VARCHAR(200) NOT NULL                COMMENT '제목',
+    content    TEXT         NOT NULL                COMMENT '내용',
+    is_pinned  BOOLEAN      NOT NULL DEFAULT FALSE  COMMENT '상단 고정 여부',
+    view_count INT          NOT NULL DEFAULT 0      COMMENT '조회수',
+    created_at DATETIME     NOT NULL                COMMENT '작성일시',
+    updated_at DATETIME     NOT NULL                COMMENT '수정일시',
+    PRIMARY KEY (notice_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='공지사항';
+
+-- ---------------------------------------------------------------------
+-- point_history (적립금 내역)
+-- ---------------------------------------------------------------------
+CREATE TABLE point_history (
+    point_history_id BIGINT       NOT NULL AUTO_INCREMENT COMMENT '적립금 내역 ID',
+    member_id        CHAR(36)     NOT NULL                COMMENT '회원 ID (FK)',
+    amount           INT          NOT NULL                COMMENT '변동 금액(적립+/사용-)',
+    balance          INT          NOT NULL                COMMENT '변동 후 잔액',
+    type             ENUM('EARN','USE','EXPIRE','CANCEL') NOT NULL COMMENT '유형',
+    description      VARCHAR(200) NULL                    COMMENT '설명',
+    created_at       DATETIME     NOT NULL                COMMENT '발생일시',
+    PRIMARY KEY (point_history_id),
+    KEY idx_point_history_member (member_id),
+    CONSTRAINT fk_point_history_member FOREIGN KEY (member_id) REFERENCES member (member_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='적립금 내역';
+
+-- ---------------------------------------------------------------------
+-- return_request (반품/교환 요청) - order_item 단위
+-- ---------------------------------------------------------------------
+CREATE TABLE return_request (
+    return_id     BIGINT   NOT NULL AUTO_INCREMENT COMMENT '반품/교환 ID',
+    order_item_id BIGINT   NOT NULL                COMMENT '주문 상품 ID (FK)',
+    member_id     CHAR(36) NOT NULL                COMMENT '회원 ID (FK)',
+    type          ENUM('RETURN','EXCHANGE') NOT NULL COMMENT '반품/교환 구분',
+    reason        TEXT     NULL                    COMMENT '사유',
+    status        ENUM('REQUESTED','APPROVED','REJECTED','COMPLETED') NOT NULL COMMENT '처리 상태',
+    created_at    DATETIME NOT NULL                COMMENT '신청일시',
+    processed_at  DATETIME NULL                    COMMENT '처리일시',
+    PRIMARY KEY (return_id),
+    KEY idx_return_order_item (order_item_id),
+    KEY idx_return_member (member_id),
+    CONSTRAINT fk_return_order_item FOREIGN KEY (order_item_id) REFERENCES order_item (order_item_id),
+    CONSTRAINT fk_return_member     FOREIGN KEY (member_id)     REFERENCES member (member_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='반품/교환 요청';

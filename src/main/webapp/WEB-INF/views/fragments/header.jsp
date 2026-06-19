@@ -8,8 +8,8 @@
                 <a class="nav-link" href="${pageContext.request.contextPath}/cart">장바구니</a>
                 <a class="nav-link" href="${pageContext.request.contextPath}/orders">주문내역</a>
             </sec:authorize>
-            <sec:authorize access="hasRole('ROLE_ADMIN')">
-                <a class="nav-link" href="${pageContext.request.contextPath}/admin/products">관리자</a>
+            <sec:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_SYSTEM')">
+                <a class="nav-link" href="${pageContext.request.contextPath}/admin">관리자</a>
             </sec:authorize>
             <sec:authorize access="isAnonymous()">
                 <a class="nav-link" href="${pageContext.request.contextPath}/auth/login">로그인</a>

@@ -57,7 +57,8 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public enum Role { USER, ADMIN }
+    /** 권한 3단 계층: SYSTEM(최고운영자) > ADMIN(관리자) > USER(일반회원) */
+    public enum Role { SYSTEM, ADMIN, USER }
     public enum Status { ACTIVE, WITHDRAWN }
 
     @PrePersist
