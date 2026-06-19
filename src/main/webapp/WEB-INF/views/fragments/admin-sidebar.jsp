@@ -10,6 +10,10 @@
        href="${pageContext.request.contextPath}/admin/products">
         <span>📦 상품 관리</span>
     </a>
+    <a class="menu-link ${activeMenu == 'terms' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/terms">
+        <span>📋 약관 관리</span>
+    </a>
 
     <div class="menu-title">준비 중</div>
     <a class="menu-link" href="#"><span>🧾 주문 관리</span><span class="soon">준비중</span></a>

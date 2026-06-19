@@ -22,6 +22,7 @@ USE `k-evolution`;
 
 -- 재실행 대비: 자식 → 부모 역순으로 제거
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS terms;
 DROP TABLE IF EXISTS return_request;
 DROP TABLE IF EXISTS point_history;
 DROP TABLE IF EXISTS notice;
@@ -54,7 +55,7 @@ CREATE TABLE member (
     user_id     VARCHAR(50)     NOT NULL                COMMENT '로그인 아이디',
     password    VARCHAR(255)    NOT NULL                COMMENT '암호화된 비밀번호(BCrypt)',
     ci          VARCHAR(500)    NULL                    COMMENT '휴대폰 본인인증 고유번호(CI) AES-256',
-    role        ENUM('SYSTEM','ADMIN','USER') NOT NULL  COMMENT '권한 (SYSTEM>ADMIN>USER)',
+    role        ENUM('USER','ADMIN')        NOT NULL    COMMENT '권한',
     status      ENUM('ACTIVE','WITHDRAWN')  NOT NULL    COMMENT '계정 상태(soft-delete)',
     name        VARCHAR(50)     NOT NULL                COMMENT '회원명',
     phone       VARCHAR(100)    NULL                    COMMENT '전화번호 AES-256',
@@ -385,6 +386,20 @@ CREATE TABLE point_history (
     KEY idx_point_history_member (member_id),
     CONSTRAINT fk_point_history_member FOREIGN KEY (member_id) REFERENCES member (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='적립금 내역';
+
+-- ---------------------------------------------------------------------
+-- terms (약관)
+-- ---------------------------------------------------------------------
+CREATE TABLE terms (
+    term_id     BIGINT       NOT NULL AUTO_INCREMENT COMMENT '약관 ID',
+    type        ENUM('SERVICE','PRIVACY') NOT NULL   COMMENT '약관 유형 (SERVICE:이용약관 / PRIVACY:개인정보처리방침)',
+    title       VARCHAR(100) NOT NULL                COMMENT '약관 제목',
+    content     LONGTEXT     NOT NULL                COMMENT '약관 HTML 내용',
+    is_required BOOLEAN      NOT NULL DEFAULT TRUE   COMMENT '필수 동의 여부',
+    is_active   BOOLEAN      NOT NULL DEFAULT TRUE   COMMENT '활성 여부 (회원가입 화면 노출)',
+    created_at  DATETIME     NOT NULL                COMMENT '등록일시',
+    PRIMARY KEY (term_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='약관';
 
 -- ---------------------------------------------------------------------
 -- return_request (반품/교환 요청) - order_item 단위

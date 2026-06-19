@@ -1,9 +1,11 @@
 package com.kevolution.controller;
 
 import com.kevolution.service.MemberService;
+import com.kevolution.service.TermsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.Map;
@@ -13,6 +15,7 @@ import java.util.Map;
 public class AuthController {
 
     private final MemberService memberService;
+    private final TermsService termsService;
 
     @GetMapping("/auth/login")
     public String loginForm() {
@@ -20,7 +23,8 @@ public class AuthController {
     }
 
     @GetMapping("/auth/signup")
-    public String signupForm() {
+    public String signupForm(Model model) {
+        model.addAttribute("termsList", termsService.getActiveTerms());
         return "auth/signup";
     }
 

@@ -1,0 +1,287 @@
+================================================================
+K-Evolution 쇼핑몰 - 프로그램 흐름 정리
+최종 업데이트: 2026-06-19
+================================================================
+
+
+----------------------------------------------------------------
+1. 전체 구조 흐름
+----------------------------------------------------------------
+
+사용자가 브라우저에서 URL을 입력하면 아래 순서로 동작합니다.
+
+  브라우저 요청
+      ↓
+  Spring Security (로그인 여부 / 권한 확인)
+      ↓
+  Controller (요청을 받아서 처리)
+      ↓
+  Service (비즈니스 로직 처리)
+      ↓
+  Repository (DB에서 데이터 조회/저장)
+      ↓
+  JSP (화면에 결과 출력)
+      ↓
+  브라우저에 화면 표시
+
+
+----------------------------------------------------------------
+2. 기술 스택
+----------------------------------------------------------------
+
+  언어          Java 17
+  프레임워크    Spring Boot 3.5.3
+  화면          JSP (Java Server Pages)
+  DB            MySQL 8.x
+  ORM           Spring Data JPA + Hibernate
+  보안          Spring Security (세션 기반)
+  빌드          Maven
+  결제          토스페이먼츠 (예정)
+
+
+----------------------------------------------------------------
+3. 보안 처리 내역
+----------------------------------------------------------------
+
+  비밀번호    BCrypt 단방향 암호화 (복호화 불가, 비교만 가능)
+  전화번호    AES-256 양방향 암호화 (화면 표시 위해 복호화 필요)
+  주소        AES-256 양방향 암호화
+  회원 PK     UUID (숫자 대신 랜덤 문자열 → 순서 추측 불가)
+  CSRF 토큰   모든 POST 요청에 자동 적용
+  권한 통제   Spring Security로 URL별 접근 권한 제한
+
+
+----------------------------------------------------------------
+4. 권한 구조
+----------------------------------------------------------------
+
+  SYSTEM (최고운영자)
+    └── ADMIN (관리자)
+          └── USER (일반회원)
+
+  URL별 접근 권한:
+    누구나       /,  /auth/**,  /products/**
+    USER 이상    /cart/**,  /orders/**,  /payments/**
+    ADMIN 이상   /admin/**
+
+
+================================================================
+5. 기능별 프로그램 흐름
+================================================================
+
+
+[ 회원가입 ]
+─────────────────────────────────────────
+  1. /auth/signup 접속
+  2. AuthController → DB에서 활성 약관 목록 조회
+  3. signup.jsp 렌더링
+     - 아이디 / 비밀번호 / 이름 입력 폼
+     - 약관 체크박스 목록 (DB에 약관이 있을 경우)
+  4. 아이디 중복 확인 (AJAX → /auth/check-id)
+     - 페이지 이동 없이 실시간으로 중복 여부 확인
+  5. 필수 약관 미동의 시 → JS에서 가입 버튼 차단
+  6. 폼 제출 → POST /auth/signup
+  7. MemberService.signup()
+     - 비밀번호 BCrypt 암호화
+     - 전화번호/주소 AES-256 암호화 (입력 시)
+     - Member 객체 생성 → DB 저장
+  8. 로그인 페이지로 이동
+
+
+[ 로그인 ]
+─────────────────────────────────────────
+  1. /auth/login 접속 → 아이디/비밀번호 입력
+  2. Spring Security가 POST 요청 가로챔
+  3. CustomUserDetailsService.loadUserByUsername() 호출
+  4. DB에서 회원 조회 → BCrypt 비밀번호 비교
+  5. WITHDRAWN(탈퇴) 계정은 로그인 차단
+  6. 성공 → 세션 저장 후 메인 페이지 이동
+     실패 → /auth/login?error 로 리다이렉트
+
+
+[ 메인 페이지 ]
+─────────────────────────────────────────
+  1. / 접속 → MainController
+  2. 상품/카테고리 데이터 조회
+  3. main.jsp 렌더링
+     - 히어로 배너 + 검색창
+     - 카테고리 분류 섹션
+  4. 로그인 상태에 따라 헤더 메뉴 분기
+     - 비로그인: 로그인, 회원가입
+     - 로그인:   장바구니, 주문내역
+     - ADMIN/SYSTEM: 관리자 메뉴 추가
+
+
+[ 관리자 - 대시보드 (/admin) ]
+─────────────────────────────────────────
+  1. ADMIN 또는 SYSTEM 계정만 접근 가능
+  2. AdminController → 핵심 지표 조회
+     - 회원 수, 상품 수, 주문 수, 매출 합계
+     - 미결제 주문 수, 재고 부족 상품 수, 미답변 문의 수
+  3. 최근 주문 5건 목록 표시
+
+
+[ 관리자 - 상품 관리 (/admin/products) ]
+─────────────────────────────────────────
+  목록   상품 전체 조회 (키워드 검색, 20개씩 페이지네이션)
+  등록   /admin/products/register → 이름/가격/재고/카테고리 입력
+  수정   /admin/products/{id}/edit → 기존 정보 불러와서 수정
+  삭제   /admin/products/{id}/delete → POST 요청으로 삭제
+
+
+[ 관리자 - 회원 권한 변경 (/admin/members) ]
+─────────────────────────────────────────
+  1. 회원 목록 조회 (20명씩 페이지네이션)
+  2. 드롭다운에서 USER / ADMIN 선택 후 변경
+  3. 자기 자신의 권한 변경 시 예외 처리 (관리자 없어지는 상황 방지)
+  4. @Transactional + 더티 체킹으로 save() 없이 자동 UPDATE
+
+
+[ 관리자 - 약관 관리 (/admin/terms) ]       ← 오늘 구현
+─────────────────────────────────────────
+  목록   등록된 약관 전체 조회 (유형/제목/필수여부/활성여부/등록일)
+  등록   /admin/terms/upload
+         - 유형 선택 (이용약관 / 개인정보처리방침)
+         - 제목 입력
+         - HTML 파일 업로드
+         - 필수/활성 여부 체크
+         - 파일 내용을 읽어 DB terms 테이블에 저장
+  수정   /admin/terms/{id}/edit → 제목/파일/옵션 변경
+  삭제   /admin/terms/{id}/delete
+
+
+[ 회원가입 약관 동의 ]                       ← 오늘 구현
+─────────────────────────────────────────
+  1. 어드민에서 약관 HTML 업로드 → DB 저장
+  2. 사용자가 /auth/signup 접속
+  3. AuthController → DB에서 is_active=true 약관 목록 조회
+  4. signup.jsp에 약관 체크박스 자동 출력
+     - [필수] 미동의 시 가입 불가
+     - [선택] 선택 가능
+     - "보기" 버튼 → 모달 팝업으로 약관 전문 표시
+     - "전체 동의" 체크박스로 한 번에 모두 동의
+  5. JS에서 필수 약관 체크 여부 검증 후 폼 제출
+
+
+================================================================
+6. DB 테이블 목록 (총 22개)
+================================================================
+
+  [ 핵심 테이블 ]
+  member           회원 (UUID PK, BCrypt 비밀번호, AES-256 암호화)
+  product          상품
+  category         카테고리 (부모-자식 계층 구조)
+  cart             장바구니 (회원당 1개)
+  cart_item        장바구니 담긴 상품
+  orders           주문
+  order_item       주문 상품 (주문 시점 스냅샷 저장)
+  payment          결제 기록
+  coupon           쿠폰 종류
+  member_coupon    회원 보유 쿠폰
+  terms            약관 (오늘 추가)
+
+  [ 확장 테이블 ]
+  review           상품 리뷰 (별점 + 내용)
+  review_image     리뷰 이미지
+  product_image    상품 이미지 (여러 장)
+  product_option   상품 옵션 (색상/사이즈, 옵션별 재고)
+  member_address   회원 배송지 주소록
+  delivery         배송 (택배사/송장번호)
+  banner           메인 배너 이미지
+  wishlist         찜 목록
+  qna              상품/1:1 문의
+  notice           공지사항
+  point_history    적립금 내역
+  return_request   반품/교환 요청
+
+
+================================================================
+7. 파일 구조
+================================================================
+
+  src/main/java/com/kevolution/
+  ├── config/
+  │   ├── SecurityConfig.java              권한/로그인/로그아웃 설정
+  │   ├── CustomUserDetailsService.java    로그인 시 DB 회원 조회
+  │   ├── AesUtil.java                     AES-256 암호화 유틸
+  │   └── AesAttributeConverter.java       JPA 자동 암호화 컨버터
+  │
+  ├── controller/
+  │   ├── MainController.java              메인 페이지
+  │   ├── AuthController.java              로그인/회원가입
+  │   ├── ProductController.java           상품 목록
+  │   ├── AdminController.java             관리자 대시보드
+  │   ├── AdminProductController.java      관리자 상품 CRUD
+  │   ├── AdminMemberController.java       관리자 회원 권한 변경
+  │   └── AdminTermsController.java        관리자 약관 관리  ← 오늘 추가
+  │
+  ├── service/
+  │   ├── MemberService.java               회원가입/중복확인
+  │   ├── ProductService.java              상품 조회/등록/수정/삭제
+  │   ├── AdminMemberService.java          회원 목록/권한 변경
+  │   └── TermsService.java                약관 업로드/조회/수정/삭제  ← 오늘 추가
+  │
+  ├── entity/                              DB 테이블 매핑 클래스들
+  │   └── Terms.java                       약관 엔티티  ← 오늘 추가
+  │
+  └── repository/
+      └── TermsRepository.java             약관 DB 쿼리  ← 오늘 추가
+
+  src/main/webapp/WEB-INF/views/
+  ├── main.jsp                             메인 화면
+  ├── fragments/
+  │   ├── header.jsp                       공통 헤더
+  │   ├── admin-topbar.jsp                 관리자 상단바
+  │   └── admin-sidebar.jsp                관리자 사이드바
+  ├── auth/
+  │   ├── login.jsp                        로그인 화면
+  │   └── signup.jsp                       회원가입 + 약관 동의  ← 오늘 수정
+  └── admin/
+      ├── dashboard.jsp                    관리자 대시보드
+      ├── products/list.jsp                상품 목록
+      ├── products/form.jsp                상품 등록/수정 폼
+      └── terms/                           약관 관리  ← 오늘 추가
+          ├── list.jsp                     약관 목록
+          └── upload.jsp                   약관 등록/수정 폼
+
+  sample-terms/                            테스트용 약관 HTML  ← 오늘 추가
+  ├── service.html                         이용약관 샘플
+  └── privacy.html                         개인정보처리방침 샘플
+
+
+================================================================
+8. URL 전체 목록
+================================================================
+
+  누구나 접근 가능
+  GET  /                              메인 페이지
+  GET  /auth/login                    로그인 페이지
+  POST /auth/login                    로그인 처리 (Spring Security 자동)
+  POST /auth/logout                   로그아웃
+  GET  /auth/signup                   회원가입 페이지
+  POST /auth/signup                   회원가입 처리
+  GET  /auth/check-id                 아이디 중복 확인 (AJAX)
+  GET  /products                      상품 목록
+
+  로그인 사용자만
+  GET  /cart                          장바구니
+  GET  /orders                        주문 내역
+
+  ADMIN/SYSTEM만
+  GET  /admin                         대시보드
+  GET  /admin/products                상품 목록
+  GET  /admin/products/register       상품 등록 폼
+  POST /admin/products/register       상품 등록 처리
+  GET  /admin/products/{id}/edit      상품 수정 폼
+  POST /admin/products/{id}/edit      상품 수정 처리
+  POST /admin/products/{id}/delete    상품 삭제
+  GET  /admin/members                 회원 목록
+  POST /admin/members/{id}/role       회원 권한 변경
+  GET  /admin/terms                   약관 목록
+  GET  /admin/terms/upload            약관 등록 폼
+  POST /admin/terms/upload            약관 등록 처리
+  GET  /admin/terms/{id}/edit         약관 수정 폼
+  POST /admin/terms/{id}/edit         약관 수정 처리
+  POST /admin/terms/{id}/delete       약관 삭제
+
+================================================================
