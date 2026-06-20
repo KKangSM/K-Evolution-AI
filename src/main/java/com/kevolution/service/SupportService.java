@@ -65,6 +65,6 @@ public class SupportService {
         if (!qna.getMember().getUserId().equals(userId)) {
             throw new IllegalArgumentException("본인이 작성한 문의만 삭제할 수 있습니다.");
         }
-        qnaRepository.delete(qna);
+        qnaRepository.deleteById(qnaId);
     }
 }
