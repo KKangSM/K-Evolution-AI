@@ -75,4 +75,17 @@ public class SupportController {
         }
         return "support/qna-detail";
     }
+
+    @PostMapping("/qna/{qnaId}/delete")
+    public String qnaDelete(@PathVariable Long qnaId,
+                            @AuthenticationPrincipal UserDetails user,
+                            RedirectAttributes ra) {
+        try {
+            supportService.deleteQna(qnaId, user.getUsername());
+            ra.addFlashAttribute("successMsg", "문의가 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
+        return "redirect:/support/qna";
+    }
 }

@@ -85,6 +85,7 @@
             </div>
         </div>
 
+        <c:if test="${qnaList.totalPages > 1}">
         <nav class="mt-3">
             <ul class="pagination justify-content-center">
                 <c:forEach begin="0" end="${qnaList.totalPages - 1}" var="i">
@@ -94,6 +95,7 @@
                 </c:forEach>
             </ul>
         </nav>
+        </c:if>
 
     </main>
 </div>

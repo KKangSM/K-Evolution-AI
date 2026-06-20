@@ -58,4 +58,13 @@ public class SupportService {
                 .secret(secret)
                 .build());
     }
+
+    public void deleteQna(Long qnaId, String userId) {
+        Qna qna = qnaRepository.findById(qnaId)
+                .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
+        if (!qna.getMember().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("본인이 작성한 문의만 삭제할 수 있습니다.");
+        }
+        qnaRepository.delete(qna);
+    }
 }

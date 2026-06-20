@@ -51,7 +51,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
                 .requestMatchers("/auth/**", "/products/**", "/", "/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/support/**").permitAll()
+                .requestMatchers("/support", "/support/notices", "/support/notices/**").permitAll()
+                .requestMatchers("/support/qna/**").hasRole("USER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/mypage/**").hasRole("USER")
                 .anyRequest().authenticated()
@@ -67,7 +68,7 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/auth/logout")
-                .logoutSuccessUrl("/products")
+                .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
             );

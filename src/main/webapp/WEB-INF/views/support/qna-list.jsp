@@ -51,15 +51,17 @@
         </div>
     </div>
 
-    <nav class="mt-3">
-        <ul class="pagination justify-content-center">
-            <c:forEach begin="0" end="${qnaList.totalPages - 1}" var="i">
-                <li class="page-item ${qnaList.number == i ? 'active' : ''}">
-                    <a class="page-link" href="?page=${i}">${i + 1}</a>
-                </li>
-            </c:forEach>
-        </ul>
-    </nav>
+    <c:if test="${qnaList.totalPages > 1}">
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                <c:forEach begin="0" end="${qnaList.totalPages - 1}" var="i">
+                    <li class="page-item ${qnaList.number == i ? 'active' : ''}">
+                        <a class="page-link" href="?page=${i}">${i + 1}</a>
+                    </li>
+                </c:forEach>
+            </ul>
+        </nav>
+    </c:if>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

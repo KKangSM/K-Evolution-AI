@@ -61,6 +61,16 @@
                 </div>
             </div>
         </c:if>
+
+        <c:if test="${!qna.answered}">
+            <div class="mt-3">
+                <form action="${pageContext.request.contextPath}/support/qna/${qna.qnaId}/delete"
+                      method="post" onsubmit="return confirm('문의를 삭제하시겠습니까?')">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                    <button class="btn btn-outline-danger btn-sm">삭제</button>
+                </form>
+            </div>
+        </c:if>
     </c:if>
 </div>
 

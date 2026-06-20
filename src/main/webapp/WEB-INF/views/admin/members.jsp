@@ -105,6 +105,7 @@
         </div>
 
         <%-- 페이지네이션 --%>
+        <c:if test="${members.totalPages > 1}">
         <nav class="mt-3">
             <ul class="pagination justify-content-center">
                 <c:forEach begin="0" end="${members.totalPages - 1}" var="i">
@@ -113,6 +114,8 @@
                     </li>
                 </c:forEach>
             </ul>
+        </nav>
+        </c:if>
         </nav>
 
     </main>

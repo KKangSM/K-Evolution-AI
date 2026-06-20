@@ -34,6 +34,7 @@
         </div>
     </div>
 
+    <c:if test="${notices.totalPages > 1}">
     <nav class="mt-3">
         <ul class="pagination justify-content-center">
             <c:forEach begin="0" end="${notices.totalPages - 1}" var="i">
@@ -42,6 +43,8 @@
                 </li>
             </c:forEach>
         </ul>
+    </nav>
+    </c:if>
     </nav>
 </div>
 

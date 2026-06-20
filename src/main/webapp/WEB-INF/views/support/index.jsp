@@ -26,11 +26,12 @@
         </div>
         <div class="col-4">
             <sec:authorize access="isAuthenticated()">
-                <a href="${pageContext.request.contextPath}/support/qna" class="text-decoration-none">
+                <c:set var="qnaUrl" value="${pageContext.request.contextPath}/support/qna"/>
             </sec:authorize>
             <sec:authorize access="isAnonymous()">
-                <a href="${pageContext.request.contextPath}/auth/login" class="text-decoration-none">
+                <c:set var="qnaUrl" value="${pageContext.request.contextPath}/auth/login"/>
             </sec:authorize>
+            <a href="${qnaUrl}" class="text-decoration-none">
                 <div class="card shadow-sm text-center py-4 h-100">
                     <div class="fs-2 mb-2">💬</div>
                     <div class="fw-bold">1:1 문의</div>
