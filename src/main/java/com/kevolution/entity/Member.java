@@ -78,6 +78,10 @@ public class Member {
         this.role = role;
     }
 
+    public void withdraw() {
+        this.status = Status.WITHDRAWN;
+    }
+
     @Builder
     public Member(String userId, String password, String ci, String name,
                   String phone, String address, Role role, Status status) {

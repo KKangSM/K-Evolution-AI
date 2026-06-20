@@ -28,4 +28,14 @@ public class AdminMemberService {
         }
         member.changeRole(newRole);
     }
+
+    @Transactional
+    public void deleteMember(String targetMemberId, String requesterUserId) {
+        Member member = memberRepository.findById(targetMemberId)
+                .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
+        if (member.getUserId().equals(requesterUserId)) {
+            throw new IllegalArgumentException("자기 자신은 삭제할 수 없습니다.");
+        }
+        member.withdraw();
+    }
 }

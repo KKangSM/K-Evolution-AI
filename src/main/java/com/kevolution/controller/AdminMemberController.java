@@ -27,8 +27,24 @@ public class AdminMemberController {
     ) {
         PageRequest pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
         Page<Member> members = adminMemberService.getMembers(pageable);
+        model.addAttribute("activeMenu", "members");
         model.addAttribute("members", members);
         return "admin/members";
+    }
+
+    @PostMapping("/{memberId}/delete")
+    public String deleteMember(
+            @PathVariable String memberId,
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes ra
+    ) {
+        try {
+            adminMemberService.deleteMember(memberId, userDetails.getUsername());
+            ra.addFlashAttribute("successMsg", "회원이 삭제(탈퇴 처리)되었습니다.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
+        return "redirect:/admin/members";
     }
 
     @PostMapping("/{memberId}/role")
