@@ -54,6 +54,16 @@ public class MemberAddress {
         this.defaultAddress = defaultAddress;
     }
 
+    public void update(String recipient, String phone, String zipcode,
+                       String address, String addressDetail, boolean defaultAddress) {
+        this.recipient = recipient;
+        this.phone = phone;
+        this.zipcode = zipcode;
+        this.address = address;
+        this.addressDetail = addressDetail;
+        this.defaultAddress = defaultAddress;
+    }
+
     public void setAsDefault(boolean value) {
         this.defaultAddress = value;
     }

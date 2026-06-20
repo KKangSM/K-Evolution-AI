@@ -12,6 +12,8 @@ import java.util.List;
 public interface QnaRepository extends JpaRepository<Qna, Long> {
     Page<Qna> findByProductOrderByCreatedAtDesc(Product product, Pageable pageable);
     List<Qna> findByMemberOrderByCreatedAtDesc(Member member);
+    Page<Qna> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    Page<Qna> findByMemberOrderByCreatedAtDesc(Member member, Pageable pageable);
 
     // 대시보드: 미답변 문의 수
     long countByAnswerIsNull();

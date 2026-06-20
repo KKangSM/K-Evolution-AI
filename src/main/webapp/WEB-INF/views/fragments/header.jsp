@@ -4,9 +4,10 @@
     <div class="container">
         <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/">K-Evolution</a>
         <div class="navbar-nav ms-auto align-items-center">
+            <a class="nav-link" href="${pageContext.request.contextPath}/support">고객센터</a>
             <sec:authorize access="isAuthenticated()">
                 <a class="nav-link" href="${pageContext.request.contextPath}/cart">장바구니</a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/orders">주문내역</a>
+                <a class="nav-link" href="${pageContext.request.contextPath}/mypage">마이페이지</a>
             </sec:authorize>
             <sec:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_SYSTEM')">
                 <a class="nav-link" href="${pageContext.request.contextPath}/admin">관리자</a>

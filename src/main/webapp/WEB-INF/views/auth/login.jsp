@@ -63,5 +63,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<c:if test="${signupSuccess}">
+<script>
+    alert("노예가 되어 주셔서 감사합니다.\n- by 선모 -");
+</script>
+</c:if>
 </body>
 </html>

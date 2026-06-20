@@ -45,6 +45,12 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/auth/logout-after-withdraw")
+    public String logoutAfterWithdraw(jakarta.servlet.http.HttpSession session) {
+        session.invalidate();
+        return "redirect:/auth/login?withdraw=true";
+    }
+
     // 아이디 중복 확인 (AJAX)
     @GetMapping("/auth/check-id")
     @ResponseBody

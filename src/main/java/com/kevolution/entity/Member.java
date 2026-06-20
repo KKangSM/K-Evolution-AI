@@ -82,6 +82,15 @@ public class Member {
         this.status = Status.WITHDRAWN;
     }
 
+    public void updateInfo(String name, String phone) {
+        this.name = name;
+        this.phone = phone;
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
     @Builder
     public Member(String userId, String password, String ci, String name,
                   String phone, String address, Role role, Status status) {

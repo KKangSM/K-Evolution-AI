@@ -21,7 +21,10 @@
        href="${pageContext.request.contextPath}/admin/members">
         <span>👥 회원 관리</span>
     </a>
-    <a class="menu-link" href="#"><span>💬 문의 관리</span><span class="soon">준비중</span></a>
+    <a class="menu-link ${activeMenu == 'qna' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/qna">
+        <span>💬 문의 관리</span>
+    </a>
     <a class="menu-link" href="#"><span>📢 공지 관리</span><span class="soon">준비중</span></a>
     <a class="menu-link" href="#"><span>🖼️ 배너 관리</span><span class="soon">준비중</span></a>
 </nav>
