@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>약관 ${empty terms ? '등록' : '수정'} · K-Evolution 관리자</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 </head>
 <body class="admin-body">
@@ -22,9 +22,7 @@
             <p class="text-muted small mb-0">HTML 파일을 업로드하면 내용이 저장됩니다.</p>
         </div>
 
-        <c:if test="${not empty errorMsg}">
-            <div class="alert alert-danger py-2 small">${errorMsg}</div>
-        </c:if>
+        <%@ include file="/WEB-INF/views/fragments/flash-toast.jsp" %>
 
         <div class="card shadow-sm" style="max-width: 560px;">
             <div class="card-body p-4">

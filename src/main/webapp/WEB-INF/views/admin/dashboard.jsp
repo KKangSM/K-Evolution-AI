@@ -6,8 +6,13 @@
 <head>
     <meta charset="UTF-8">
     <title>대시보드 · K-Evolution 관리자</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
+    <style>
+        .stat-link { cursor: pointer; transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
+        .stat-link:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(17, 24, 39, .08); border-color: #dfe3e7; }
+        .stat-link:hover .stat-value { color: var(--kv-primary); }
+    </style>
 </head>
 <body class="admin-body">
 
@@ -29,31 +34,33 @@
         <!-- 핵심 지표 -->
         <div class="row g-3 mb-4">
             <div class="col-6 col-lg-3">
-                <div class="card stat-card h-100">
+                <a href="${pageContext.request.contextPath}/admin/members"
+                   class="card stat-card h-100 stat-link text-decoration-none text-reset">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon bg-soft-blue">👥</div>
+                        <div class="stat-icon bg-soft-blue"><i class="bi bi-people text-primary"></i></div>
                         <div>
                             <div class="stat-label">전체 회원</div>
                             <div class="stat-value"><fmt:formatNumber value="${memberCount}"/></div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-6 col-lg-3">
-                <div class="card stat-card h-100">
+                <a href="${pageContext.request.contextPath}/admin/products"
+                   class="card stat-card h-100 stat-link text-decoration-none text-reset">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon bg-soft-purple">📦</div>
+                        <div class="stat-icon bg-soft-purple"><i class="bi bi-box-seam" style="color:#7c4dff"></i></div>
                         <div>
                             <div class="stat-label">등록 상품</div>
                             <div class="stat-value"><fmt:formatNumber value="${productCount}"/></div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-6 col-lg-3">
                 <div class="card stat-card h-100">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon bg-soft-green">🧾</div>
+                        <div class="stat-icon bg-soft-green"><i class="bi bi-receipt text-success"></i></div>
                         <div>
                             <div class="stat-label">전체 주문</div>
                             <div class="stat-value"><fmt:formatNumber value="${orderCount}"/></div>
@@ -64,7 +71,7 @@
             <div class="col-6 col-lg-3">
                 <div class="card stat-card h-100">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon bg-soft-amber">💰</div>
+                        <div class="stat-icon bg-soft-amber"><i class="bi bi-cash-coin" style="color:#d98e00"></i></div>
                         <div>
                             <div class="stat-label">누적 매출 (결제완료)</div>
                             <div class="stat-value"><fmt:formatNumber value="${paidSales}"/><span class="fs-6 fw-normal">원</span></div>
@@ -88,24 +95,26 @@
                 </div>
             </div>
             <div class="col-6 col-lg-4">
-                <div class="card stat-card h-100">
+                <a href="${pageContext.request.contextPath}/admin/products"
+                   class="card stat-card h-100 stat-link text-decoration-none text-reset">
                     <div class="card-body d-flex align-items-center justify-content-between">
                         <span class="stat-label">재고 부족 상품 (5개 미만)</span>
                         <span class="badge ${lowStockCount > 0 ? 'bg-danger' : 'bg-light text-muted'} fs-6">
                             <fmt:formatNumber value="${lowStockCount}"/>개
                         </span>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-6 col-lg-4">
-                <div class="card stat-card h-100">
+                <a href="${pageContext.request.contextPath}/admin/qna"
+                   class="card stat-card h-100 stat-link text-decoration-none text-reset">
                     <div class="card-body d-flex align-items-center justify-content-between">
                         <span class="stat-label">미답변 문의</span>
                         <span class="badge ${unansweredQna > 0 ? 'bg-primary' : 'bg-light text-muted'} fs-6">
                             <fmt:formatNumber value="${unansweredQna}"/>건
                         </span>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 

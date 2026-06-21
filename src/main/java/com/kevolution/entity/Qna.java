@@ -35,6 +35,9 @@ public class Qna {
 
     private LocalDateTime answeredAt;
 
+    /** 고객이 답변을 확인한 일시 (null이면 미확인) */
+    private LocalDateTime answerReadAt;
+
     /** 비밀글 여부 */
     @Column(name = "is_secret", nullable = false)
     private boolean secret;
@@ -56,6 +59,12 @@ public class Qna {
         this.secret = secret;
     }
 
+    /** 답변 등록 전에 작성자가 제목·내용을 수정한다. */
+    public void edit(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     public void answer(String answer) {
         this.answer = answer;
         this.answeredAt = LocalDateTime.now();
@@ -63,5 +72,16 @@ public class Qna {
 
     public boolean isAnswered() {
         return answer != null;
+    }
+
+    /** 작성자가 답변을 처음 열람한 시점을 1회 기록한다. */
+    public void markAnswerRead() {
+        if (answer != null && answerReadAt == null) {
+            this.answerReadAt = LocalDateTime.now();
+        }
+    }
+
+    public boolean isAnswerRead() {
+        return answerReadAt != null;
     }
 }

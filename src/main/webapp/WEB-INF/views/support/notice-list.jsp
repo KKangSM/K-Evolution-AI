@@ -5,13 +5,13 @@
 <head>
     <meta charset="UTF-8">
     <title>공지사항 - K-Evolution</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
 </head>
 <body class="bg-light">
 <%@ include file="/WEB-INF/views/fragments/header.jsp" %>
 
 <div class="container py-5" style="max-width:720px">
-    <a href="${pageContext.request.contextPath}/support" class="text-muted small text-decoration-none">← 고객센터</a>
+    <a href="${pageContext.request.contextPath}/support" class="back-link"><i class="bi bi-chevron-left"></i>고객센터</a>
     <h5 class="fw-bold mt-2 mb-4">공지사항</h5>
 
     <div class="card shadow-sm">

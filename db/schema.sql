@@ -348,6 +348,7 @@ CREATE TABLE qna (
     content     TEXT         NOT NULL                COMMENT '내용',
     answer      TEXT         NULL                    COMMENT '답변',
     answered_at DATETIME     NULL                    COMMENT '답변일시',
+    answer_read_at DATETIME  NULL                    COMMENT '고객 답변 확인 일시',
     is_secret   BOOLEAN      NOT NULL DEFAULT FALSE  COMMENT '비밀글 여부',
     created_at  DATETIME     NOT NULL                COMMENT '작성일시',
     PRIMARY KEY (qna_id),

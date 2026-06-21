@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>상품 관리 · K-Evolution 관리자</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
     <style>
         .admin-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }

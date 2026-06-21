@@ -1,0 +1,120 @@
+/* =====================================================================
+ * theme.css — 전역 디자인 토큰 & 베이스 폴리시
+ * Bootstrap 위에 얹어 폰트/색/간격/그림자만 정돈한다.
+ * (페이지별 main.css / admin.css 는 이 파일 뒤에 로드되어 우선한다)
+ * ===================================================================== */
+
+:root {
+    --kv-font-sans: 'Pretendard Variable', Pretendard, -apple-system,
+        BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Segoe UI', Roboto,
+        'Noto Sans KR', sans-serif;
+
+    --kv-bg: #f7f8fa;
+    --kv-surface: #ffffff;
+    --kv-border: #e9ecef;
+    --kv-text: #212529;
+    --kv-muted: #6b7280;
+    --kv-primary: #111827;     /* 차분한 잉크 블랙 */
+    --kv-radius: 12px;
+    --kv-shadow-sm: 0 1px 2px rgba(17, 24, 39, .04), 0 1px 3px rgba(17, 24, 39, .06);
+    --kv-shadow: 0 4px 16px rgba(17, 24, 39, .06);
+}
+
+/* ---- 타이포 ---- */
+body {
+    font-family: var(--kv-font-sans);
+    color: var(--kv-text);
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+body.bg-light { background-color: var(--kv-bg) !important; }
+
+h1, h2, h3, h4, h5, h6, .navbar-brand, .fw-bold { letter-spacing: -0.02em; }
+
+/* ---- 카드 ---- */
+.card {
+    border: 1px solid var(--kv-border);
+    border-radius: var(--kv-radius);
+}
+.card.shadow-sm { box-shadow: var(--kv-shadow-sm) !important; }
+.card.shadow { box-shadow: var(--kv-shadow) !important; }
+.card-header {
+    background-color: var(--kv-surface);
+    border-bottom: 1px solid var(--kv-border);
+}
+
+/* ---- 버튼 ---- */
+.btn { border-radius: 9px; font-weight: 500; }
+.btn-dark { background-color: var(--kv-primary); border-color: var(--kv-primary); }
+.btn-dark:hover { background-color: #000; border-color: #000; }
+.btn-sm { border-radius: 8px; }
+
+/* ---- 폼 ---- */
+.form-control, .form-select {
+    border-radius: 9px;
+    border-color: var(--kv-border);
+}
+.form-control:focus, .form-select:focus {
+    border-color: #c7ccd1;
+    box-shadow: 0 0 0 .2rem rgba(17, 24, 39, .06);
+}
+
+/* ---- 배지 / 텍스트 ---- */
+.text-muted { color: var(--kv-muted) !important; }
+.badge { font-weight: 600; letter-spacing: 0; }
+
+/* ---- 리스트 그룹 ---- */
+.list-group-item { border-color: var(--kv-border); }
+
+/* =====================================================================
+ * 공통 네비게이션 (.site-navbar) — 밝고 깔끔한 상단바
+ * ===================================================================== */
+.site-navbar {
+    background-color: rgba(255, 255, 255, .85);
+    backdrop-filter: saturate(180%) blur(10px);
+    border-bottom: 1px solid var(--kv-border);
+}
+.site-navbar .navbar-brand {
+    color: var(--kv-primary);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+.site-navbar .nav-link {
+    color: #374151;
+    font-weight: 500;
+    font-size: .95rem;
+    padding-left: .9rem;
+    padding-right: .9rem;
+    transition: color .15s ease;
+}
+.site-navbar .nav-link:hover { color: var(--kv-primary); }
+.site-navbar .nav-link i { font-size: 1rem; vertical-align: -.06em; }
+
+/* =====================================================================
+ * 뒤로가기 링크 (.back-link) — 은은한 pill + chevron
+ * ===================================================================== */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--kv-muted);
+    text-decoration: none;
+    padding: .32rem .8rem .32rem .6rem;
+    border-radius: 999px;
+    border: 1px solid var(--kv-border);
+    background: #fff;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.back-link:hover {
+    background: #f1f3f5;
+    color: var(--kv-text);
+    border-color: #dfe3e7;
+}
+.back-link i {
+    font-size: .82rem;
+    transition: transform .15s ease;
+}
+.back-link:hover i { transform: translateX(-3px); }

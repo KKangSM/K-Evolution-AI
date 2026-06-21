@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>약관 관리 · K-Evolution 관리자</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 </head>
 <body class="admin-body">
@@ -26,12 +26,7 @@
             <a href="${pageContext.request.contextPath}/admin/terms/upload" class="btn btn-dark">+ 약관 등록</a>
         </div>
 
-        <c:if test="${not empty successMsg}">
-            <div class="alert alert-success py-2 small">${successMsg}</div>
-        </c:if>
-        <c:if test="${not empty errorMsg}">
-            <div class="alert alert-danger py-2 small">${errorMsg}</div>
-        </c:if>
+        <%@ include file="/WEB-INF/views/fragments/flash-toast.jsp" %>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">

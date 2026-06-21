@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 
 @Configuration
 @EnableWebSecurity
@@ -50,11 +51,15 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
-                .requestMatchers("/auth/**", "/products/**", "/", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/auth/**", "/products/**", "/", "/css/**", "/js/**", "/images/**", "/.well-known/**").permitAll()
                 .requestMatchers("/support", "/support/notices", "/support/notices/**").permitAll()
-                .requestMatchers("/support/qna/**").hasRole("USER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/mypage/**").hasRole("USER")
+                // 일반 회원 전용 — ADMIN 은 URL 접근까지 차단.
+                // 단 SYSTEM 은 마스터키이므로 모두 통과시킨다.
+                // (SYSTEM 이거나, 또는 USER 이면서 ADMIN 이 아닌 계정만 통과)
+                .requestMatchers("/support/qna/**", "/mypage/**", "/cart/**")
+                    .access(new WebExpressionAuthorizationManager(
+                        "hasRole('SYSTEM') or (hasRole('USER') and !hasRole('ADMIN'))"))
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

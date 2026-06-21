@@ -5,22 +5,21 @@
 <head>
     <meta charset="UTF-8">
     <title>내 정보 수정 - K-Evolution</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
 </head>
 <body class="bg-light">
 <%@ include file="/WEB-INF/views/fragments/header.jsp" %>
 
+<%@ include file="/WEB-INF/views/fragments/flash-toast.jsp" %>
+
 <div class="container py-5" style="max-width:560px">
-    <a href="${pageContext.request.contextPath}/mypage" class="text-muted small text-decoration-none">← 마이페이지</a>
+    <a href="${pageContext.request.contextPath}/mypage" class="back-link"><i class="bi bi-chevron-left"></i>마이페이지</a>
     <h5 class="fw-bold mt-2 mb-4">내 정보 수정</h5>
 
     <!-- 기본 정보 수정 -->
     <div class="card shadow-sm mb-4">
         <div class="card-header fw-bold">기본 정보</div>
         <div class="card-body">
-            <c:if test="${not empty successMsg}">
-                <div class="alert alert-success py-2 small">${successMsg}</div>
-            </c:if>
             <form action="${pageContext.request.contextPath}/mypage/edit" method="post">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <div class="mb-3">

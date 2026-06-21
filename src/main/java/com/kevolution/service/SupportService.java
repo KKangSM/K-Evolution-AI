@@ -38,13 +38,14 @@ public class SupportService {
         return qnaRepository.findByMemberOrderByCreatedAtDesc(member, pageable);
     }
 
-    public Qna getQna(Long qnaId, String userId) {
+    /** 작성자가 목록에서 답변을 펼쳐 확인하면 확인 시점을 기록한다. (본인만, 멱등) */
+    @Transactional
+    public void markAnswerRead(Long qnaId, String userId) {
         Qna qna = qnaRepository.findById(qnaId)
                 .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
-        if (qna.isSecret() && !qna.getMember().getUserId().equals(userId)) {
-            throw new IllegalArgumentException("비밀 문의는 작성자만 볼 수 있습니다.");
+        if (qna.getMember().getUserId().equals(userId)) {
+            qna.markAnswerRead();
         }
-        return qna;
     }
 
     @Transactional
@@ -59,12 +60,32 @@ public class SupportService {
                 .build());
     }
 
+    @Transactional
+    public void updateQna(Long qnaId, String userId, String title, String content) {
+        Qna qna = loadModifiable(qnaId, userId, "수정");
+        qna.edit(title, content);
+    }
+
+    @Transactional
     public void deleteQna(Long qnaId, String userId) {
+        loadModifiable(qnaId, userId, "삭제");
+        qnaRepository.deleteById(qnaId);
+    }
+
+    /**
+     * 작성자 본인 + 답변 전(미답변) 조건을 모두 만족할 때만 문의를 반환한다.
+     * 답변이 달린 문의는 응대 기록 보존을 위해 수정·삭제할 수 없다.
+     */
+    private Qna loadModifiable(Long qnaId, String userId, String action) {
         Qna qna = qnaRepository.findById(qnaId)
                 .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
         if (!qna.getMember().getUserId().equals(userId)) {
-            throw new IllegalArgumentException("본인이 작성한 문의만 삭제할 수 있습니다.");
+            throw new IllegalArgumentException("본인이 작성한 문의만 " + action + "할 수 있습니다.");
         }
-        qnaRepository.deleteById(qnaId);
+        if (qna.isAnswered()) {
+            throw new IllegalArgumentException(
+                    "답변이 등록된 문의는 " + action + "할 수 없습니다. 변경이 필요하면 고객센터로 문의해 주세요.");
+        }
+        return qna;
     }
 }

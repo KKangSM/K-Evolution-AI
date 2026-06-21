@@ -27,13 +27,6 @@ public class AdminQnaController {
         return "admin/qna/list";
     }
 
-    @GetMapping("/{qnaId}")
-    public String detail(@PathVariable Long qnaId, Model model) {
-        model.addAttribute("activeMenu", "qna");
-        model.addAttribute("qna", adminQnaService.getQna(qnaId));
-        return "admin/qna/detail";
-    }
-
     @PostMapping("/{qnaId}/answer")
     public String answer(
             @PathVariable Long qnaId,
@@ -42,13 +35,6 @@ public class AdminQnaController {
     ) {
         adminQnaService.answer(qnaId, answer);
         ra.addFlashAttribute("successMsg", "답변이 등록되었습니다.");
-        return "redirect:/admin/qna/" + qnaId;
-    }
-
-    @PostMapping("/{qnaId}/delete")
-    public String delete(@PathVariable Long qnaId, RedirectAttributes ra) {
-        adminQnaService.delete(qnaId);
-        ra.addFlashAttribute("successMsg", "문의가 삭제되었습니다.");
         return "redirect:/admin/qna";
     }
 }

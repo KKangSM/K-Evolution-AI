@@ -2,6 +2,7 @@ package com.kevolution.controller;
 
 import com.kevolution.service.SupportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,11 +49,6 @@ public class SupportController {
         return "support/qna-list";
     }
 
-    @GetMapping("/qna/write")
-    public String qnaWriteForm() {
-        return "support/qna-write";
-    }
-
     @PostMapping("/qna/write")
     public String qnaWrite(@AuthenticationPrincipal UserDetails user,
                            @RequestParam String title,
@@ -64,16 +60,28 @@ public class SupportController {
         return "redirect:/support/qna";
     }
 
-    @GetMapping("/qna/{qnaId}")
-    public String qnaDetail(@PathVariable Long qnaId,
-                            @AuthenticationPrincipal UserDetails user,
-                            Model model) {
+    // 답변 확인 처리 — 목록 아코디언을 펼칠 때 AJAX로 호출된다.
+    @PostMapping("/qna/{qnaId}/read")
+    @ResponseBody
+    public ResponseEntity<Void> qnaMarkRead(@PathVariable Long qnaId,
+                                            @AuthenticationPrincipal UserDetails user) {
+        supportService.markAnswerRead(qnaId, user.getUsername());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/qna/{qnaId}/edit")
+    public String qnaEdit(@PathVariable Long qnaId,
+                          @AuthenticationPrincipal UserDetails user,
+                          @RequestParam String title,
+                          @RequestParam String content,
+                          RedirectAttributes ra) {
         try {
-            model.addAttribute("qna", supportService.getQna(qnaId, user.getUsername()));
+            supportService.updateQna(qnaId, user.getUsername(), title, content);
+            ra.addFlashAttribute("successMsg", "문의가 수정되었습니다.");
         } catch (IllegalArgumentException e) {
-            model.addAttribute("errorMsg", e.getMessage());
+            ra.addFlashAttribute("errorMsg", e.getMessage());
         }
-        return "support/qna-detail";
+        return "redirect:/support/qna";
     }
 
     @PostMapping("/qna/{qnaId}/delete")

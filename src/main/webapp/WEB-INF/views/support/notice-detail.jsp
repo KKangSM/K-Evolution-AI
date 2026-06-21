@@ -5,13 +5,13 @@
 <head>
     <meta charset="UTF-8">
     <title>${notice.title} - K-Evolution</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
 </head>
 <body class="bg-light">
 <%@ include file="/WEB-INF/views/fragments/header.jsp" %>
 
 <div class="container py-5" style="max-width:720px">
-    <a href="${pageContext.request.contextPath}/support/notices" class="text-muted small text-decoration-none">← 공지사항 목록</a>
+    <a href="${pageContext.request.contextPath}/support/notices" class="back-link"><i class="bi bi-chevron-left"></i>공지사항 목록</a>
 
     <div class="card shadow-sm mt-3">
         <div class="card-header">

@@ -28,8 +28,4 @@ public class AdminQnaService {
         Qna qna = getQna(qnaId);
         qna.answer(answer);
     }
-
-    public void delete(Long qnaId) {
-        qnaRepository.deleteById(qnaId);
-    }
 }

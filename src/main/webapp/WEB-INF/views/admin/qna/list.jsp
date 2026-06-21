@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>문의 관리 · K-Evolution 관리자</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 </head>
 <body class="admin-body">
@@ -19,12 +19,10 @@
 
         <div class="mb-4">
             <h4 class="page-title mb-1">문의 관리</h4>
-            <p class="text-muted small mb-0">전체 문의 목록을 조회하고 답변을 처리합니다.</p>
+            <p class="text-muted small mb-0">행을 클릭하면 상세 내용과 답변 창이 열립니다.</p>
         </div>
 
-        <c:if test="${not empty successMsg}">
-            <div class="alert alert-success py-2 small">${successMsg}</div>
-        </c:if>
+        <%@ include file="/WEB-INF/views/fragments/flash-toast.jsp" %>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">
@@ -36,18 +34,15 @@
                         <th style="width:100px">작성자</th>
                         <th style="width:80px">비밀글</th>
                         <th style="width:90px">상태</th>
+                        <th style="width:90px">고객확인</th>
                         <th style="width:110px">작성일</th>
-                        <th style="width:80px"></th>
                     </tr>
                     </thead>
                     <tbody>
                     <c:forEach var="q" items="${qnaList.content}">
-                        <tr>
+                        <tr style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#qnaModal${q.qnaId}">
                             <td class="ps-4 text-muted small">${q.qnaId}</td>
-                            <td>
-                                <a href="${pageContext.request.contextPath}/admin/qna/${q.qnaId}"
-                                   class="text-decoration-none text-dark">${q.title}</a>
-                            </td>
+                            <td class="fw-medium text-dark">${q.title}</td>
                             <td class="small">${q.member.userId}</td>
                             <td>
                                 <c:if test="${q.secret}">
@@ -64,15 +59,19 @@
                                     </c:otherwise>
                                 </c:choose>
                             </td>
-                            <td class="text-muted small">${q.createdAt.toString().substring(0, 10)}</td>
-                            <td class="pe-4">
-                                <form action="${pageContext.request.contextPath}/admin/qna/${q.qnaId}/delete"
-                                      method="post"
-                                      onsubmit="return confirm('삭제하시겠습니까?')">
-                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                    <button class="btn btn-sm btn-outline-danger">삭제</button>
-                                </form>
+                            <td>
+                                <c:if test="${q.answered}">
+                                    <c:choose>
+                                        <c:when test="${q.answerRead}">
+                                            <span class="badge bg-light text-success border border-success">확인함</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge bg-light text-warning border border-warning">미확인</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:if>
                             </td>
+                            <td class="pe-4 text-muted small">${q.createdAt.toString().substring(0, 10)}</td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty qnaList.content}">
@@ -99,6 +98,63 @@
 
     </main>
 </div>
+
+<%-- 문의별 상세/답변 모달 --%>
+<c:forEach var="q" items="${qnaList.content}">
+    <div class="modal fade" id="qnaModal${q.qnaId}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold">
+                        ${q.title}
+                        <c:if test="${q.secret}"><span class="badge bg-secondary ms-1">비밀글</span></c:if>
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 문의 정보 -->
+                    <div class="text-muted small mb-3">
+                        작성자: ${q.member.userId}
+                        &nbsp;|&nbsp; 작성일: ${q.createdAt.toString().substring(0, 16).replace('T', ' ')}
+                        <c:if test="${q.product != null}">&nbsp;|&nbsp; 상품: ${q.product.name}</c:if>
+                    </div>
+                    <p style="white-space: pre-wrap;">${q.content}</p>
+
+                    <!-- 답변 영역 -->
+                    <div class="border-top pt-3 mt-3">
+                        <div class="fw-bold mb-2">
+                            답변
+                            <c:if test="${q.answered}"><span class="badge bg-success ms-1">완료</span></c:if>
+                        </div>
+                        <c:if test="${q.answered}">
+                            <p class="text-muted small mb-2">
+                                답변일: ${q.answeredAt.toString().substring(0, 16).replace('T', ' ')}
+                                &nbsp;|&nbsp; 고객 확인:
+                                <c:choose>
+                                    <c:when test="${q.answerRead}">
+                                        <span class="text-success">확인함 (${q.answerReadAt.toString().substring(0, 16).replace('T', ' ')})</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="text-warning">미확인</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </p>
+                        </c:if>
+                        <form action="${pageContext.request.contextPath}/admin/qna/${q.qnaId}/answer" method="post">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                            <textarea name="answer" class="form-control mb-3" rows="5"
+                                      placeholder="답변을 입력하세요" required>${q.answer}</textarea>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                                <button type="submit" class="btn btn-dark btn-sm">${q.answered ? '답변 수정' : '답변 등록'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:forEach>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
