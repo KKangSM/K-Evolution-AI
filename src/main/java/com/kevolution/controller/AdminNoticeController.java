@@ -28,8 +28,9 @@ public class AdminNoticeController {
     public String write(@RequestParam String title,
                         @RequestParam String content,
                         @RequestParam(defaultValue = "false") boolean pinned,
+                        @RequestParam(defaultValue = "false") boolean marquee,
                         RedirectAttributes ra) {
-        adminNoticeService.create(title, content, pinned);
+        adminNoticeService.create(title, content, pinned, marquee);
         ra.addFlashAttribute("successMsg", "공지사항이 등록되었습니다.");
         return "redirect:/admin/notice";
     }
@@ -39,9 +40,10 @@ public class AdminNoticeController {
                        @RequestParam String title,
                        @RequestParam String content,
                        @RequestParam(defaultValue = "false") boolean pinned,
+                       @RequestParam(defaultValue = "false") boolean marquee,
                        RedirectAttributes ra) {
         try {
-            adminNoticeService.update(noticeId, title, content, pinned);
+            adminNoticeService.update(noticeId, title, content, pinned, marquee);
             ra.addFlashAttribute("successMsg", "공지사항이 수정되었습니다.");
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());

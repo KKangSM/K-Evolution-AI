@@ -34,6 +34,28 @@
     </div>
 </section>
 
+<!-- 공지 마퀴 배너 -->
+<c:if test="${not empty marqueeNotices}">
+    <div class="notice-marquee-bar">
+        <span class="notice-marquee-label">공지</span>
+        <div class="notice-marquee-wrap">
+            <div class="notice-marquee-track">
+                <c:forEach var="n" items="${marqueeNotices}" varStatus="s">
+                    <a href="${pageContext.request.contextPath}/support/notices/${n.noticeId}"
+                       class="notice-marquee-item">${n.title}</a>
+                    <c:if test="${!s.last}"><span class="notice-marquee-sep">|</span></c:if>
+                </c:forEach>
+                <%-- 짧을 때 루프가 끊겨 보이지 않도록 한 번 더 복제 --%>
+                <c:forEach var="n" items="${marqueeNotices}" varStatus="s">
+                    <a href="${pageContext.request.contextPath}/support/notices/${n.noticeId}"
+                       class="notice-marquee-item">${n.title}</a>
+                    <c:if test="${!s.last}"><span class="notice-marquee-sep">|</span></c:if>
+                </c:forEach>
+            </div>
+        </div>
+    </div>
+</c:if>
+
 <!-- 카테고리 분류 -->
 <c:if test="${not empty categories}">
     <div class="container mt-4">

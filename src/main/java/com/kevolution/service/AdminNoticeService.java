@@ -19,19 +19,20 @@ public class AdminNoticeService {
     }
 
     @Transactional
-    public void create(String title, String content, boolean pinned) {
+    public void create(String title, String content, boolean pinned, boolean marquee) {
         noticeRepository.save(Notice.builder()
                 .title(title)
                 .content(content)
                 .pinned(pinned)
+                .marquee(marquee)
                 .build());
     }
 
     @Transactional
-    public void update(Long noticeId, String title, String content, boolean pinned) {
+    public void update(Long noticeId, String title, String content, boolean pinned, boolean marquee) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
-        notice.update(title, content, pinned);
+        notice.update(title, content, pinned, marquee);
     }
 
     @Transactional

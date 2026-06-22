@@ -38,6 +38,7 @@
                         <th class="ps-4" style="width:60px">No</th>
                         <th>제목</th>
                         <th style="width:70px">고정</th>
+                        <th style="width:70px">마퀴</th>
                         <th style="width:80px">조회수</th>
                         <th style="width:110px">작성일</th>
                         <th style="width:110px">수정일</th>
@@ -58,6 +59,16 @@
                                 <c:choose>
                                     <c:when test="${n.pinned}">
                                         <span class="badge bg-danger">고정</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="text-muted small">—</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${n.marquee}">
+                                        <span class="badge bg-primary">마퀴</span>
                                     </c:when>
                                     <c:otherwise>
                                         <span class="text-muted small">—</span>
@@ -115,9 +126,15 @@
                         <textarea name="content" class="form-control" rows="10" required
                                   placeholder="내용을 입력하세요"></textarea>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="pinned" value="true" id="writePinned">
-                        <label class="form-check-label small" for="writePinned">상단 고정</label>
+                    <div class="d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="pinned" value="true" id="writePinned">
+                            <label class="form-check-label small" for="writePinned">상단 고정</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="marquee" value="true" id="writeMarquee">
+                            <label class="form-check-label small" for="writeMarquee">메인 마퀴 표시</label>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -160,10 +177,17 @@
                             <label class="form-label small text-muted">내용</label>
                             <textarea name="content" class="form-control" rows="10" required><c:out value="${n.content}"/></textarea>
                         </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="pinned" value="true"
-                                   id="pinned${n.noticeId}" ${n.pinned ? 'checked' : ''}>
-                            <label class="form-check-label small" for="pinned${n.noticeId}">상단 고정</label>
+                        <div class="d-flex gap-4 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="pinned" value="true"
+                                       id="pinned${n.noticeId}" ${n.pinned ? 'checked' : ''}>
+                                <label class="form-check-label small" for="pinned${n.noticeId}">상단 고정</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="marquee" value="true"
+                                       id="marquee${n.noticeId}" ${n.marquee ? 'checked' : ''}>
+                                <label class="form-check-label small" for="marquee${n.noticeId}">메인 마퀴 표시</label>
+                            </div>
                         </div>
                         <div class="d-flex justify-content-between">
                             <button type="button" class="btn btn-outline-danger btn-sm"

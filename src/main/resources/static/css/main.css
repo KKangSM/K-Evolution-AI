@@ -40,6 +40,50 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .product-img { height: 200px; object-fit: cover; }
 
+/* 공지 마퀴 배너 */
+.notice-marquee-bar {
+    background: #0f3460;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    height: 36px;
+    font-size: 0.82rem;
+}
+.notice-marquee-label {
+    flex-shrink: 0;
+    padding: 0 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border-right: 1px solid rgba(255,255,255,0.25);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    background: rgba(0,0,0,0.15);
+}
+.notice-marquee-wrap {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.notice-marquee-track {
+    display: inline-block;
+    animation: marquee-scroll 28s linear infinite;
+    padding-left: 100%;
+}
+.notice-marquee-track:hover { animation-play-state: paused; }
+@keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+.notice-marquee-item {
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+    margin: 0 24px;
+}
+.notice-marquee-item:hover { color: #fff; text-decoration: underline; }
+.notice-marquee-sep { opacity: 0.4; }
+
 /* 인기상품 순위 배지 */
 .rank-badge {
     position: absolute; top: 8px; left: 8px; z-index: 2;

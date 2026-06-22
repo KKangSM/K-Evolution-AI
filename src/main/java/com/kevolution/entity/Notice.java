@@ -25,6 +25,10 @@ public class Notice {
     @Column(name = "is_pinned", nullable = false)
     private boolean pinned;
 
+    /** 메인 마퀴 표시 여부 */
+    @Column(name = "is_marquee", nullable = false)
+    private boolean marquee;
+
     @Column(nullable = false)
     private int viewCount;
 
@@ -46,16 +50,18 @@ public class Notice {
     }
 
     @Builder
-    public Notice(String title, String content, boolean pinned) {
+    public Notice(String title, String content, boolean pinned, boolean marquee) {
         this.title = title;
         this.content = content;
         this.pinned = pinned;
+        this.marquee = marquee;
     }
 
-    public void update(String title, String content, boolean pinned) {
+    public void update(String title, String content, boolean pinned, boolean marquee) {
         this.title = title;
         this.content = content;
         this.pinned = pinned;
+        this.marquee = marquee;
     }
 
     public void increaseViewCount() {
