@@ -25,6 +25,9 @@
        href="${pageContext.request.contextPath}/admin/qna">
         <span><i class="bi bi-chat-dots"></i>문의 관리</span>
     </a>
-    <a class="menu-link" href="#"><span><i class="bi bi-megaphone"></i>공지 관리</span><span class="soon">준비중</span></a>
+    <a class="menu-link ${activeMenu == 'notice' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/notice">
+        <span><i class="bi bi-megaphone"></i>공지 관리</span>
+    </a>
     <a class="menu-link" href="#"><span><i class="bi bi-image"></i>배너 관리</span><span class="soon">준비중</span></a>
 </nav>
