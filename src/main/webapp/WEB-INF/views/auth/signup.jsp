@@ -53,8 +53,16 @@
                 <!-- 비밀번호 -->
                 <div class="mb-3">
                     <label class="form-label small text-muted">비밀번호</label>
-                    <input type="password" name="password" class="form-control"
+                    <input type="password" id="password" name="password" class="form-control"
                            placeholder="8자 이상" required minlength="8">
+                </div>
+
+                <!-- 비밀번호 확인 -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted">비밀번호 확인</label>
+                    <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-control"
+                           placeholder="비밀번호 재입력" required minlength="8">
+                    <div id="pwConfirmMsg" class="form-text mt-1"></div>
                 </div>
 
                 <!-- 이름 -->
@@ -173,13 +181,36 @@
         }).open();
     });
 
-    const userIdInput = document.getElementById('userId');
-    const checkIdBtn  = document.getElementById('checkIdBtn');
-    const idMsg       = document.getElementById('idMsg');
-    const submitBtn   = document.getElementById('submitBtn');
-    const ctx         = '${pageContext.request.contextPath}';
+    const userIdInput     = document.getElementById('userId');
+    const checkIdBtn      = document.getElementById('checkIdBtn');
+    const idMsg           = document.getElementById('idMsg');
+    const submitBtn       = document.getElementById('submitBtn');
+    const passwordInput   = document.getElementById('password');
+    const pwConfirmInput  = document.getElementById('passwordConfirm');
+    const pwConfirmMsg    = document.getElementById('pwConfirmMsg');
+    const ctx             = '${pageContext.request.contextPath}';
 
     let idChecked = false;
+
+    function validatePasswordConfirm() {
+        if (pwConfirmInput.value === '') {
+            pwConfirmMsg.textContent = '';
+            pwConfirmMsg.className = 'form-text mt-1';
+            return false;
+        }
+        if (passwordInput.value === pwConfirmInput.value) {
+            pwConfirmMsg.textContent = '비밀번호가 일치합니다.';
+            pwConfirmMsg.className = 'form-text mt-1 text-success';
+            return true;
+        } else {
+            pwConfirmMsg.textContent = '비밀번호가 일치하지 않습니다.';
+            pwConfirmMsg.className = 'form-text mt-1 text-danger';
+            return false;
+        }
+    }
+
+    passwordInput.addEventListener('input', validatePasswordConfirm);
+    pwConfirmInput.addEventListener('input', validatePasswordConfirm);
 
     userIdInput.addEventListener('input', () => {
         idChecked = false;
@@ -243,6 +274,11 @@
             idMsg.textContent = '아이디 중복 확인을 해주세요.';
             idMsg.className = 'form-text mt-1 text-danger';
             userIdInput.focus();
+            return;
+        }
+        if (!validatePasswordConfirm()) {
+            e.preventDefault();
+            pwConfirmInput.focus();
             return;
         }
         const requiredTerms = document.querySelectorAll('.term-check[required]');

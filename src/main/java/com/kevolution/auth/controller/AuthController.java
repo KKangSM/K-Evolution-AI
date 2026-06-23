@@ -34,6 +34,7 @@ public class AuthController {
     public String signup(
         @RequestParam String userId,
         @RequestParam String password,
+        @RequestParam String passwordConfirm,
         @RequestParam String name,
         @RequestParam String phone,
         @RequestParam(required = false) String zipcode,
@@ -43,7 +44,7 @@ public class AuthController {
         RedirectAttributes ra
     ) {
         try {
-            memberService.signup(userId, password, name, phone, zipcode, address, addressDetail, termIds);
+            memberService.signup(userId, password, passwordConfirm, name, phone, zipcode, address, addressDetail, termIds);
             ra.addFlashAttribute("signupSuccess", true);
             return "redirect:/auth/login";
         } catch (IllegalArgumentException e) {

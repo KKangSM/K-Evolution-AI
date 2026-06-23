@@ -1,23 +1,28 @@
 package com.kevolution.product.controller;
 
-import com.kevolution.config.SecurityConfig;
 import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.repository.CategoryRepository;
 import com.kevolution.product.service.ProductService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * 상품 — 공개 조회(/products)와 관리자 관리(/admin/products)를 한 곳에서 담당한다.
- * 권한 구분은 SecurityConfig 의 URL 규칙(/admin/** = ROLE_ADMIN)만으로 처리한다.
- */
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.UUID;
+
 @Controller
 @RequiredArgsConstructor
 public class ProductController {
@@ -26,6 +31,9 @@ public class ProductController {
 
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     // ── 공개 조회 ─────────────────────────────────
     @GetMapping("/products")
@@ -81,9 +89,16 @@ public class ProductController {
         @RequestParam int price,
         @RequestParam int stock,
         @RequestParam(required = false) String description,
-        @RequestParam(required = false) String imageUrl
+        @RequestParam(required = false) MultipartFile imageFile,
+        RedirectAttributes ra
     ) {
-        productService.createProduct(categoryId, name, price, stock, description, imageUrl);
+        try {
+            String imageUrl = saveImageFile(imageFile);
+            productService.createProduct(categoryId, name, price, stock, description, imageUrl);
+            ra.addFlashAttribute("successMsg", "상품이 등록되었습니다.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "등록 중 오류가 발생했습니다: " + e.getMessage());
+        }
         return "redirect:/admin/products";
     }
 
@@ -103,15 +118,36 @@ public class ProductController {
         @RequestParam int price,
         @RequestParam int stock,
         @RequestParam(required = false) String description,
-        @RequestParam(required = false) String imageUrl
+        @RequestParam(required = false) MultipartFile imageFile,
+        @RequestParam(required = false) String existingImageUrl,
+        RedirectAttributes ra
     ) {
-        productService.updateProduct(productId, categoryId, name, price, stock, description, imageUrl);
+        try {
+            String imageUrl = (imageFile != null && !imageFile.isEmpty())
+                ? saveImageFile(imageFile)
+                : existingImageUrl;
+            productService.updateProduct(productId, categoryId, name, price, stock, description, imageUrl);
+            ra.addFlashAttribute("successMsg", "상품이 수정되었습니다.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "수정 중 오류가 발생했습니다: " + e.getMessage());
+        }
         return "redirect:/admin/products";
     }
 
     @PostMapping("/admin/products/{productId}/delete")
-    public String delete(@PathVariable Long productId) {
+    public String delete(@PathVariable Long productId, RedirectAttributes ra) {
         productService.deleteProduct(productId);
+        ra.addFlashAttribute("successMsg", "상품이 삭제되었습니다.");
         return "redirect:/admin/products";
+    }
+
+    private String saveImageFile(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) return null;
+        String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        String filename = UUID.randomUUID() + (ext != null ? "." + ext : "");
+        Path dir = Paths.get(uploadDir, "products");
+        Files.createDirectories(dir);
+        Files.copy(file.getInputStream(), dir.resolve(filename));
+        return "/uploads/products/" + filename;
     }
 }

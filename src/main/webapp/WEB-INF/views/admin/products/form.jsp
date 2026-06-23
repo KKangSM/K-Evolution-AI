@@ -25,7 +25,6 @@
             </c:choose>
         </h4>
 
-        <%-- 등록: POST /admin/products/register, 수정: POST /admin/products/{id}/edit --%>
         <c:choose>
             <c:when test="${isEdit}">
                 <c:url var="formAction" value="/admin/products/${product.productId}/edit"/>
@@ -35,8 +34,12 @@
             </c:otherwise>
         </c:choose>
 
-        <form action="${formAction}" method="post" class="card stat-card p-4" style="max-width:720px">
+        <form action="${formAction}" method="post" enctype="multipart/form-data"
+              class="card stat-card p-4" style="max-width:720px">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+            <c:if test="${isEdit}">
+                <input type="hidden" name="existingImageUrl" value="${product.imageUrl}"/>
+            </c:if>
 
             <div class="mb-3">
                 <label class="form-label">상품명</label>
@@ -70,11 +73,24 @@
                 </div>
             </div>
 
+            <!-- 이미지 업로드 -->
             <div class="mb-3">
-                <label class="form-label">이미지 URL</label>
-                <input type="text" name="imageUrl" class="form-control"
-                       value="${product.imageUrl}" placeholder="https://...">
-                <div class="form-text">비워두면 기본 이미지가 표시됩니다.</div>
+                <label class="form-label">상품 이미지</label>
+                <c:if test="${isEdit and not empty product.imageUrl}">
+                    <div class="mb-2">
+                        <img src="${pageContext.request.contextPath}${product.imageUrl}"
+                             alt="현재 이미지" id="imagePreview"
+                             style="max-height:160px; border-radius:6px; border:1px solid #dee2e6;">
+                        <p class="form-text">새 파일을 선택하면 교체됩니다.</p>
+                    </div>
+                </c:if>
+                <c:if test="${not isEdit or empty product.imageUrl}">
+                    <img id="imagePreview" src="#" alt="미리보기"
+                         style="display:none; max-height:160px; border-radius:6px; border:1px solid #dee2e6; margin-bottom:8px;">
+                </c:if>
+                <input type="file" name="imageFile" id="imageFile" class="form-control"
+                       accept="image/*">
+                <div class="form-text">JPG, PNG, WEBP 등 이미지 파일 (최대 10MB)</div>
             </div>
 
             <div class="mb-4">
@@ -95,5 +111,14 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('imageFile').addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const preview = document.getElementById('imagePreview');
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+    });
+</script>
 </body>
 </html>
