@@ -65,23 +65,29 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
     flex: 1;
     overflow: hidden;
     white-space: nowrap;
+    position: relative;
 }
 .notice-marquee-track {
     display: inline-block;
-    animation: marquee-scroll 28s linear infinite;
-    padding-left: 100%;
+    animation: marquee-scroll 18s linear infinite;
 }
 .notice-marquee-track:hover { animation-play-state: paused; }
 @keyframes marquee-scroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
+    from { transform: translateX(100vw); }
+    to   { transform: translateX(-100%); }
 }
 .notice-marquee-item {
     color: rgba(255,255,255,0.9);
     text-decoration: none;
     margin: 0 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 .notice-marquee-item:hover { color: #fff; text-decoration: underline; }
+.notice-marquee-title { font-weight: 600; }
+.notice-marquee-dash { opacity: 0.4; }
+.notice-marquee-content { opacity: 0.75; font-weight: 400; }
 .notice-marquee-sep { opacity: 0.4; }
 
 /* 인기상품 순위 배지 */

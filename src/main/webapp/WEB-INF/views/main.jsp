@@ -42,13 +42,11 @@
             <div class="notice-marquee-track">
                 <c:forEach var="n" items="${marqueeNotices}" varStatus="s">
                     <a href="${pageContext.request.contextPath}/support/notices/${n.noticeId}"
-                       class="notice-marquee-item">${n.title}</a>
-                    <c:if test="${!s.last}"><span class="notice-marquee-sep">|</span></c:if>
-                </c:forEach>
-                <%-- 짧을 때 루프가 끊겨 보이지 않도록 한 번 더 복제 --%>
-                <c:forEach var="n" items="${marqueeNotices}" varStatus="s">
-                    <a href="${pageContext.request.contextPath}/support/notices/${n.noticeId}"
-                       class="notice-marquee-item">${n.title}</a>
+                       class="notice-marquee-item">
+                        <span class="notice-marquee-title">${n.title}</span>
+                        <span class="notice-marquee-dash">—</span>
+                        <span class="notice-marquee-content">${n.content}</span>
+                    </a>
                     <c:if test="${!s.last}"><span class="notice-marquee-sep">|</span></c:if>
                 </c:forEach>
             </div>
