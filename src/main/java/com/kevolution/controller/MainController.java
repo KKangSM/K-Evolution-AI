@@ -1,8 +1,9 @@
 package com.kevolution.controller;
 
-import com.kevolution.repository.CategoryRepository;
-import com.kevolution.repository.NoticeRepository;
-import com.kevolution.service.ProductService;
+import com.kevolution.notice.repository.NoticeRepository;
+import com.kevolution.product.repository.CategoryRepository;
+import com.kevolution.product.service.ProductService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

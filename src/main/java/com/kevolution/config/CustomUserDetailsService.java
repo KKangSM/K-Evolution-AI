@@ -1,7 +1,8 @@
 package com.kevolution.config;
 
-import com.kevolution.entity.Member;
-import com.kevolution.repository.MemberRepository;
+import com.kevolution.member.entity.Member;
+import com.kevolution.member.repository.MemberRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;

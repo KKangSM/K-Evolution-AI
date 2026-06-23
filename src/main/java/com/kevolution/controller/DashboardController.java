@@ -1,10 +1,11 @@
 package com.kevolution.controller;
 
-import com.kevolution.entity.Order;
-import com.kevolution.repository.MemberRepository;
-import com.kevolution.repository.OrderRepository;
-import com.kevolution.repository.ProductRepository;
-import com.kevolution.repository.QnaRepository;
+import com.kevolution.member.repository.MemberRepository;
+import com.kevolution.order.entity.Order;
+import com.kevolution.order.repository.OrderRepository;
+import com.kevolution.product.repository.ProductRepository;
+import com.kevolution.qna.repository.QnaRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

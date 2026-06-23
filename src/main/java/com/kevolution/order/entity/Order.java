@@ -1,0 +1,89 @@
+package com.kevolution.order.entity;
+
+import com.kevolution.member.entity.IssuedCoupon;
+import com.kevolution.member.entity.Member;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "orders")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long orderId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_coupon_id")
+    private IssuedCoupon issuedCoupon;
+
+    @Column(nullable = false, length = 50)
+    private String receiverName;
+
+    @Column(nullable = false, length = 20)
+    private String receiverPhone;
+
+    @Column(nullable = false, length = 255)
+    private String address;
+
+    @Column(nullable = false)
+    private int totalPrice;
+
+    @Column(nullable = false)
+    private int discountAmount;
+
+    @Column(nullable = false)
+    private int finalPrice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Status status;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<OrderItem> orderItems = new ArrayList<>();
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private Payment payment;
+
+    public enum Status { PENDING, PAID, CANCELLED }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @Builder
+    public Order(Member member, IssuedCoupon issuedCoupon, String receiverName, String receiverPhone,
+                 String address, int totalPrice, int discountAmount, int finalPrice) {
+        this.member = member;
+        this.issuedCoupon = issuedCoupon;
+        this.receiverName = receiverName;
+        this.receiverPhone = receiverPhone;
+        this.address = address;
+        this.totalPrice = totalPrice;
+        this.discountAmount = discountAmount;
+        this.finalPrice = finalPrice;
+        this.status = Status.PENDING;
+    }
+
+    public void markAsPaid() {
+        this.status = Status.PAID;
+    }
+
+    public void cancel() {
+        this.status = Status.CANCELLED;
+    }
+}
