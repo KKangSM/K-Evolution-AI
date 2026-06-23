@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-public class AdminController {
+public class DashboardController {
 
     /** 재고 부족 기준 수량 */
     private static final int LOW_STOCK_THRESHOLD = 5;

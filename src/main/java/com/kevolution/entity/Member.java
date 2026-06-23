@@ -31,15 +31,6 @@ public class Member {
     @Column(name = "ci", unique = true, length = 500)
     private String ci;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private Role role;
-
-    /** 계정 상태 (soft-delete: 탈퇴해도 row 유지) */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private Status status;
-
     @Column(nullable = false, length = 50)
     private String name;
 
@@ -50,6 +41,15 @@ public class Member {
     @Convert(converter = AesAttributeConverter.class)
     @Column(length = 500)
     private String address;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Role role;
+
+    /** 계정 상태 (soft-delete: 탈퇴해도 row 유지) */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Status status;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -1,7 +1,7 @@
 package com.kevolution.controller;
 
 import com.kevolution.entity.Member;
-import com.kevolution.service.AdminMemberService;
+import com.kevolution.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,12 +13,16 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * 회원 관리 — /admin/** 는 SecurityConfig 에서 ROLE_ADMIN 으로 제한된다.
+ * 권한 구분은 URL 로만 처리하므로 클래스 이름에 권한 단계(Admin)를 박지 않는다.
+ */
 @Controller
 @RequestMapping("/admin/members")
 @RequiredArgsConstructor
-public class AdminMemberController {
+public class MemberController {
 
-    private final AdminMemberService adminMemberService;
+    private final MemberService memberService;
 
     @GetMapping
     public String list(
@@ -26,7 +30,7 @@ public class AdminMemberController {
             Model model
     ) {
         PageRequest pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
-        Page<Member> members = adminMemberService.getMembers(pageable);
+        Page<Member> members = memberService.getMembers(pageable);
         model.addAttribute("activeMenu", "members");
         model.addAttribute("members", members);
         return "admin/members";
@@ -39,7 +43,7 @@ public class AdminMemberController {
             RedirectAttributes ra
     ) {
         try {
-            adminMemberService.deleteMember(memberId, userDetails.getUsername());
+            memberService.deleteMember(memberId, userDetails.getUsername());
             ra.addFlashAttribute("successMsg", "회원이 삭제(탈퇴 처리)되었습니다.");
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
@@ -55,9 +59,8 @@ public class AdminMemberController {
             RedirectAttributes ra
     ) {
         try {
-            // 현재 로그인한 관리자의 memberId 조회
             String requesterId = userDetails.getUsername(); // userId
-            adminMemberService.changeRole(memberId, requesterId, Member.Role.valueOf(role));
+            memberService.changeRole(memberId, requesterId, Member.Role.valueOf(role));
             ra.addFlashAttribute("successMsg", "권한이 변경되었습니다.");
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
