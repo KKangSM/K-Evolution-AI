@@ -8,14 +8,26 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 공지사항 단일 서비스 — 조회(공개)와 관리(CRUD)를 모두 담당한다.
+ * 권한 구분은 호출 측 URL(SecurityConfig)에서만 다루므로, 서비스 이름에 권한 단계를 박지 않는다.
+ */
 @Service
 @RequiredArgsConstructor
-public class AdminNoticeService {
+public class NoticeService {
 
     private final NoticeRepository noticeRepository;
 
     public Page<Notice> getNotices(Pageable pageable) {
         return noticeRepository.findAllByOrderByPinnedDescCreatedAtDesc(pageable);
+    }
+
+    @Transactional
+    public Notice getNotice(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
+        notice.increaseViewCount();
+        return notice;
     }
 
     @Transactional

@@ -9,10 +9,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * 약관 관리 — /admin/** 는 SecurityConfig 에서 ROLE_ADMIN 으로 제한된다.
+ * 권한 구분은 URL 로만 처리하므로 클래스 이름에 권한 단계(Admin)를 박지 않는다.
+ */
 @Controller
 @RequestMapping("/admin/terms")
 @RequiredArgsConstructor
-public class AdminTermsController {
+public class TermsController {
 
     private final TermsService termsService;
 
