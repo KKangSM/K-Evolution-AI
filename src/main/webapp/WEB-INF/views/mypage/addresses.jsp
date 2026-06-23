@@ -68,16 +68,17 @@
                                placeholder="연락처">
                     </div>
                 </div>
-                <div class="mb-2">
-                    <input type="text" name="zipcode" class="form-control form-control-sm"
+                <div class="input-group input-group-sm mb-2">
+                    <input type="text" id="zipcode" name="zipcode" class="form-control form-control-sm"
                            placeholder="우편번호">
+                    <button type="button" class="btn btn-outline-secondary" id="zipSearchBtn">우편번호 검색</button>
                 </div>
                 <div class="mb-2">
-                    <input type="text" name="address" class="form-control form-control-sm"
+                    <input type="text" id="address" name="address" class="form-control form-control-sm"
                            placeholder="주소" required>
                 </div>
                 <div class="mb-3">
-                    <input type="text" name="addressDetail" class="form-control form-control-sm"
+                    <input type="text" id="addressDetail" name="addressDetail" class="form-control form-control-sm"
                            placeholder="상세주소">
                 </div>
                 <div class="form-check mb-3">
@@ -92,5 +93,20 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+    const PostcodeService = (window.daum && window.daum.Postcode)
+                         || (window.kakao && window.kakao.Postcode);
+    document.getElementById('zipSearchBtn').addEventListener('click', () => {
+        if (!PostcodeService) { alert('우편번호 서비스를 불러오지 못했습니다. 직접 입력해주세요.'); return; }
+        new PostcodeService({
+            oncomplete: function (data) {
+                document.getElementById('zipcode').value = data.zonecode;
+                document.getElementById('address').value = data.roadAddress || data.jibunAddress;
+                document.getElementById('addressDetail').focus();
+            }
+        }).open();
+    });
+</script>
 </body>
 </html>

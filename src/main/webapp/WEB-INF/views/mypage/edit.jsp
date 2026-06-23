@@ -50,7 +50,7 @@
             <c:if test="${not empty pwErrorMsg}">
                 <div class="alert alert-danger py-2 small">${pwErrorMsg}</div>
             </c:if>
-            <form action="${pageContext.request.contextPath}/mypage/change-password" method="post">
+            <form action="${pageContext.request.contextPath}/mypage/changePassword" method="post">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <div class="mb-3">
                     <label class="form-label small text-muted">현재 비밀번호</label>

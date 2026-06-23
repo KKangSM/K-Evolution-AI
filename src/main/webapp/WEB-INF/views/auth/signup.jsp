@@ -64,6 +64,28 @@
                            placeholder="실명 입력" required maxlength="50">
                 </div>
 
+                <!-- 휴대폰 -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted">휴대폰</label>
+                    <input type="tel" name="phone" class="form-control"
+                           placeholder="010-0000-0000" required maxlength="20"
+                           pattern="[0-9\-]{9,20}">
+                </div>
+
+                <!-- 기본 배송지 -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted">기본 배송지</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="zipcode" name="zipcode" class="form-control"
+                               placeholder="우편번호" maxlength="20">
+                        <button type="button" class="btn btn-outline-secondary" id="zipSearchBtn">우편번호 검색</button>
+                    </div>
+                    <input type="text" id="address" name="address" class="form-control mb-2"
+                           placeholder="주소" required maxlength="200">
+                    <input type="text" id="addressDetail" name="addressDetail" class="form-control"
+                           placeholder="상세주소 (선택)" maxlength="200">
+                </div>
+
                 <!-- 약관 동의 -->
                 <c:if test="${not empty termsList}">
                 <div class="mb-4">
@@ -135,7 +157,22 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
+    // 카카오(다음) 우편번호 검색 — 스크립트가 노출하는 전역(daum/kakao) 어느 쪽이든 사용
+    const PostcodeService = (window.daum && window.daum.Postcode)
+                         || (window.kakao && window.kakao.Postcode);
+    document.getElementById('zipSearchBtn').addEventListener('click', () => {
+        if (!PostcodeService) { alert('우편번호 서비스를 불러오지 못했습니다. 직접 입력해주세요.'); return; }
+        new PostcodeService({
+            oncomplete: function (data) {
+                document.getElementById('zipcode').value = data.zonecode;
+                document.getElementById('address').value = data.roadAddress || data.jibunAddress;
+                document.getElementById('addressDetail').focus();
+            }
+        }).open();
+    });
+
     const userIdInput = document.getElementById('userId');
     const checkIdBtn  = document.getElementById('checkIdBtn');
     const idMsg       = document.getElementById('idMsg');
@@ -161,7 +198,7 @@
         checkIdBtn.textContent = '확인 중...';
 
         try {
-            const res = await fetch(ctx + '/auth/check-id?userId=' + encodeURIComponent(val));
+            const res = await fetch(ctx + '/auth/checkId?userId=' + encodeURIComponent(val));
             const data = await res.json();
             if (data.duplicated) {
                 idMsg.textContent = '이미 사용 중인 아이디입니다.';

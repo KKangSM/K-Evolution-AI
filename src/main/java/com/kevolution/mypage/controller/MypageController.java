@@ -39,7 +39,7 @@ public class MypageController {
         return "redirect:/mypage/edit";
     }
 
-    @PostMapping("/change-password")
+    @PostMapping("/changePassword")
     public String changePassword(@AuthenticationPrincipal UserDetails user,
                                  @RequestParam String currentPassword,
                                  @RequestParam String newPassword,
@@ -108,7 +108,7 @@ public class MypageController {
                            RedirectAttributes ra) {
         try {
             mypageService.withdraw(user.getUsername(), password);
-            return "redirect:/auth/logout-after-withdraw";
+            return "redirect:/auth/logoutAfterWithdraw";
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
             return "redirect:/mypage/withdraw";
