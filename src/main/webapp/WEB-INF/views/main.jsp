@@ -54,22 +54,7 @@
     </div>
 </c:if>
 
-<!-- 카테고리 분류 -->
-<c:if test="${not empty categories}">
-    <div class="container mt-4">
-        <div class="d-flex flex-wrap gap-3 justify-content-center">
-            <c:forEach var="cat" items="${categories}">
-                <a class="category-chip"
-                   href="${pageContext.request.contextPath}/products?categoryId=${cat.categoryId}">
-                    <span class="emoji">🛍️</span>
-                    <span>${cat.name}</span>
-                </a>
-            </c:forEach>
-        </div>
-    </div>
-</c:if>
-
-<!-- 이벤트 캐러셀 (슬라이드 내용은 추후 채움) -->
+<!-- 이벤트 캐러셀 -->
 <div class="container mt-4">
     <div id="eventCarousel" class="carousel slide event-carousel shadow-sm" data-bs-ride="carousel">
         <div class="carousel-indicators">
@@ -78,15 +63,9 @@
             <button type="button" data-bs-target="#eventCarousel" data-bs-slide-to="2" aria-label="슬라이드 3"></button>
         </div>
         <div class="carousel-inner">
-            <div class="carousel-item active">
-                <div class="event-slide"></div>
-            </div>
-            <div class="carousel-item">
-                <div class="event-slide"></div>
-            </div>
-            <div class="carousel-item">
-                <div class="event-slide"></div>
-            </div>
+            <div class="carousel-item active"><div class="event-slide"></div></div>
+            <div class="carousel-item"><div class="event-slide"></div></div>
+            <div class="carousel-item"><div class="event-slide"></div></div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#eventCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -100,13 +79,14 @@
 </div>
 
 <div class="container my-5">
-
     <div class="row g-4">
 
-        <!-- 인기상품 (왼쪽) -->
+        <!-- 인기상품 -->
         <div class="col-lg-6">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="section-title mb-0">인기상품</h6>            </div>
+                <h6 class="section-title mb-0">인기상품</h6>
+                <a href="${pageContext.request.contextPath}/products" class="text-muted small">더보기 &rsaquo;</a>
+            </div>
             <div class="row g-3">
                 <c:if test="${empty popularProducts}">
                     <c:forEach begin="1" end="3">
@@ -129,7 +109,7 @@
                             <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
                                  class="card-img-top product-img" alt="상품 이미지">
                             <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small mb-1">${product.category.name}</p>
+                                <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.name : ''}</p>
                                 <h6 class="card-title flex-grow-1">${product.name}</h6>
                                 <div class="d-flex justify-content-between align-items-center mt-2">
                                     <span class="fw-bold">
@@ -146,10 +126,12 @@
             </div>
         </div>
 
-        <!-- 신상품 (오른쪽) -->
+        <!-- 신상품 -->
         <div class="col-lg-6">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="section-title mb-0">신상품</h6>            </div>
+                <h6 class="section-title mb-0">신상품</h6>
+                <a href="${pageContext.request.contextPath}/products" class="text-muted small">더보기 &rsaquo;</a>
+            </div>
             <div class="row g-3">
                 <c:if test="${empty newProducts}">
                     <c:forEach begin="1" end="3">
@@ -171,7 +153,7 @@
                             <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
                                  class="card-img-top product-img" alt="상품 이미지">
                             <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small mb-1">${product.category.name}</p>
+                                <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.name : ''}</p>
                                 <h6 class="card-title flex-grow-1">${product.name}</h6>
                                 <div class="d-flex justify-content-between align-items-center mt-2">
                                     <span class="fw-bold">

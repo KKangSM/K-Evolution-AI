@@ -60,7 +60,7 @@
                     <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
                          class="card-img-top product-img" alt="상품 이미지">
                     <div class="card-body d-flex flex-column">
-                        <p class="card-text text-muted small mb-1">${product.category.name}</p>
+                        <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.name : ''}</p>
                         <h6 class="card-title flex-grow-1">${product.name}</h6>
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <span class="fw-bold">

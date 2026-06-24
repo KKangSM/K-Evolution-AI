@@ -1,8 +1,20 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <nav class="navbar navbar-expand-lg site-navbar sticky-top">
     <div class="container">
         <a class="navbar-brand" href="${pageContext.request.contextPath}/">K-Evolution</a>
+
+        <%-- 카테고리 네비 (로고 바로 옆, PC만) --%>
+        <div class="d-none d-lg-flex align-items-center gap-1 ms-3 header-cat-nav">
+            <a class="header-cat-link" href="${pageContext.request.contextPath}/products">전체</a>
+            <c:forEach var="cat" items="${globalCategories}">
+                <a class="header-cat-link"
+                   href="${pageContext.request.contextPath}/products?categoryId=${cat.categoryId}">
+                    ${cat.name}
+                </a>
+            </c:forEach>
+        </div>
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
                 data-bs-target="#kvNav" aria-controls="kvNav" aria-expanded="false" aria-label="메뉴 열기">
@@ -10,6 +22,16 @@
         </button>
 
         <div class="collapse navbar-collapse" id="kvNav">
+            <%-- 모바일 카테고리 --%>
+            <div class="d-lg-none py-2 border-bottom mb-2">
+                <a class="header-cat-link d-block py-1" href="${pageContext.request.contextPath}/products">전체 상품</a>
+                <c:forEach var="cat" items="${globalCategories}">
+                    <a class="header-cat-link d-block py-1"
+                       href="${pageContext.request.contextPath}/products?categoryId=${cat.categoryId}">
+                        ${cat.name}
+                    </a>
+                </c:forEach>
+            </div>
             <div class="navbar-nav ms-auto align-items-lg-center">
                 <%-- 고객센터: ADMIN 만 숨김. 비로그인·일반회원·SYSTEM(마스터)에게 노출 --%>
                 <sec:authorize access="!hasRole('ROLE_ADMIN') or hasRole('ROLE_SYSTEM')">
