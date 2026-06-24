@@ -4,6 +4,7 @@ import com.kevolution.member.entity.Address;
 import com.kevolution.member.entity.Member;
 import com.kevolution.member.repository.AddressRepository;
 import com.kevolution.member.repository.MemberRepository;
+import com.kevolution.config.PasswordPolicy;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,6 +37,7 @@ public class MypageService {
         if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
+        PasswordPolicy.validate(newPassword);
         member.changePassword(passwordEncoder.encode(newPassword));
     }
 

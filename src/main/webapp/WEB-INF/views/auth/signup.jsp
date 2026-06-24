@@ -43,10 +43,12 @@
                     <label class="form-label small text-muted">아이디</label>
                     <div class="input-group">
                         <input type="text" id="userId" name="userId" class="form-control"
-                               placeholder="4~20자 영문, 숫자" required minlength="4" maxlength="20"
-                               autocomplete="off">
+                               required minlength="4" maxlength="20" autocomplete="off"
+                               pattern="[a-z][a-z0-9]{3,19}"
+                               title="영문 소문자로 시작하고 영문 소문자·숫자 4~20자여야 합니다.">
                         <button type="button" class="btn btn-outline-secondary" id="checkIdBtn">중복확인</button>
                     </div>
+                    <div class="form-text">영문 소문자로 시작, 영문 소문자·숫자 4~20자</div>
                     <div id="idMsg" class="form-text mt-1"></div>
                 </div>
 
@@ -54,14 +56,17 @@
                 <div class="mb-3">
                     <label class="form-label small text-muted">비밀번호</label>
                     <input type="password" id="password" name="password" class="form-control"
-                           placeholder="8자 이상" required minlength="8">
+                           required minlength="8" maxlength="64"
+                           pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{8,64}"
+                           title="영문·숫자·특수문자를 모두 포함해 8자 이상(공백 불가)이어야 합니다.">
+                    <div class="form-text">영문·숫자·특수문자 포함 8자 이상 (공백 불가)</div>
                 </div>
 
                 <!-- 비밀번호 확인 -->
                 <div class="mb-3">
                     <label class="form-label small text-muted">비밀번호 확인</label>
                     <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-control"
-                           placeholder="비밀번호 재입력" required minlength="8">
+                           required minlength="8">
                     <div id="pwConfirmMsg" class="form-text mt-1"></div>
                 </div>
 
@@ -69,15 +74,16 @@
                 <div class="mb-3">
                     <label class="form-label small text-muted">이름</label>
                     <input type="text" name="name" class="form-control"
-                           placeholder="실명 입력" required maxlength="50">
+                           required maxlength="50">
                 </div>
 
                 <!-- 휴대폰 -->
                 <div class="mb-3">
                     <label class="form-label small text-muted">휴대폰</label>
-                    <input type="tel" name="phone" class="form-control"
-                           placeholder="010-0000-0000" required maxlength="20"
-                           pattern="[0-9\-]{9,20}">
+                    <input type="tel" name="phone" class="form-control" data-phone-format
+                           placeholder="010-1234-5678" required maxlength="13"
+                           pattern="01[0-9]-\d{3,4}-\d{4}"
+                           title="숫자를 입력하면 하이픈(-)이 자동으로 들어갑니다.">
                 </div>
 
                 <!-- 기본 배송지 -->
@@ -166,6 +172,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script src="${pageContext.request.contextPath}/js/phone-format.js"></script>
 <script>
     // 카카오(다음) 우편번호 검색 — 스크립트가 노출하는 전역(daum/kakao) 어느 쪽이든 사용
     const PostcodeService = (window.daum && window.daum.Postcode)
@@ -190,8 +197,6 @@
     const pwConfirmMsg    = document.getElementById('pwConfirmMsg');
     const ctx             = '${pageContext.request.contextPath}';
 
-    let idChecked = false;
-
     function validatePasswordConfirm() {
         if (pwConfirmInput.value === '') {
             pwConfirmMsg.textContent = '';
@@ -213,15 +218,18 @@
     pwConfirmInput.addEventListener('input', validatePasswordConfirm);
 
     userIdInput.addEventListener('input', () => {
-        idChecked = false;
         idMsg.textContent = '';
         idMsg.className = 'form-text mt-1';
     });
 
+    // 서버 UserIdPolicy 와 동일한 규칙 (영문 소문자 시작, 영문 소문자·숫자 4~20자)
+    const ID_PATTERN = /^[a-z][a-z0-9]{3,19}$/;
+
     checkIdBtn.addEventListener('click', async () => {
         const val = userIdInput.value.trim();
-        if (val.length < 4) {
-            idMsg.textContent = '아이디는 4자 이상이어야 합니다.';
+        // 형식부터 검사 — 형식이 틀리면 "사용 가능" 으로 통과시키지 않는다.
+        if (!ID_PATTERN.test(val)) {
+            idMsg.textContent = '아이디 형식을 확인해주세요.';
             idMsg.className = 'form-text mt-1 text-danger';
             return;
         }
@@ -234,11 +242,9 @@
             if (data.duplicated) {
                 idMsg.textContent = '이미 사용 중인 아이디입니다.';
                 idMsg.className = 'form-text mt-1 text-danger';
-                idChecked = false;
             } else {
                 idMsg.textContent = '사용 가능한 아이디입니다.';
                 idMsg.className = 'form-text mt-1 text-success';
-                idChecked = true;
             }
         } catch (e) {
             idMsg.textContent = '확인 중 오류가 발생했습니다.';
@@ -269,13 +275,6 @@
     }
 
     document.getElementById('signupForm').addEventListener('submit', (e) => {
-        if (!idChecked) {
-            e.preventDefault();
-            idMsg.textContent = '아이디 중복 확인을 해주세요.';
-            idMsg.className = 'form-text mt-1 text-danger';
-            userIdInput.focus();
-            return;
-        }
         if (!validatePasswordConfirm()) {
             e.preventDefault();
             pwConfirmInput.focus();

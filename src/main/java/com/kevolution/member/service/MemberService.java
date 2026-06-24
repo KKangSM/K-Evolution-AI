@@ -6,6 +6,8 @@ import com.kevolution.member.entity.TermsAgreement;
 import com.kevolution.member.repository.AddressRepository;
 import com.kevolution.member.repository.MemberRepository;
 import com.kevolution.member.repository.TermsAgreementRepository;
+import com.kevolution.config.PasswordPolicy;
+import com.kevolution.config.UserIdPolicy;
 import com.kevolution.terms.entity.Terms;
 import com.kevolution.terms.service.TermsService;
 
@@ -34,15 +36,14 @@ public class MemberService {
     }
 
     @Transactional
-    public void signup(String userId, String password, String passwordConfirm, String name,
+    public void signup(String userId, String password, String name,
                        String phone, String zipcode, String address, String addressDetail,
                        List<Long> termIds) {
-        if (!password.equals(passwordConfirm)) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
+        UserIdPolicy.validate(userId);
         if (memberRepository.existsByUserId(userId)) {
             throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
         }
+        PasswordPolicy.validate(password);
 
         List<Long> agreedIds = termIds != null ? termIds : List.of();
         List<Terms> activeTerms = termsService.getActiveTerms();
