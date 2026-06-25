@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>K-Evolution</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <style>
         .product-card { cursor: pointer; transition: transform 0.2s; }
         .product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
@@ -15,7 +15,7 @@
 </head>
 <body class="bg-light">
 
-<%@ include file="/WEB-INF/views/fragments/header.jsp" %>
+<%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
 <div class="container mt-4">
 

@@ -47,4 +47,19 @@ public class Banner {
         this.startAt = startAt;
         this.endAt = endAt;
     }
+
+    /** 이미지 외 메타 정보 수정 (이미지는 changeImageUrl 로 별도 교체) */
+    public void update(String linkUrl, String title, int sortOrder, boolean active,
+                       LocalDateTime startAt, LocalDateTime endAt) {
+        this.linkUrl = linkUrl;
+        this.title = title;
+        this.sortOrder = sortOrder;
+        this.active = active;
+        this.startAt = startAt;
+        this.endAt = endAt;
+    }
+
+    public void changeImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }

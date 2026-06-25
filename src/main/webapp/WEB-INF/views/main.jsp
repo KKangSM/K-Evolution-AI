@@ -6,12 +6,14 @@
 <head>
     <meta charset="UTF-8">
     <title>K-Evolution</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
 </head>
 <body class="bg-light">
 
-<%@ include file="/WEB-INF/views/fragments/header.jsp" %>
+<%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
 <!-- 히어로 배너 -->
 <section class="hero text-center">
@@ -41,7 +43,8 @@
         <div class="notice-marquee-wrap">
             <div class="notice-marquee-track">
                 <c:forEach var="n" items="${marqueeNotices}" varStatus="s">
-                    <a href="${pageContext.request.contextPath}/support/notices/${n.noticeId}"
+                    <a role="button" tabindex="0" style="cursor:pointer"
+                       data-bs-toggle="modal" data-bs-target="#noticeModal${n.noticeId}"
                        class="notice-marquee-item">
                         <span class="notice-marquee-title">${n.title}</span>
                         <span class="notice-marquee-dash">—</span>
@@ -51,8 +54,54 @@
                 </c:forEach>
             </div>
         </div>
+        <a class="notice-marquee-more" href="${pageContext.request.contextPath}/support/notices">
+            더보기 <i class="bi bi-chevron-right"></i>
+        </a>
     </div>
 </c:if>
+
+<!-- 카테고리 (공지 마퀴 아래, 가운데 정렬 + 아이콘) -->
+<%-- 고정 칸 세트: 칸을 추가/수정하려면 아래 <a class="cat-item"> 한 덩어리를 복사·수정.
+     링크의 categoryId, 라벨, 아이콘 파일명(static/images/category/*.svg)만 바꾸면 됩니다. --%>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<nav class="cat-grid">
+    <a class="cat-item" href="${ctx}/products">
+        <span class="cat-thumb"><img src="${ctx}/images/category/all.svg" alt="전체"></span>
+        <span class="cat-label">전체</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=1">
+        <span class="cat-thumb"><img src="${ctx}/images/category/clothing.svg" alt="의류"></span>
+        <span class="cat-label">의류</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=2">
+        <span class="cat-thumb"><img src="${ctx}/images/category/shoes.svg" alt="신발"></span>
+        <span class="cat-label">신발</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=3">
+        <span class="cat-thumb"><img src="${ctx}/images/category/bag.svg" alt="가방"></span>
+        <span class="cat-label">가방</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=4">
+        <span class="cat-thumb"><img src="${ctx}/images/category/accessory.svg" alt="액세서리"></span>
+        <span class="cat-label">액세서리</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=5">
+        <span class="cat-thumb"><img src="${ctx}/images/category/beauty.svg" alt="뷰티"></span>
+        <span class="cat-label">뷰티</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=6">
+        <span class="cat-thumb"><img src="${ctx}/images/category/digital.svg" alt="디지털"></span>
+        <span class="cat-label">디지털</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=7">
+        <span class="cat-thumb"><img src="${ctx}/images/category/living.svg" alt="리빙"></span>
+        <span class="cat-label">리빙</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=8">
+        <span class="cat-thumb"><img src="${ctx}/images/category/food.svg" alt="식품"></span>
+        <span class="cat-label">식품</span>
+    </a>
+</nav>
 
 <!-- 이벤트 캐러셀 -->
 <div class="container mt-4">
@@ -182,11 +231,64 @@
 </div>
 
 <footer class="bg-dark text-light py-4 site-footer">
-    <div class="container text-center small text-light opacity-50">
-        © 2026 K-Evolution. All rights reserved.
+    <div class="container text-center small text-light">
+        <div class="opacity-75 mb-1">
+            <i class="bi bi-telephone"></i> 고객센터 02-0000-0000
+            <span class="opacity-50">· 평일 09:00~18:00 (주말/공휴일 휴무)</span>
+        </div>
+        <div class="opacity-50">© 2026 K-Evolution. All rights reserved.</div>
     </div>
 </footer>
 
+<%-- 마퀴 공지 모달 (메인에서 바로 표시) --%>
+<c:forEach var="n" items="${marqueeNotices}">
+    <div class="modal fade" id="noticeModal${n.noticeId}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable notice-view-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold">
+                        <c:out value="${n.title}"/>
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+                </div>
+                <div class="modal-body notice-view-body">
+                    <div class="text-muted small mb-3">
+                        등록일: ${n.createdAt.toString().substring(0, 10)}
+                        &nbsp;|&nbsp; 조회수: <span class="notice-view-count">${n.viewCount}</span>
+                    </div>
+                    <c:if test="${not empty n.imageUrl}">
+                        <img src="${n.imageUrl}" alt="공지 이미지" class="notice-view-img mb-3">
+                    </c:if>
+                    <div style="white-space: pre-wrap;">${n.content}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:forEach>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 마퀴 공지 모달을 처음 열 때 1회 조회수 증가 + 화면 숫자 즉시 +1
+    (function () {
+        var ctx = '${pageContext.request.contextPath}';
+        var tokenMeta = document.querySelector('meta[name="_csrf"]');
+        var headerMeta = document.querySelector('meta[name="_csrf_header"]');
+        document.querySelectorAll('[id^="noticeModal"]').forEach(function (modal) {
+            modal.addEventListener('show.bs.modal', function () {
+                if (modal.dataset.viewed === 'true') return;
+                modal.dataset.viewed = 'true';
+                var id = modal.id.replace('noticeModal', '');
+                var headers = {};
+                if (tokenMeta && headerMeta) headers[headerMeta.content] = tokenMeta.content;
+                fetch(ctx + '/support/notices/' + id + '/view', { method: 'POST', headers: headers });
+                var countEl = modal.querySelector('.notice-view-count');
+                if (countEl) {
+                    var cur = parseInt(countEl.textContent, 10);
+                    if (!isNaN(cur)) countEl.textContent = cur + 1;
+                }
+            });
+        });
+    })();
+</script>
 </body>
 </html>

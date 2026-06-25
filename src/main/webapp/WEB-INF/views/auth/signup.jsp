@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>회원가입 - K-Evolution</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <style>
         body { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .signup-wrap { width: 100%; max-width: 420px; }

@@ -3,6 +3,7 @@ package com.kevolution.notice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /** 공지사항 */
 @Entity
@@ -11,8 +12,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notice {
 
+    /** PK — 등록 시각(yyyyMMddHHmmss)을 숫자로 변환해 부여한다. (auto-increment 미사용) */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long noticeId;
 
     @Column(nullable = false, length = 200)
@@ -21,16 +22,12 @@ public class Notice {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    /** 상단 고정 여부 */
-    @Column(name = "is_pinned", nullable = false)
-    private boolean pinned;
-
-    /** 메인 마퀴 표시 여부 */
-    @Column(name = "is_marquee", nullable = false)
-    private boolean marquee;
-
     @Column(nullable = false)
     private int viewCount;
+
+    /** 본문 상단에 표시할 이미지 (선택, Supabase Storage 공개 URL) */
+    @Column(length = 500)
+    private String imageUrl;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -40,8 +37,13 @@ public class Notice {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+        if (noticeId == null) {
+            // 등록 시각으로 PK 생성: 2026-06-25 14:30:45 → 20260625143045
+            noticeId = Long.parseLong(now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        }
     }
 
     @PreUpdate
@@ -50,18 +52,19 @@ public class Notice {
     }
 
     @Builder
-    public Notice(String title, String content, boolean pinned, boolean marquee) {
+    public Notice(String title, String content, String imageUrl) {
         this.title = title;
         this.content = content;
-        this.pinned = pinned;
-        this.marquee = marquee;
+        this.imageUrl = imageUrl;
     }
 
-    public void update(String title, String content, boolean pinned, boolean marquee) {
+    public void update(String title, String content) {
         this.title = title;
         this.content = content;
-        this.pinned = pinned;
-        this.marquee = marquee;
+    }
+
+    public void changeImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public void increaseViewCount() {

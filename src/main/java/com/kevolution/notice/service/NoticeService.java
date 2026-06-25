@@ -1,6 +1,5 @@
 package com.kevolution.notice.service;
 
-import com.kevolution.config.SecurityConfig;
 import com.kevolution.notice.entity.Notice;
 import com.kevolution.notice.repository.NoticeRepository;
 
@@ -21,7 +20,7 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
 
     public Page<Notice> getNotices(Pageable pageable) {
-        return noticeRepository.findAllByOrderByPinnedDescCreatedAtDesc(pageable);
+        return noticeRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
     public Notice getNotice(Long noticeId) {
@@ -31,27 +30,45 @@ public class NoticeService {
         return notice;
     }
 
+    /** 모달 조회 시 조회수만 1 증가 (없는 ID는 조용히 무시) */
     @Transactional
-    public void create(String title, String content, boolean pinned, boolean marquee) {
+    public void increaseViewCount(Long noticeId) {
+        noticeRepository.findById(noticeId).ifPresent(Notice::increaseViewCount);
+    }
+
+    @Transactional
+    public void create(String title, String content, String imageUrl) {
         noticeRepository.save(Notice.builder()
                 .title(title)
                 .content(content)
-                .pinned(pinned)
-                .marquee(marquee)
+                .imageUrl(imageUrl)
                 .build());
     }
 
+    /**
+     * 공지 수정. newImageUrl 이 null 이 아니면 이미지를 교체한다.
+     * @return 교체로 버려진 이전 이미지 URL (교체 없으면 null) — 호출 측 Storage 정리용
+     */
     @Transactional
-    public void update(Long noticeId, String title, String content, boolean pinned, boolean marquee) {
+    public String update(Long noticeId, String title, String content, String newImageUrl) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
-        notice.update(title, content, pinned, marquee);
+        String discardedImageUrl = null;
+        if (newImageUrl != null) {
+            discardedImageUrl = notice.getImageUrl();
+            notice.changeImageUrl(newImageUrl);
+        }
+        notice.update(title, content);
+        return discardedImageUrl;
     }
 
+    /** @return 삭제된 공지의 이미지 URL (Storage 정리용) */
     @Transactional
-    public void delete(Long noticeId) {
-        noticeRepository.findById(noticeId)
+    public String delete(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
-        noticeRepository.deleteById(noticeId);
+        String imageUrl = notice.getImageUrl();
+        noticeRepository.delete(notice);
+        return imageUrl;
     }
 }

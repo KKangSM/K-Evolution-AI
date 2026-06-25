@@ -5,24 +5,13 @@
     <div class="container">
         <a class="navbar-brand" href="${pageContext.request.contextPath}/">K-Evolution</a>
 
-        <%-- 카테고리 네비 (로고 바로 옆, PC만) --%>
-        <div class="d-none d-lg-flex align-items-center gap-1 ms-3 header-cat-nav">
-            <a class="header-cat-link" href="${pageContext.request.contextPath}/products">전체</a>
-            <c:forEach var="cat" items="${globalCategories}">
-                <a class="header-cat-link"
-                   href="${pageContext.request.contextPath}/products?categoryId=${cat.categoryId}">
-                    ${cat.name}
-                </a>
-            </c:forEach>
-        </div>
-
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
                 data-bs-target="#kvNav" aria-controls="kvNav" aria-expanded="false" aria-label="메뉴 열기">
             <i class="bi bi-list fs-3"></i>
         </button>
 
         <div class="collapse navbar-collapse" id="kvNav">
-            <%-- 모바일 카테고리 --%>
+            <%-- 모바일 카테고리 (PC 는 아래 카테고리 바로 노출) --%>
             <div class="d-lg-none py-2 border-bottom mb-2">
                 <a class="header-cat-link d-block py-1" href="${pageContext.request.contextPath}/products">전체 상품</a>
                 <c:forEach var="cat" items="${globalCategories}">

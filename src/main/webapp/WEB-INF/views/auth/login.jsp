@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>로그인 - K-Evolution</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <style>
         body { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .login-wrap { width: 100%; max-width: 400px; }

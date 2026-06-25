@@ -1,14 +1,14 @@
 package com.kevolution.notice.controller;
 
-import com.kevolution.config.SecurityConfig;
 import com.kevolution.notice.service.NoticeService;
+import com.kevolution.storage.SupabaseStorageService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -21,40 +21,43 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class NoticeController {
 
     private final NoticeService noticeService;
-
-    private static Sort defaultSort() {
-        return Sort.by("pinned").descending().and(Sort.by("createdAt").descending());
-    }
+    private final SupabaseStorageService storageService;
 
     // ── 공개 조회 ─────────────────────────────────
     @GetMapping("/support/notices")
     public String list(@RequestParam(defaultValue = "0") int page, Model model) {
-        model.addAttribute("notices", noticeService.getNotices(PageRequest.of(page, 10, defaultSort())));
+        model.addAttribute("notices", noticeService.getNotices(PageRequest.of(page, 10)));
         return "support/notice-list";
     }
 
-    @GetMapping("/support/notices/{noticeId}")
-    public String detail(@PathVariable Long noticeId, Model model) {
-        model.addAttribute("notice", noticeService.getNotice(noticeId));
-        return "support/notice-detail";
+    /** 모달로 공지를 열 때 비동기로 호출되어 조회수만 올린다. */
+    @PostMapping("/support/notices/{noticeId}/view")
+    @ResponseBody
+    public void increaseView(@PathVariable Long noticeId) {
+        noticeService.increaseViewCount(noticeId);
     }
 
     // ── 관리자 관리 (/admin/** = ROLE_ADMIN) ──────────
     @GetMapping("/admin/notice")
     public String adminList(@RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("activeMenu", "notice");
-        model.addAttribute("notices", noticeService.getNotices(PageRequest.of(page, 20, defaultSort())));
+        model.addAttribute("notices", noticeService.getNotices(PageRequest.of(page, 20)));
         return "admin/notice/list";
     }
 
     @PostMapping("/admin/notice/write")
     public String write(@RequestParam String title,
                         @RequestParam String content,
-                        @RequestParam(defaultValue = "false") boolean pinned,
-                        @RequestParam(defaultValue = "false") boolean marquee,
+                        @RequestParam(required = false) MultipartFile imageFile,
                         RedirectAttributes ra) {
-        noticeService.create(title, content, pinned, marquee);
-        ra.addFlashAttribute("successMsg", "공지사항이 등록되었습니다.");
+        try {
+            String imageUrl = (imageFile != null && !imageFile.isEmpty())
+                ? storageService.upload(imageFile, "notice") : null;
+            noticeService.create(title, content, imageUrl);
+            ra.addFlashAttribute("successMsg", "공지사항이 등록되었습니다.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "등록 실패: " + e.getMessage());
+        }
         return "redirect:/admin/notice";
     }
 
@@ -62,14 +65,18 @@ public class NoticeController {
     public String edit(@PathVariable Long noticeId,
                        @RequestParam String title,
                        @RequestParam String content,
-                       @RequestParam(defaultValue = "false") boolean pinned,
-                       @RequestParam(defaultValue = "false") boolean marquee,
+                       @RequestParam(required = false) MultipartFile imageFile,
                        RedirectAttributes ra) {
         try {
-            noticeService.update(noticeId, title, content, pinned, marquee);
+            String newImageUrl = (imageFile != null && !imageFile.isEmpty())
+                ? storageService.upload(imageFile, "notice") : null;
+            String discardedUrl = noticeService.update(noticeId, title, content, newImageUrl);
+            if (discardedUrl != null) storageService.deleteByPublicUrl(discardedUrl); // 교체된 옛 이미지 정리
             ra.addFlashAttribute("successMsg", "공지사항이 수정되었습니다.");
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "수정 실패: " + e.getMessage());
         }
         return "redirect:/admin/notice";
     }
@@ -77,7 +84,8 @@ public class NoticeController {
     @PostMapping("/admin/notice/{noticeId}/delete")
     public String delete(@PathVariable Long noticeId, RedirectAttributes ra) {
         try {
-            noticeService.delete(noticeId);
+            String imageUrl = noticeService.delete(noticeId);
+            if (imageUrl != null) storageService.deleteByPublicUrl(imageUrl); // Storage 파일도 정리
             ra.addFlashAttribute("successMsg", "공지사항이 삭제되었습니다.");
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());

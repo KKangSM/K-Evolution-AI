@@ -6,15 +6,15 @@
 <head>
     <meta charset="UTF-8">
     <title>약관 관리 · K-Evolution 관리자</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 </head>
 <body class="admin-body">
 
-<%@ include file="/WEB-INF/views/fragments/admin-topbar.jsp" %>
+<%@ include file="/WEB-INF/views/layout/admin-topbar.jsp" %>
 
 <div class="admin-layout">
-    <%@ include file="/WEB-INF/views/fragments/admin-sidebar.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/admin-sidebar.jsp" %>
 
     <main class="admin-main">
 
@@ -26,7 +26,7 @@
             <a href="${pageContext.request.contextPath}/admin/terms/upload" class="btn btn-dark">+ 약관 등록</a>
         </div>
 
-        <%@ include file="/WEB-INF/views/fragments/flash-toast.jsp" %>
+        <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">

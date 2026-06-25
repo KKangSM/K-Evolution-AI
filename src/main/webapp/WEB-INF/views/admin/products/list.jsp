@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>상품 관리 · K-Evolution 관리자</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
     <style>
         .admin-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }
@@ -14,10 +14,10 @@
 </head>
 <body class="admin-body">
 
-<%@ include file="/WEB-INF/views/fragments/admin-topbar.jsp" %>
+<%@ include file="/WEB-INF/views/layout/admin-topbar.jsp" %>
 
 <div class="admin-layout">
-    <%@ include file="/WEB-INF/views/fragments/admin-sidebar.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/admin-sidebar.jsp" %>
 
     <main class="admin-main">
 

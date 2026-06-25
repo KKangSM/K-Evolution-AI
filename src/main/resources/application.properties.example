@@ -47,3 +47,17 @@ spring.mvc.hiddenmethod.filter.enabled=true
 # Toss Payments (실제 키는 각자 발급받아 application.properties 에 입력)
 toss.secret-key=test_sk_여기에입력
 toss.client-key=test_ck_여기에입력
+
+# Supabase (배너 등 이미지 저장용 Storage)
+# SECRET_KEY 는 service_role 급 비밀이므로 example 에 적지 말고 application.properties 에만 입력.
+SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_여기에입력
+SUPABASE_SECRET_KEY=sb_secret_여기에입력
+SUPABASE_JWKS_URL=https://YOUR-PROJECT.supabase.co/auth/v1/.well-known/jwks.json
+# 이미지 업로드 대상 버킷 — Supabase 대시보드 Storage 에서 만든 버킷 이름 그대로(대소문자 구분).
+# 반드시 Public 버킷이어야 업로드한 이미지가 화면에 표시됩니다.
+supabase.storage.bucket=YOUR_BUCKET_NAME
+
+# 파일 업로드 크기 제한 (배너/상품 이미지)
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB

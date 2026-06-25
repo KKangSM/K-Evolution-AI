@@ -5,12 +5,12 @@
 <head>
     <meta charset="UTF-8">
     <title>내 정보 수정 - K-Evolution</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
 </head>
 <body class="bg-light">
-<%@ include file="/WEB-INF/views/fragments/header.jsp" %>
+<%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
-<%@ include file="/WEB-INF/views/fragments/flash-toast.jsp" %>
+<%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
 
 <div class="container py-5" style="max-width:560px">
     <a href="${pageContext.request.contextPath}/mypage" class="back-link"><i class="bi bi-chevron-left"></i>마이페이지</a>

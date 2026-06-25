@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>대시보드 · K-Evolution 관리자</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
     <style>
         .stat-link { cursor: pointer; transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
@@ -16,10 +16,10 @@
 </head>
 <body class="admin-body">
 
-<%@ include file="/WEB-INF/views/fragments/admin-topbar.jsp" %>
+<%@ include file="/WEB-INF/views/layout/admin-topbar.jsp" %>
 
 <div class="admin-layout">
-    <%@ include file="/WEB-INF/views/fragments/admin-sidebar.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/admin-sidebar.jsp" %>
 
     <main class="admin-main">
 

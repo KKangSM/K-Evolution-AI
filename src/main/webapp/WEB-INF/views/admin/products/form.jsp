@@ -6,15 +6,15 @@
 <head>
     <meta charset="UTF-8">
     <title><c:choose><c:when test="${isEdit}">상품 수정</c:when><c:otherwise>상품 등록</c:otherwise></c:choose> · K-Evolution 관리자</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 </head>
 <body class="admin-body">
 
-<%@ include file="/WEB-INF/views/fragments/admin-topbar.jsp" %>
+<%@ include file="/WEB-INF/views/layout/admin-topbar.jsp" %>
 
 <div class="admin-layout">
-    <%@ include file="/WEB-INF/views/fragments/admin-sidebar.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/admin-sidebar.jsp" %>
 
     <main class="admin-main">
 

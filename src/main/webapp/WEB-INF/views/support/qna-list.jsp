@@ -7,7 +7,7 @@
     <title>1:1 문의 - K-Evolution</title>
     <meta name="_csrf" content="${_csrf.token}">
     <meta name="_csrf_header" content="${_csrf.headerName}">
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <style>
         .qna-acc .accordion-button { font-weight: 500; }
         .qna-acc .accordion-button:not(.collapsed) {
@@ -19,9 +19,9 @@
     </style>
 </head>
 <body class="bg-light">
-<%@ include file="/WEB-INF/views/fragments/header.jsp" %>
+<%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
-<%@ include file="/WEB-INF/views/fragments/flash-toast.jsp" %>
+<%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
 
 <div class="container py-5" style="max-width:760px">
     <a href="${pageContext.request.contextPath}/support" class="back-link"><i class="bi bi-chevron-left"></i>고객센터</a>

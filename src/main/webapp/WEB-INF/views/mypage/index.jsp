@@ -5,10 +5,10 @@
 <head>
     <meta charset="UTF-8">
     <title>마이페이지 - K-Evolution</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
 </head>
 <body class="bg-light">
-<%@ include file="/WEB-INF/views/fragments/header.jsp" %>
+<%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
 <div class="container py-5" style="max-width:720px">
     <h4 class="fw-bold mb-1">마이페이지</h4>

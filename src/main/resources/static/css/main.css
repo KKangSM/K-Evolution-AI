@@ -1,8 +1,13 @@
 /* ===== 메인 페이지 스타일 ===== */
 
-/* 레이아웃 / 푸터 하단 고정 */
+/* 레이아웃 / 푸터: 맨아래 고정이 아니라 헤더처럼 화면 하단에 sticky 로 따라다님 */
 body { min-height: 100vh; display: flex; flex-direction: column; }
-.site-footer { margin-top: auto; }
+.site-footer {
+    margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 1010;
+}
 
 /* 이벤트 캐러셀 */
 .event-carousel .carousel-inner { border-radius: 1rem; }
@@ -40,55 +45,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .product-img { height: 200px; object-fit: cover; }
 
-/* 공지 마퀴 배너 */
-.notice-marquee-bar {
-    background: #0f3460;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    height: 36px;
-    font-size: 0.82rem;
-}
-.notice-marquee-label {
-    flex-shrink: 0;
-    padding: 0 14px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    border-right: 1px solid rgba(255,255,255,0.25);
-    height: 100%;
-    display: flex;
-    align-items: center;
-    background: rgba(0,0,0,0.15);
-}
-.notice-marquee-wrap {
-    flex: 1;
-    overflow: hidden;
-    white-space: nowrap;
-    position: relative;
-}
-.notice-marquee-track {
-    display: inline-block;
-    animation: marquee-scroll 18s linear infinite;
-}
-.notice-marquee-track:hover { animation-play-state: paused; }
-@keyframes marquee-scroll {
-    from { transform: translateX(100vw); }
-    to   { transform: translateX(-100%); }
-}
-.notice-marquee-item {
-    color: rgba(255,255,255,0.9);
-    text-decoration: none;
-    margin: 0 24px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-.notice-marquee-item:hover { color: #fff; text-decoration: underline; }
-.notice-marquee-title { font-weight: 600; }
-.notice-marquee-dash { opacity: 0.4; }
-.notice-marquee-content { opacity: 0.75; font-weight: 400; }
-.notice-marquee-sep { opacity: 0.4; }
+/* 공지 마퀴 배너 CSS 는 전역 theme.css 로 이동(헤더 공통 요소) */
 
 /* 인기상품 순위 배지 */
 .rank-badge {

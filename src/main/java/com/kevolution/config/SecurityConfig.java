@@ -1,6 +1,9 @@
 package com.kevolution.config;
 
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -8,9 +11,14 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+
+import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
@@ -35,6 +43,33 @@ public class SecurityConfig {
             .role("SYSTEM").implies("ADMIN")
             .role("ADMIN").implies("USER")
             .build();
+    }
+
+    /**
+     * 로그인 성공 후 분기:
+     *  - ADMIN/SYSTEM → 관리자 대시보드(/admin)
+     *  - 그 외(일반 회원) → 원래 가려던 페이지(saved request) 또는 기본 "/"
+     */
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+        return new SavedRequestAwareAuthenticationSuccessHandler() {
+            {
+                setDefaultTargetUrl("/");
+            }
+            @Override
+            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                                                Authentication authentication)
+                    throws IOException, ServletException {
+                boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
+                                || a.getAuthority().equals("ROLE_SYSTEM"));
+                if (isAdmin) {
+                    getRedirectStrategy().sendRedirect(request, response, "/admin");
+                } else {
+                    super.onAuthenticationSuccess(request, response, authentication);
+                }
+            }
+        };
     }
 
     @Bean
@@ -65,7 +100,7 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/auth/login")
                 .loginProcessingUrl("/auth/login")
-                .defaultSuccessUrl("/", false)
+                .successHandler(authenticationSuccessHandler())
                 .failureUrl("/auth/login?error=true")
                 .usernameParameter("id")
                 .passwordParameter("password")

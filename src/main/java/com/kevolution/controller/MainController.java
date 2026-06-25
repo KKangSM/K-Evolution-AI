@@ -24,7 +24,7 @@ public class MainController {
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("newProducts", productService.getNewProducts(SECTION_SIZE));
         model.addAttribute("popularProducts", productService.getPopularProducts(SECTION_SIZE));
-        model.addAttribute("marqueeNotices", noticeRepository.findByMarqueeTrueOrderByCreatedAtDesc());
+        model.addAttribute("marqueeNotices", noticeRepository.findTop5ByOrderByCreatedAtDesc());
         return "main";
     }
 }

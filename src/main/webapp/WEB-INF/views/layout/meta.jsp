@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
-<%-- 공통 <head> 리소스. 각 페이지의 <title> 아래에서 include 한다. --%>
+<%-- 공통 <head> 리소스(meta·웹폰트·Bootstrap·테마 CSS). 각 페이지의 <title> 아래에서 include 한다. --%>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <%-- Pretendard: 한글 화면을 가장 깔끔하게 만들어 주는 가변 웹폰트 --%>
 <link rel="stylesheet" as="style" crossorigin

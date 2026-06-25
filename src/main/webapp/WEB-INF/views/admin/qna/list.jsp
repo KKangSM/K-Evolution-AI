@@ -5,15 +5,15 @@
 <head>
     <meta charset="UTF-8">
     <title>문의 관리 · K-Evolution 관리자</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 </head>
 <body class="admin-body">
 
-<%@ include file="/WEB-INF/views/fragments/admin-topbar.jsp" %>
+<%@ include file="/WEB-INF/views/layout/admin-topbar.jsp" %>
 
 <div class="admin-layout">
-    <%@ include file="/WEB-INF/views/fragments/admin-sidebar.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/admin-sidebar.jsp" %>
 
     <main class="admin-main">
 
@@ -22,7 +22,7 @@
             <p class="text-muted small mb-0">행을 클릭하면 상세 내용과 답변 창이 열립니다.</p>
         </div>
 
-        <%@ include file="/WEB-INF/views/fragments/flash-toast.jsp" %>
+        <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">

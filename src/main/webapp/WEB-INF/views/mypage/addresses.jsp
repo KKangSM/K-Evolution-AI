@@ -5,16 +5,16 @@
 <head>
     <meta charset="UTF-8">
     <title>배송지 관리 - K-Evolution</title>
-    <%@ include file="/WEB-INF/views/fragments/head.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
 </head>
 <body class="bg-light">
-<%@ include file="/WEB-INF/views/fragments/header.jsp" %>
+<%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
 <div class="container py-5" style="max-width:640px">
     <a href="${pageContext.request.contextPath}/mypage" class="back-link"><i class="bi bi-chevron-left"></i>마이페이지</a>
     <h5 class="fw-bold mt-2 mb-4">배송지 관리</h5>
 
-    <%@ include file="/WEB-INF/views/fragments/flash-toast.jsp" %>
+    <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
 
     <!-- 배송지 목록 -->
     <c:forEach var="a" items="${addresses}">

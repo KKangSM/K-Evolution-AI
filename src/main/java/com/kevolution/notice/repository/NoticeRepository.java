@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
-    Page<Notice> findAllByOrderByPinnedDescCreatedAtDesc(Pageable pageable);
-    List<Notice> findByMarqueeTrueOrderByCreatedAtDesc();
+    /** 목록: 최신순 */
+    Page<Notice> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    /** 메인 마퀴: 최신 5건 */
+    List<Notice> findTop5ByOrderByCreatedAtDesc();
 }
