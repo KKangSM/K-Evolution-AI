@@ -52,3 +52,6 @@ app-run.log
 node_modules/
 package.json
 package-lock.json
+
+### 업로드 이미지 (로컬 디스크 — 이제 Supabase Storage 사용, 런타임 데이터라 제외) ###
+uploads/

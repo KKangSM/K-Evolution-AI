@@ -23,6 +23,16 @@
             align-items: center;
             justify-content: center;
         }
+        .product-sub-img {
+            height: 90px;
+            width: 90px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .product-sub-img:hover { transform: scale(1.05); }
         .price-tag {
             font-size: 2rem;
             font-weight: 800;
@@ -53,7 +63,7 @@
         <div class="col-md-6">
             <c:choose>
                 <c:when test="${not empty product.imageUrl}">
-                    <img src="${product.imageUrl}" alt="${product.name}" class="product-main-img">
+                    <img src="${product.imageUrl}" alt="${product.name}" class="product-main-img" id="mainImg">
                 </c:when>
                 <c:otherwise>
                     <div class="img-placeholder">
@@ -61,6 +71,15 @@
                     </div>
                 </c:otherwise>
             </c:choose>
+
+            <%-- ── 추가 이미지 갤러리 ── --%>
+            <c:if test="${not empty images}">
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <c:forEach var="img" items="${images}">
+                        <img src="${img.imageUrl}" alt="${product.name}" class="product-sub-img">
+                    </c:forEach>
+                </div>
+            </c:if>
         </div>
 
         <%-- ── 상품 정보 ── --%>
@@ -131,5 +150,14 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 추가 이미지를 클릭하면 대표(메인) 이미지로 교체한다.
+    document.querySelectorAll('.product-sub-img').forEach(function (thumb) {
+        thumb.addEventListener('click', function () {
+            const main = document.getElementById('mainImg');
+            if (main) main.src = this.src;
+        });
+    });
+</script>
 </body>
 </html>

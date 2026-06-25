@@ -4,36 +4,30 @@ import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.repository.CategoryRepository;
 import com.kevolution.product.service.ProductService;
+import com.kevolution.storage.SupabaseStorageService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
 public class ProductController {
 
     private static final int ADMIN_PAGE_SIZE = 20;
+    private static final String IMAGE_FOLDER = "product";  // Supabase Storage 내 폴더
 
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
-
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
+    private final SupabaseStorageService storageService;
 
     // ── 공개 조회 ─────────────────────────────────
     @GetMapping("/products")
@@ -57,6 +51,7 @@ public class ProductController {
     @GetMapping("/products/{productId}")
     public String detail(@PathVariable Long productId, Model model) {
         model.addAttribute("product", productService.getProduct(productId));
+        model.addAttribute("images", productService.getProductImages(productId));
         return "products/detail";
     }
 
@@ -90,11 +85,13 @@ public class ProductController {
         @RequestParam int stock,
         @RequestParam(required = false) String description,
         @RequestParam(required = false) MultipartFile imageFile,
+        @RequestParam(required = false) List<MultipartFile> detailImages,
         RedirectAttributes ra
     ) {
         try {
-            String imageUrl = saveImageFile(imageFile);
-            productService.createProduct(categoryId, name, price, stock, description, imageUrl);
+            String imageUrl = uploadImage(imageFile);
+            List<String> detailUrls = uploadImages(detailImages);
+            productService.createProduct(categoryId, name, price, stock, description, imageUrl, detailUrls);
             ra.addFlashAttribute("successMsg", "상품이 등록되었습니다.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "등록 중 오류가 발생했습니다: " + e.getMessage());
@@ -106,6 +103,7 @@ public class ProductController {
     public String editForm(@PathVariable Long productId, Model model) {
         model.addAttribute("activeMenu", "products");
         model.addAttribute("product", productService.getProduct(productId));
+        model.addAttribute("images", productService.getProductImages(productId));
         model.addAttribute("categories", categoryRepository.findAll());
         return "admin/products/form";
     }
@@ -119,14 +117,19 @@ public class ProductController {
         @RequestParam int stock,
         @RequestParam(required = false) String description,
         @RequestParam(required = false) MultipartFile imageFile,
+        @RequestParam(required = false) List<MultipartFile> detailImages,
         @RequestParam(required = false) String existingImageUrl,
         RedirectAttributes ra
     ) {
         try {
-            String imageUrl = (imageFile != null && !imageFile.isEmpty())
-                ? saveImageFile(imageFile)
-                : existingImageUrl;
-            productService.updateProduct(productId, categoryId, name, price, stock, description, imageUrl);
+            boolean replaceThumbnail = (imageFile != null && !imageFile.isEmpty());
+            String imageUrl = replaceThumbnail ? uploadImage(imageFile) : existingImageUrl;
+            List<String> detailUrls = uploadImages(detailImages);
+            productService.updateProduct(productId, categoryId, name, price, stock, description, imageUrl, detailUrls);
+            // 대표 이미지를 새로 올렸다면 교체된 옛 파일을 Storage 에서 정리한다.
+            if (replaceThumbnail && existingImageUrl != null && !existingImageUrl.isBlank()) {
+                storageService.deleteByPublicUrl(existingImageUrl);
+            }
             ra.addFlashAttribute("successMsg", "상품이 수정되었습니다.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "수정 중 오류가 발생했습니다: " + e.getMessage());
@@ -136,18 +139,30 @@ public class ProductController {
 
     @PostMapping("/admin/products/{productId}/delete")
     public String delete(@PathVariable Long productId, RedirectAttributes ra) {
-        productService.deleteProduct(productId);
-        ra.addFlashAttribute("successMsg", "상품이 삭제되었습니다.");
+        try {
+            List<String> imageUrls = productService.deleteProduct(productId);
+            imageUrls.forEach(storageService::deleteByPublicUrl); // Storage 파일도 정리
+            ra.addFlashAttribute("successMsg", "상품이 삭제되었습니다.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "삭제 중 오류가 발생했습니다: " + e.getMessage());
+        }
         return "redirect:/admin/products";
     }
 
-    private String saveImageFile(MultipartFile file) throws IOException {
+    /** 이미지 한 장을 Supabase Storage 에 올리고 공개 URL 을 돌려준다. (빈 파일이면 null) */
+    private String uploadImage(MultipartFile file) {
         if (file == null || file.isEmpty()) return null;
-        String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
-        String filename = UUID.randomUUID() + (ext != null ? "." + ext : "");
-        Path dir = Paths.get(uploadDir, "products");
-        Files.createDirectories(dir);
-        Files.copy(file.getInputStream(), dir.resolve(filename));
-        return "/uploads/products/" + filename;
+        return storageService.upload(file, IMAGE_FOLDER);
+    }
+
+    /** 여러 이미지를 Supabase Storage 에 올리고 공개 URL 목록을 돌려준다. (빈 파일은 건너뜀) */
+    private List<String> uploadImages(List<MultipartFile> files) {
+        List<String> urls = new ArrayList<>();
+        if (files == null) return urls;
+        for (MultipartFile file : files) {
+            String url = uploadImage(file);
+            if (url != null) urls.add(url);
+        }
+        return urls;
     }
 }

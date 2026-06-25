@@ -93,6 +93,23 @@
                 <div class="form-text">JPG, PNG, WEBP 등 이미지 파일 (최대 10MB)</div>
             </div>
 
+            <!-- 추가 이미지 (여러 장) -->
+            <div class="mb-3">
+                <label class="form-label">추가 이미지</label>
+                <c:if test="${isEdit and not empty images}">
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <c:forEach var="img" items="${images}">
+                            <img src="${pageContext.request.contextPath}${img.imageUrl}" alt="추가 이미지"
+                                 style="height:80px; border-radius:6px; border:1px solid #dee2e6;">
+                        </c:forEach>
+                    </div>
+                    <p class="form-text">새로 선택한 파일은 기존 이미지 뒤에 추가됩니다.</p>
+                </c:if>
+                <input type="file" name="detailImages" class="form-control"
+                       accept="image/*" multiple>
+                <div class="form-text">상세 페이지에 표시될 추가 이미지 (여러 장 선택 가능)</div>
+            </div>
+
             <div class="mb-4">
                 <label class="form-label">상품 설명</label>
                 <textarea name="description" class="form-control" rows="5"
