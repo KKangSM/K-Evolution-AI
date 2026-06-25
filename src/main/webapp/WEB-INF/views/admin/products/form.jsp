@@ -75,21 +75,13 @@
 
             <!-- 이미지 업로드 -->
             <div class="mb-3">
-                <label class="form-label">상품 이미지</label>
-                <c:if test="${isEdit and not empty product.imageUrl}">
-                    <div class="mb-2">
-                        <img src="${pageContext.request.contextPath}${product.imageUrl}"
-                             alt="현재 이미지" id="imagePreview"
-                             style="max-height:160px; border-radius:6px; border:1px solid #dee2e6;">
-                        <p class="form-text">새 파일을 선택하면 교체됩니다.</p>
-                    </div>
-                </c:if>
-                <c:if test="${not isEdit or empty product.imageUrl}">
-                    <img id="imagePreview" src="#" alt="미리보기"
-                         style="display:none; max-height:160px; border-radius:6px; border:1px solid #dee2e6; margin-bottom:8px;">
-                </c:if>
-                <input type="file" name="imageFile" id="imageFile" class="form-control"
-                       accept="image/*">
+                <label class="form-label d-block">상품 이미지</label>
+                <label class="upload-box ${isEdit and not empty product.imageUrl ? 'has-image' : ''}" for="imageFile">
+                    <span class="upload-placeholder"><i class="bi bi-camera"></i><span>사진 등록</span></span>
+                    <img class="upload-preview" src="${pageContext.request.contextPath}${product.imageUrl}" alt="">
+                    <span class="upload-hint"><i class="bi bi-arrow-repeat"></i> 사진 변경</span>
+                </label>
+                <input type="file" name="imageFile" id="imageFile" class="upload-input" accept="image/*">
                 <div class="form-text">JPG, PNG, WEBP 등 이미지 파일 (최대 10MB)</div>
             </div>
 
@@ -112,12 +104,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.getElementById('imageFile').addEventListener('change', function () {
-        const file = this.files[0];
-        if (!file) return;
-        const preview = document.getElementById('imagePreview');
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = 'block';
+    // 파일 선택 시 업로드 박스에 미리보기 표시(이미지로 전환)
+    document.querySelectorAll('.upload-input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+            if (!inp.files || !inp.files.length) return;
+            var box = inp.parentElement.querySelector('.upload-box');
+            if (!box) return;
+            box.querySelector('.upload-preview').src = URL.createObjectURL(inp.files[0]);
+            box.classList.add('has-image');
+        });
     });
 </script>
 </body>

@@ -34,7 +34,7 @@
                 <table class="table table-hover mb-0 align-middle">
                     <thead class="table-light">
                     <tr>
-                        <th class="ps-4" style="width:70px">번호</th>
+                        <th class="ps-4" style="width:70px">No.</th>
                         <th>제목</th>
                         <th style="width:80px">조회수</th>
                         <th style="width:110px">작성일</th>
@@ -102,9 +102,14 @@
                                   placeholder="내용을 입력하세요"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small text-muted">이미지 (선택)</label>
-                        <input type="file" name="imageFile" class="form-control" accept="image/*">
-                        <div class="form-text">공지 본문 상단에 표시됩니다. (최대 10MB)</div>
+                        <label class="form-label small text-muted d-block">이미지 (선택)</label>
+                        <label class="upload-box" for="noticeWriteImage">
+                            <span class="upload-placeholder"><i class="bi bi-camera"></i><span>사진 등록</span></span>
+                            <img class="upload-preview" src="" alt="">
+                            <span class="upload-hint"><i class="bi bi-arrow-repeat"></i> 사진 변경</span>
+                        </label>
+                        <input type="file" id="noticeWriteImage" name="imageFile" class="upload-input" accept="image/*">
+                        <div class="form-text">공지 본문 상단에 표시됩니다.</div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -148,15 +153,14 @@
                             <textarea name="content" class="form-control" rows="10" required><c:out value="${n.content}"/></textarea>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small text-muted">이미지 (선택)</label>
-                            <c:if test="${not empty n.imageUrl}">
-                                <div class="mb-2">
-                                    <img src="${n.imageUrl}" alt="현재 이미지"
-                                         style="max-height:120px; border-radius:6px; border:1px solid #dee2e6;">
-                                </div>
-                            </c:if>
-                            <input type="file" name="imageFile" class="form-control" accept="image/*">
-                            <div class="form-text">새 파일을 선택하면 교체됩니다. (비워두면 기존 이미지 유지)</div>
+                            <label class="form-label small text-muted d-block">이미지 (선택)</label>
+                            <label class="upload-box ${not empty n.imageUrl ? 'has-image' : ''}" for="noticeEditImage${n.noticeId}">
+                                <span class="upload-placeholder"><i class="bi bi-camera"></i><span>사진 등록</span></span>
+                                <img class="upload-preview" src="${n.imageUrl}" alt="">
+                                <span class="upload-hint"><i class="bi bi-arrow-repeat"></i> 사진 변경</span>
+                            </label>
+                            <input type="file" id="noticeEditImage${n.noticeId}" name="imageFile" class="upload-input" accept="image/*">
+                            <div class="form-text">사진을 클릭하면 다른 이미지로 교체됩니다. (비워두면 기존 이미지 유지)</div>
                         </div>
                         <div class="d-flex justify-content-between">
                             <button type="button" class="btn btn-outline-danger btn-sm"
@@ -187,6 +191,17 @@
             document.getElementById('deleteForm' + noticeId).submit();
         }
     }
+
+    // 파일 선택 시 업로드 박스에 미리보기 표시(이미지로 전환)
+    document.querySelectorAll('.upload-input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+            if (!inp.files || !inp.files.length) return;
+            var box = inp.parentElement.querySelector('.upload-box');
+            if (!box) return;
+            box.querySelector('.upload-preview').src = URL.createObjectURL(inp.files[0]);
+            box.classList.add('has-image');
+        });
+    });
 </script>
 </body>
 </html>

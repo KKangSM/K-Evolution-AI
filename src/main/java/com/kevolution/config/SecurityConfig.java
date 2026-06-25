@@ -108,7 +108,7 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/auth/logout")
-                .logoutSuccessUrl("/")
+                .logoutSuccessUrl("/?logout")   // 메인으로 이동 + "로그아웃되었습니다" 토스트 표시
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
             );

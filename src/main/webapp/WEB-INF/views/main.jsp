@@ -15,6 +15,12 @@
 
 <%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
+<%-- 로그아웃 직후 안내 토스트 --%>
+<c:if test="${param.logout != null}">
+    <c:set var="successMsg" value="로그아웃되었습니다." scope="request"/>
+</c:if>
+<%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
+
 <!-- 히어로 배너 -->
 <section class="hero text-center">
     <div class="container">

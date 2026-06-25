@@ -29,7 +29,7 @@
                 <table class="table table-hover mb-0 align-middle">
                     <thead class="table-light">
                     <tr>
-                        <th class="ps-4" style="width:60px">No</th>
+                        <th class="ps-4" style="width:60px">No.</th>
                         <th>제목</th>
                         <th style="width:100px">작성자</th>
                         <th style="width:80px">비밀글</th>
@@ -39,9 +39,9 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <c:forEach var="q" items="${qnaList.content}">
+                    <c:forEach var="q" items="${qnaList.content}" varStatus="status">
                         <tr style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#qnaModal${q.qnaId}">
-                            <td class="ps-4 text-muted small">${q.qnaId}</td>
+                            <td class="ps-4 text-muted small">${qnaList.number * qnaList.size + status.index + 1}</td>
                             <td class="fw-medium text-dark">${q.title}</td>
                             <td class="small">${q.member.userId}</td>
                             <td>

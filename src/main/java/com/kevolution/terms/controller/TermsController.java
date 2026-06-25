@@ -1,6 +1,5 @@
 package com.kevolution.terms.controller;
 
-import com.kevolution.config.SecurityConfig;
 import com.kevolution.terms.entity.Terms;
 import com.kevolution.terms.service.TermsService;
 
@@ -26,14 +25,8 @@ public class TermsController {
     public String list(Model model) {
         model.addAttribute("activeMenu", "terms");
         model.addAttribute("termsList", termsService.getAllTerms());
+        model.addAttribute("types", Terms.Type.values());   // 등록 모달 유형 select용
         return "admin/terms/list";
-    }
-
-    @GetMapping("/upload")
-    public String uploadForm(Model model) {
-        model.addAttribute("activeMenu", "terms");
-        model.addAttribute("types", Terms.Type.values());
-        return "admin/terms/upload";
     }
 
     @PostMapping("/upload")
@@ -56,14 +49,6 @@ public class TermsController {
             ra.addFlashAttribute("errorMsg", "업로드 실패: " + e.getMessage());
         }
         return "redirect:/admin/terms";
-    }
-
-    @GetMapping("/{termId}/edit")
-    public String editForm(@PathVariable Long termId, Model model) {
-        model.addAttribute("activeMenu", "terms");
-        model.addAttribute("terms", termsService.getTerms(termId));
-        model.addAttribute("types", Terms.Type.values());
-        return "admin/terms/upload";
     }
 
     @PostMapping("/{termId}/edit")

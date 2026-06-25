@@ -16,6 +16,14 @@
             color: #0f3460; text-decoration: none;
         }
         .signup-logo:hover { color: #16213e; }
+        /* 메시지 영역: 텍스트가 있든 없든 높이를 '완전히 고정'해 단 1px도 움직이지 않게.
+           height = line-height 로 맞추고 overflow:hidden(한 줄 고정). className 변경과 무관하게
+           ID 로 고정하므로 JS 가 class 를 덮어써도 유지된다. */
+        #idMsg, #pwMsg, #pwConfirmMsg {
+            height: 1.5rem;
+            line-height: 1.5rem;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -49,7 +57,7 @@
                         <button type="button" class="btn btn-outline-secondary" id="checkIdBtn">중복확인</button>
                     </div>
                     <div class="form-text">영문 소문자로 시작, 영문 소문자·숫자 4~20자</div>
-                    <div id="idMsg" class="form-text mt-1"></div>
+                    <div id="idMsg" class="form-text mt-1 field-msg"></div>
                 </div>
 
                 <!-- 비밀번호 -->
@@ -60,6 +68,7 @@
                            pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{8,64}"
                            title="영문·숫자·특수문자를 모두 포함해 8자 이상(공백 불가)이어야 합니다.">
                     <div class="form-text">영문·숫자·특수문자 포함 8자 이상 (공백 불가)</div>
+                    <div id="pwMsg" class="form-text mt-1 field-msg"></div>
                 </div>
 
                 <!-- 비밀번호 확인 -->
@@ -67,7 +76,7 @@
                     <label class="form-label small text-muted">비밀번호 확인</label>
                     <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-control"
                            required minlength="8">
-                    <div id="pwConfirmMsg" class="form-text mt-1"></div>
+                    <div id="pwConfirmMsg" class="form-text mt-1 field-msg"></div>
                 </div>
 
                 <!-- 이름 -->
@@ -195,7 +204,28 @@
     const passwordInput   = document.getElementById('password');
     const pwConfirmInput  = document.getElementById('passwordConfirm');
     const pwConfirmMsg    = document.getElementById('pwConfirmMsg');
+    const pwMsg           = document.getElementById('pwMsg');
     const ctx             = '${pageContext.request.contextPath}';
+
+    // 서버 PasswordPolicy 와 동일한 규칙 (영문·숫자·특수문자 포함, 공백 없이 8~64자)
+    const PW_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{8,64}$/;
+
+    function validatePassword() {
+        const v = passwordInput.value;
+        if (v === '') {                       // 비었을 때: 공간은 유지하되 메시지 숨김
+            pwMsg.textContent = '';
+            pwMsg.className = 'form-text mt-1 field-msg';
+            return false;
+        }
+        if (PW_PATTERN.test(v)) {
+            pwMsg.textContent = '사용 가능한 비밀번호입니다.';
+            pwMsg.className = 'form-text mt-1 field-msg text-success';
+            return true;
+        }
+        pwMsg.textContent = '비밀번호 형식이 올바르지 않습니다.';
+        pwMsg.className = 'form-text mt-1 field-msg text-danger';
+        return false;
+    }
 
     function validatePasswordConfirm() {
         if (pwConfirmInput.value === '') {
@@ -214,16 +244,26 @@
         }
     }
 
-    passwordInput.addEventListener('input', validatePasswordConfirm);
+    passwordInput.addEventListener('input', () => { validatePassword(); validatePasswordConfirm(); });
     pwConfirmInput.addEventListener('input', validatePasswordConfirm);
-
-    userIdInput.addEventListener('input', () => {
-        idMsg.textContent = '';
-        idMsg.className = 'form-text mt-1';
-    });
 
     // 서버 UserIdPolicy 와 동일한 규칙 (영문 소문자 시작, 영문 소문자·숫자 4~20자)
     const ID_PATTERN = /^[a-z][a-z0-9]{3,19}$/;
+
+    // 실시간 형식 검증(서버 규칙과 동일). 형식이 틀리면 아래에 표시, 맞으면 비워서
+    // 중복확인 결과("사용 가능/중복")가 들어갈 자리를 남긴다.
+    function validateUserId() {
+        const v = userIdInput.value;
+        if (v === '' || ID_PATTERN.test(v)) {
+            idMsg.textContent = '';
+            idMsg.className = 'form-text mt-1';
+            return v !== '';
+        }
+        idMsg.textContent = '아이디 형식이 올바르지 않습니다.';
+        idMsg.className = 'form-text mt-1 text-danger';
+        return false;
+    }
+    userIdInput.addEventListener('input', validateUserId);
 
     checkIdBtn.addEventListener('click', async () => {
         const val = userIdInput.value.trim();

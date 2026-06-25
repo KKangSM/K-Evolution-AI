@@ -3,6 +3,7 @@ package com.kevolution.terms.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "terms")
@@ -10,8 +11,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Terms {
 
+    /** PK — 등록 시각(yyyyMMddHHmmss)을 숫자로 변환해 부여. (auto-increment 미사용) */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "term_id")
     private Long termId;
 
@@ -39,7 +40,12 @@ public class Terms {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        if (termId == null) {
+            // 등록 시각으로 PK 생성: 2026-06-25 14:30:45 → 20260625143045
+            termId = Long.parseLong(now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        }
     }
 
     @Builder

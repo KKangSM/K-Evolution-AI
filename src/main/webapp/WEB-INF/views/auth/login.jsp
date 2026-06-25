@@ -63,10 +63,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<c:if test="${signupSuccess}">
-<script>
-    alert("노예가 되어 주셔서 감사합니다.\n- by 선모 -");
-</script>
+<%-- 회원가입 직후(signupSuccess) 완료 토스트 --%>
+<c:if test="${signupSuccess == true}">
+    <c:set var="successMsg" value="K-Evolution 회원가입이 완료되었습니다." scope="request"/>
 </c:if>
+<%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
 </body>
 </html>
