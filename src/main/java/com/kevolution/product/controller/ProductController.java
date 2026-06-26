@@ -2,6 +2,7 @@ package com.kevolution.product.controller;
 
 import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
+import com.kevolution.product.entity.ProductSize;
 import com.kevolution.product.repository.CategoryRepository;
 import com.kevolution.product.service.ProductService;
 import com.kevolution.storage.SupabaseStorageService;
@@ -52,6 +53,8 @@ public class ProductController {
     public String detail(@PathVariable Long productId, Model model) {
         model.addAttribute("product", productService.getProduct(productId));
         model.addAttribute("images", productService.getProductImages(productId));
+        model.addAttribute("sizes", productService.getProductSizes(productId));
+        model.addAttribute("colors", productService.getProductColors(productId));
         return "products/detail";
     }
 
@@ -74,6 +77,7 @@ public class ProductController {
     public String registerForm(Model model) {
         model.addAttribute("activeMenu", "products");
         model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("allSizes", ProductSize.values());
         return "admin/products/form";
     }
 
@@ -86,12 +90,16 @@ public class ProductController {
         @RequestParam(required = false) String description,
         @RequestParam(required = false) MultipartFile imageFile,
         @RequestParam(required = false) List<MultipartFile> detailImages,
+        @RequestParam(required = false) List<String> comboSize,
+        @RequestParam(required = false) List<String> comboColor,
+        @RequestParam(required = false) List<Integer> comboStock,
         RedirectAttributes ra
     ) {
         try {
             String imageUrl = uploadImage(imageFile);
             List<String> detailUrls = uploadImages(detailImages);
-            productService.createProduct(categoryId, name, price, stock, description, imageUrl, detailUrls);
+            productService.createProduct(categoryId, name, price, stock, description, imageUrl,
+                                         detailUrls, comboSize, comboColor, comboStock);
             ra.addFlashAttribute("successMsg", "상품이 등록되었습니다.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "등록 중 오류가 발생했습니다: " + e.getMessage());
@@ -105,6 +113,11 @@ public class ProductController {
         model.addAttribute("product", productService.getProduct(productId));
         model.addAttribute("images", productService.getProductImages(productId));
         model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("allSizes", ProductSize.values());
+        model.addAttribute("selectedSizes", productService.getProductSizes(productId));
+        model.addAttribute("sizesValue", String.join(", ", productService.getProductSizes(productId)));
+        model.addAttribute("colorsValue", String.join(", ", productService.getProductColors(productId)));
+        model.addAttribute("optionCombos", productService.getProductOptions(productId));
         return "admin/products/form";
     }
 
@@ -118,6 +131,9 @@ public class ProductController {
         @RequestParam(required = false) String description,
         @RequestParam(required = false) MultipartFile imageFile,
         @RequestParam(required = false) List<MultipartFile> detailImages,
+        @RequestParam(required = false) List<String> comboSize,
+        @RequestParam(required = false) List<String> comboColor,
+        @RequestParam(required = false) List<Integer> comboStock,
         @RequestParam(required = false) String existingImageUrl,
         RedirectAttributes ra
     ) {
@@ -125,7 +141,8 @@ public class ProductController {
             boolean replaceThumbnail = (imageFile != null && !imageFile.isEmpty());
             String imageUrl = replaceThumbnail ? uploadImage(imageFile) : existingImageUrl;
             List<String> detailUrls = uploadImages(detailImages);
-            productService.updateProduct(productId, categoryId, name, price, stock, description, imageUrl, detailUrls);
+            productService.updateProduct(productId, categoryId, name, price, stock, description,
+                                         imageUrl, detailUrls, comboSize, comboColor, comboStock);
             // 대표 이미지를 새로 올렸다면 교체된 옛 파일을 Storage 에서 정리한다.
             if (replaceThumbnail && existingImageUrl != null && !existingImageUrl.isBlank()) {
                 storageService.deleteByPublicUrl(existingImageUrl);

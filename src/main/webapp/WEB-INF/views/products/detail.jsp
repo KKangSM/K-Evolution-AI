@@ -116,6 +116,28 @@
                 </c:choose>
             </div>
 
+            <%-- 사이즈 / 색상 옵션 --%>
+            <c:if test="${not empty sizes}">
+                <div class="mb-3">
+                    <h6 class="fw-bold mb-2">사이즈</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <c:forEach var="size" items="${sizes}">
+                            <span class="badge bg-light text-dark border px-3 py-2">${size}</span>
+                        </c:forEach>
+                    </div>
+                </div>
+            </c:if>
+            <c:if test="${not empty colors}">
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2">색상</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <c:forEach var="color" items="${colors}">
+                            <span class="badge bg-light text-dark border px-3 py-2"><c:out value="${color}"/></span>
+                        </c:forEach>
+                    </div>
+                </div>
+            </c:if>
+
             <%-- 장바구니 버튼 --%>
             <div class="d-grid mb-5">
                 <c:choose>
