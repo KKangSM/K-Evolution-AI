@@ -3,11 +3,7 @@ package com.kevolution.product.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-/**
- * 상품 옵션 = 사이즈×색상 조합 1건 + 조합별 재고.
- * 기존 option_name / option_value 컬럼을 각각 size / color 로 재사용한다(스키마 변경 없음).
- * 사이즈만/색상만 있는 경우 반대쪽 값은 빈 문자열("")로 저장한다.
- */
+/** 상품 옵션 (색상/사이즈 등) + 옵션별 재고 */
 @Entity
 @Table(name = "product_option")
 @Getter
@@ -22,27 +18,27 @@ public class ProductOption {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    /** 사이즈 (XS~XXL). 색상만 있는 조합이면 "" */
-    @Column(name = "option_name", nullable = false, length = 50)
-    private String size;
+    /** 옵션 종류명 (예: 색상) */
+    @Column(nullable = false, length = 50)
+    private String optionName;
 
-    /** 색상 (자유 입력). 사이즈만 있는 조합이면 "" */
-    @Column(name = "option_value", nullable = false, length = 50)
-    private String color;
+    /** 옵션 값 (예: 블랙) */
+    @Column(nullable = false, length = 50)
+    private String optionValue;
 
     /** 옵션 추가금 */
     @Column(nullable = false)
     private int extraPrice;
 
-    /** 조합별 재고 */
+    /** 옵션별 재고 */
     @Column(nullable = false)
     private int stock;
 
     @Builder
-    public ProductOption(Product product, String size, String color, int extraPrice, int stock) {
+    public ProductOption(Product product, String optionName, String optionValue, int extraPrice, int stock) {
         this.product = product;
-        this.size = (size == null) ? "" : size;
-        this.color = (color == null) ? "" : color;
+        this.optionName = optionName;
+        this.optionValue = optionValue;
         this.extraPrice = extraPrice;
         this.stock = stock;
     }

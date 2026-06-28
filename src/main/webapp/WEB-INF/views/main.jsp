@@ -67,20 +67,46 @@
 </c:if>
 
 <!-- 카테고리 (공지 마퀴 아래, 가운데 정렬 + 아이콘) -->
-<%-- DB의 최상위 카테고리를 동적으로 렌더링한다(GlobalModelAdvice#mainCategories).
-     아이콘은 카테고리 이름으로 자동 매핑되며, 매칭이 없으면 default.svg 를 쓴다. --%>
+<%-- 고정 칸 세트: 칸을 추가/수정하려면 아래 <a class="cat-item"> 한 덩어리를 복사·수정.
+     링크의 categoryId, 라벨, 아이콘 파일명(static/images/category/*.svg)만 바꾸면 됩니다. --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <nav class="cat-grid">
     <a class="cat-item" href="${ctx}/products">
         <span class="cat-thumb"><img src="${ctx}/images/category/all.svg" alt="전체"></span>
         <span class="cat-label">전체</span>
     </a>
-    <c:forEach var="cat" items="${mainCategories}">
-        <a class="cat-item" href="${ctx}/products?categoryId=${cat.id}">
-            <span class="cat-thumb"><img src="${ctx}/images/category/${cat.icon}.svg" alt="${cat.name}"></span>
-            <span class="cat-label">${cat.name}</span>
-        </a>
-    </c:forEach>
+    <a class="cat-item" href="${ctx}/products?categoryId=1">
+        <span class="cat-thumb"><img src="${ctx}/images/category/clothing.svg" alt="의류"></span>
+        <span class="cat-label">의류</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=2">
+        <span class="cat-thumb"><img src="${ctx}/images/category/shoes.svg" alt="신발"></span>
+        <span class="cat-label">신발</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=3">
+        <span class="cat-thumb"><img src="${ctx}/images/category/bag.svg" alt="가방"></span>
+        <span class="cat-label">가방</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=4">
+        <span class="cat-thumb"><img src="${ctx}/images/category/accessory.svg" alt="액세서리"></span>
+        <span class="cat-label">액세서리</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=5">
+        <span class="cat-thumb"><img src="${ctx}/images/category/beauty.svg" alt="뷰티"></span>
+        <span class="cat-label">뷰티</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=6">
+        <span class="cat-thumb"><img src="${ctx}/images/category/digital.svg" alt="디지털"></span>
+        <span class="cat-label">디지털</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=7">
+        <span class="cat-thumb"><img src="${ctx}/images/category/living.svg" alt="리빙"></span>
+        <span class="cat-label">리빙</span>
+    </a>
+    <a class="cat-item" href="${ctx}/products?categoryId=8">
+        <span class="cat-thumb"><img src="${ctx}/images/category/food.svg" alt="식품"></span>
+        <span class="cat-label">식품</span>
+    </a>
 </nav>
 
 <!-- 이벤트 캐러셀 -->
