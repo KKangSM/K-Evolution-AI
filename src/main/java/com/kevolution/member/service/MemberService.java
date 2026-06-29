@@ -35,6 +35,11 @@ public class MemberService {
         return memberRepository.existsByUserId(userId);
     }
 
+    public Member findByUserId(String userId) {
+        return memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
+    }
+
     @Transactional
     public void signup(String userId, String password, String name,
                        String phone, String zipcode, String address, String addressDetail,
@@ -87,18 +92,37 @@ public class MemberService {
     }
 
     // ── 회원 관리 (/admin/members) ──────────────────
-    public Page<Member> getMembers(Pageable pageable) {
+    public Page<Member> getMembers(Pageable pageable, Member.Role requesterRole) {
+        // Admin은 SYSTEM 계정을 조회할 수 없음
+        if (requesterRole == Member.Role.ADMIN) {
+            return memberRepository.findByRoleNot(Member.Role.SYSTEM, pageable);
+        }
+
         return memberRepository.findAll(pageable);
     }
 
     @Transactional
     public void changeRole(String targetMemberId, String requesterUserId, Member.Role newRole) {
-        Member member = memberRepository.findById(targetMemberId)
+        Member requester = memberRepository.findByUserId(requesterUserId)
+                .orElseThrow(() -> new UsernameNotFoundException("요청자를 찾을 수 없습니다."));
+        Member target = memberRepository.findById(targetMemberId)
                 .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
-        if (member.getUserId().equals(requesterUserId)) {
+
+        if (target.getUserId().equals(requesterUserId)) {
             throw new IllegalArgumentException("자기 자신의 권한은 변경할 수 없습니다.");
         }
-        member.changeRole(newRole);
+
+        // Admin은 SYSTEM 권한 부여 불가
+        if (requester.getRole() == Member.Role.ADMIN && newRole == Member.Role.SYSTEM) {
+            throw new IllegalArgumentException("SYSTEM 권한은 SYSTEM 계정만 부여할 수 있습니다.");
+        }
+
+        // Admin은 SYSTEM 계정을 관리할 수 없음
+        if (requester.getRole() == Member.Role.ADMIN && target.getRole() == Member.Role.SYSTEM) {
+            throw new IllegalArgumentException("SYSTEM 계정은 관리할 수 없습니다.");
+        }
+
+        target.changeRole(newRole);
     }
 
     @Transactional

@@ -27,6 +27,9 @@ public class Terms {
     @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String content;
 
+    @Column(nullable = false, length = 10)
+    private String contentType;
+
     @Column(name = "is_required", nullable = false)
     private boolean required;
 
@@ -49,17 +52,19 @@ public class Terms {
     }
 
     @Builder
-    public Terms(Type type, String title, String content, boolean required, boolean active) {
+    public Terms(Type type, String title, String content, String contentType, boolean required, boolean active) {
         this.type = type;
         this.title = title;
         this.content = content;
+        this.contentType = contentType != null ? contentType : "TEXT";
         this.required = required;
         this.active = active;
     }
 
-    public void update(String title, String content, boolean required, boolean active) {
+    public void update(String title, String content, String contentType, boolean required, boolean active) {
         this.title = title;
         this.content = content;
+        this.contentType = contentType != null ? contentType : "TEXT";
         this.required = required;
         this.active = active;
     }

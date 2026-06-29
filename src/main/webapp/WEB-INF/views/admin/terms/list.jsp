@@ -20,7 +20,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="page-title mb-1">약관 관리</h4>
-                <p class="text-muted small mb-0">행을 클릭하면 상세·수정 창이 열립니다. HTML 파일로 등록·관리합니다.</p>
+                <p class="text-muted small mb-0">행을 클릭하면 상세·수정 창이 열립니다. HTML 파일 업로드 또는 직접 입력으로 등록·관리합니다.</p>
             </div>
             <button type="button" class="btn btn-dark btn-sm px-3"
                     data-bs-toggle="modal" data-bs-target="#writeModal">
@@ -38,9 +38,10 @@
                             <th class="ps-4" style="width:60px">No.</th>
                             <th style="width:150px">유형</th>
                             <th>제목</th>
-                            <th style="width:90px">동의 구분</th>
-                            <th style="width:90px">활성 구분</th>
-                            <th style="width:110px">등록일</th>
+                            <th style="width:80px" class="text-center">저장 방식</th>
+                            <th style="width:90px" class="text-center">동의 구분</th>
+                            <th style="width:90px" class="text-center">활성 상태</th>
+                            <th style="width:110px" class="text-center">등록일</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,23 +55,29 @@
                                 </c:choose>
                             </td>
                             <td class="fw-medium text-dark">${t.title}</td>
-                            <td>
+                            <td class="text-center">
+                                <c:choose>
+                                    <c:when test="${t.contentType == 'FILE'}"><span class="badge bg-info">📁 파일</span></c:when>
+                                    <c:otherwise><span class="badge bg-warning">✏️ 텍스트</span></c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td class="text-center">
                                 <c:choose>
                                     <c:when test="${t.required}"><span class="text-danger fw-bold small">필수</span></c:when>
                                     <c:otherwise><span class="text-muted small">선택</span></c:otherwise>
                                 </c:choose>
                             </td>
-                            <td>
+                            <td class="text-center">
                                 <c:choose>
                                     <c:when test="${t.active}"><span class="badge bg-success">활성</span></c:when>
                                     <c:otherwise><span class="badge bg-light text-muted">비활성</span></c:otherwise>
                                 </c:choose>
                             </td>
-                            <td class="text-muted small">${t.createdAt.toString().substring(0, 10)}</td>
+                            <td class="text-muted small text-center">${t.createdAt.toString().substring(0, 10)}</td>
                         </tr>
                         </c:forEach>
                         <c:if test="${empty termsList}">
-                        <tr><td colspan="6" class="text-center text-muted py-4">등록된 약관이 없습니다.</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted py-4">등록된 약관이 없습니다.</td></tr>
                         </c:if>
                     </tbody>
                 </table>
@@ -107,22 +114,60 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label small text-muted">제목</label>
-                        <input type="text" name="title" class="form-control" required maxlength="100"
-                               placeholder="예) K-Evolution 이용약관 (2026.06)">
+                        <input type="text" name="title" class="form-control" required maxlength="100">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small text-muted">HTML 파일</label>
-                        <input type="file" name="file" class="form-control" accept=".html,.htm" required>
-                        <div class="form-text">.html / .htm 파일만 업로드 가능합니다.</div>
+                        <label class="form-label small text-muted">약관 내용</label>
+                        <c:if test="${isSystem}">
+                            <ul class="nav nav-tabs nav-fill mb-2" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-bs-toggle="tab" href="#writeFile" role="tab">📁 파일로 업로드</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#writeText" role="tab">✏️ 직접 입력</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" id="writeFile" role="tabpanel">
+                                    <input type="file" name="file" class="form-control" accept=".html,.htm">
+                                    <div class="form-text">.html / .htm 파일을 선택하세요.</div>
+                                </div>
+                                <div class="tab-pane fade" id="writeText" role="tabpanel">
+                                    <textarea name="content" class="form-control" rows="10" placeholder="일반 텍스트로 입력하세요. 줄바꿈은 자동으로 변환됩니다."></textarea>
+                                    <div class="form-text">평문 텍스트로 입력하세요. 줄바꿈(엔터)은 자동으로 HTML로 변환됩니다.</div>
+                                </div>
+                            </div>
+                        </c:if>
+                        <c:if test="${!isSystem}">
+                            <textarea name="content" class="form-control" rows="10" placeholder="약관 내용을 입력하세요"></textarea>
+                        </c:if>
                     </div>
                     <div class="d-flex gap-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="required" value="true" id="writeRequired" checked>
-                            <label class="form-check-label small" for="writeRequired">필수 동의</label>
+                        <div style="width:50%;">
+                            <label class="form-label small text-muted">동의 구분</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="required" value="true" id="writeRequired" checked>
+                                    <label class="form-check-label small" for="writeRequired">필수 동의</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="required" value="false" id="writeOptional">
+                                    <label class="form-check-label small" for="writeOptional">선택 동의</label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="active" value="true" id="writeActive" checked>
-                            <label class="form-check-label small" for="writeActive">활성화</label>
+                        <div style="width:50%;">
+                            <label class="form-label small text-muted">활성 상태</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="active" value="true" id="writeActive" checked>
+                                    <label class="form-check-label small" for="writeActive">활성화</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="active" value="false" id="writeInactive">
+                                    <label class="form-check-label small" for="writeInactive">비활성화</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,20 +211,60 @@
                                    value="<c:out value='${t.title}'/>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small text-muted">HTML 파일 (변경 시에만 업로드)</label>
-                            <input type="file" name="file" class="form-control" accept=".html,.htm">
-                            <div class="form-text">비워두면 기존 내용을 유지합니다.</div>
+                            <label class="form-label small text-muted">약관 내용</label>
+                            <c:if test="${isSystem}">
+                                <ul class="nav nav-tabs nav-fill mb-2" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link <c:if test="${t.contentType == 'FILE'}">active</c:if>" data-bs-toggle="tab" href="#editFile${t.termId}" role="tab">📁 파일로 변경</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link <c:if test="${t.contentType == 'TEXT'}">active</c:if>" data-bs-toggle="tab" href="#editText${t.termId}" role="tab">✏️ 직접 수정</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div class="tab-pane fade <c:if test="${t.contentType == 'FILE'}">show active</c:if>" id="editFile${t.termId}" role="tabpanel">
+                                        <input type="file" name="file" class="form-control" accept=".html,.htm">
+                                        <div class="form-text">새 파일을 선택하면 내용을 변경합니다. (선택 사항)</div>
+                                    </div>
+                                    <div class="tab-pane fade <c:if test="${t.contentType == 'TEXT'}">show active</c:if>" id="editText${t.termId}" role="tabpanel">
+                                        <textarea name="content" class="form-control" rows="10"><c:if test="${t.contentType == 'TEXT'}"><c:out value="${plainTextMap[t.termId]}"/></c:if></textarea>
+                                    </div>
+                                </div>
+                            </c:if>
+                            <c:if test="${!isSystem}">
+                                <textarea name="content" class="form-control" rows="10"><c:out value="${plainTextMap[t.termId]}"/></textarea>
+                            </c:if>
                         </div>
                         <div class="d-flex gap-4 mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="required" value="true"
-                                       id="required${t.termId}" ${t.required ? 'checked' : ''}>
-                                <label class="form-check-label small" for="required${t.termId}">필수 동의</label>
+                            <div style="width:50%;">
+                                <label class="form-label small text-muted">동의 구분</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="required" value="true"
+                                               id="required${t.termId}" ${t.required ? 'checked' : ''}>
+                                        <label class="form-check-label small" for="required${t.termId}">필수 동의</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="required" value="false"
+                                               id="optional${t.termId}" ${!t.required ? 'checked' : ''}>
+                                        <label class="form-check-label small" for="optional${t.termId}">선택 동의</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="active" value="true"
-                                       id="active${t.termId}" ${t.active ? 'checked' : ''}>
-                                <label class="form-check-label small" for="active${t.termId}">활성화</label>
+                            <div style="width:50%;">
+                                <label class="form-label small text-muted">활성 상태</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="active" value="true"
+                                               id="active${t.termId}" ${t.active ? 'checked' : ''}>
+                                        <label class="form-check-label small" for="active${t.termId}">활성화</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="active" value="false"
+                                               id="inactive${t.termId}" ${!t.active ? 'checked' : ''}>
+                                        <label class="form-check-label small" for="inactive${t.termId}">비활성화</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="d-flex justify-content-between">

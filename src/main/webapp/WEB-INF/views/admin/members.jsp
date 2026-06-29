@@ -68,16 +68,29 @@
                             </td>
                             <td class="text-muted small">${m.createdAt.toString().substring(0, 10)}</td>
                             <td>
-                                <form action="${pageContext.request.contextPath}/admin/members/${m.memberId}/role"
-                                      method="post" class="d-flex gap-2">
-                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                    <select name="role" class="form-select form-select-sm" style="width:110px">
-                                        <option value="USER"   ${m.role == 'USER'   ? 'selected' : ''}>USER</option>
-                                        <option value="ADMIN"  ${m.role == 'ADMIN'  ? 'selected' : ''}>ADMIN</option>
-                                        <option value="SYSTEM" ${m.role == 'SYSTEM' ? 'selected' : ''}>SYSTEM</option>
-                                    </select>
-                                    <button class="btn btn-sm btn-outline-primary">변경</button>
-                                </form>
+                                <c:if test="${requesterRole == 'SYSTEM'}">
+                                    <form action="${pageContext.request.contextPath}/admin/members/${m.memberId}/role"
+                                          method="post" class="d-flex gap-2">
+                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                                        <select name="role" class="form-select form-select-sm" style="width:110px">
+                                            <option value="USER"   ${m.role == 'USER'   ? 'selected' : ''}>USER</option>
+                                            <option value="ADMIN"  ${m.role == 'ADMIN'  ? 'selected' : ''}>ADMIN</option>
+                                            <option value="SYSTEM" ${m.role == 'SYSTEM' ? 'selected' : ''}>SYSTEM</option>
+                                        </select>
+                                        <button class="btn btn-sm btn-outline-primary">변경</button>
+                                    </form>
+                                </c:if>
+                                <c:if test="${requesterRole == 'ADMIN'}">
+                                    <form action="${pageContext.request.contextPath}/admin/members/${m.memberId}/role"
+                                          method="post" class="d-flex gap-2">
+                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                                        <select name="role" class="form-select form-select-sm" style="width:110px">
+                                            <option value="USER"  ${m.role == 'USER'  ? 'selected' : ''}>USER</option>
+                                            <option value="ADMIN" ${m.role == 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+                                        </select>
+                                        <button class="btn btn-sm btn-outline-primary">변경</button>
+                                    </form>
+                                </c:if>
                             </td>
                             <td class="pe-4">
                                 <form action="${pageContext.request.contextPath}/admin/members/${m.memberId}/delete"

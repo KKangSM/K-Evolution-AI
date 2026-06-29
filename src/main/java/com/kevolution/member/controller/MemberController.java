@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,12 +30,18 @@ public class MemberController {
     @GetMapping
     public String list(
             @RequestParam(defaultValue = "0") int page,
+            @AuthenticationPrincipal UserDetails userDetails,
             Model model
     ) {
         PageRequest pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
-        Page<Member> members = memberService.getMembers(pageable);
+
+        // 요청자의 Member 정보 조회
+        Member requester = memberService.findByUserId(userDetails.getUsername());
+
+        Page<Member> members = memberService.getMembers(pageable, requester.getRole());
         model.addAttribute("activeMenu", "members");
         model.addAttribute("members", members);
+        model.addAttribute("requesterRole", requester.getRole());
         return "admin/members";
     }
 
@@ -61,10 +68,10 @@ public class MemberController {
             RedirectAttributes ra
     ) {
         try {
-            String requesterId = userDetails.getUsername(); // userId
+            String requesterId = userDetails.getUsername();
             memberService.changeRole(memberId, requesterId, Member.Role.valueOf(role));
             ra.addFlashAttribute("successMsg", "권한이 변경되었습니다.");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | UsernameNotFoundException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/admin/members";
