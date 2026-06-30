@@ -5,6 +5,8 @@ import com.kevolution.terms.repository.TermsRepository;
 import com.kevolution.storage.SupabaseStorageService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +30,21 @@ public class TermsService {
 
     public List<Terms> getAllTerms() {
         return termsRepository.findAll();
+    }
+
+    public Page<Terms> searchTerms(String keyword, String type, String contentType, String required, String active, Pageable pageable) {
+        Terms.Type typeEnum = (type != null && !type.isEmpty()) ? Terms.Type.valueOf(type) : null;
+        Boolean requiredBool = (required != null && !required.isEmpty()) ? Boolean.parseBoolean(required) : null;
+        Boolean activeBool = (active != null && !active.isEmpty()) ? Boolean.parseBoolean(active) : null;
+
+        return termsRepository.searchTerms(
+            (keyword != null && !keyword.isEmpty()) ? keyword : null,
+            typeEnum,
+            (contentType != null && !contentType.isEmpty()) ? contentType : null,
+            requiredBool,
+            activeBool,
+            pageable
+        );
     }
 
     public Terms getTerms(Long termId) {

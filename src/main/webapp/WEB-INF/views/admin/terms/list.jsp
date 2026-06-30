@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="ui" tagdir="/WEB-INF/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,10 +18,9 @@
 
     <main class="admin-main">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h4 class="page-title mb-1">약관 관리</h4>
-                <p class="text-muted small mb-0">행을 클릭하면 상세·수정 창이 열립니다. HTML 파일 업로드 또는 직접 입력으로 등록·관리합니다.</p>
             </div>
             <button type="button" class="btn btn-dark btn-sm px-3"
                     data-bs-toggle="modal" data-bs-target="#writeModal">
@@ -29,6 +29,54 @@
         </div>
 
         <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
+
+        <!-- 검색 폼 -->
+        <ui:searchForm placeholder="제목 검색"
+                       resetUrl="${pageContext.request.contextPath}/admin/terms?type=${filterType}">
+            <%-- 현재 탭(유형)·페이지 크기 유지 --%>
+            <input type="hidden" name="type" value="${filterType}">
+            <input type="hidden" name="pageSize" value="${empty param.pageSize ? '20' : param.pageSize}">
+            <div class="col-md-2">
+                <select name="contentType" class="form-select form-select-sm">
+                    <option value="">저장방식 전체</option>
+                    <option value="FILE" ${filterContentType == 'FILE' ? 'selected' : ''}>파일</option>
+                    <option value="TEXT" ${filterContentType == 'TEXT' ? 'selected' : ''}>텍스트</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="required" class="form-select form-select-sm">
+                    <option value="">동의구분 전체</option>
+                    <option value="true" ${filterRequired == 'true' ? 'selected' : ''}>필수</option>
+                    <option value="false" ${filterRequired == 'false' ? 'selected' : ''}>선택</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="active" class="form-select form-select-sm">
+                    <option value="">활성상태 전체</option>
+                    <option value="true" ${filterActive == 'true' ? 'selected' : ''}>활성</option>
+                    <option value="false" ${filterActive == 'false' ? 'selected' : ''}>비활성</option>
+                </select>
+            </div>
+        </ui:searchForm>
+
+        <!-- 유형 탭 + 페이지당 표시 -->
+        <div class="d-flex justify-content-between align-items-end mb-2">
+            <ul class="nav nav-tabs mb-0" role="tablist" style="border-bottom:0">
+                <li class="nav-item">
+                    <a class="nav-link ${filterType == 'SERVICE' ? 'active' : ''}"
+                       href="?type=SERVICE">이용약관</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link ${filterType == 'PRIVACY' ? 'active' : ''}"
+                       href="?type=PRIVACY">개인정보처리방침</a>
+                </li>
+            </ul>
+            <select name="pageSize" class="form-select form-select-sm" style="width:90px" onchange="changePageSize(this)">
+                <option value="20" ${empty param.pageSize || param.pageSize == '20' ? 'selected' : ''}>20개</option>
+                <option value="50" ${param.pageSize == '50' ? 'selected' : ''}>50개</option>
+                <option value="100" ${param.pageSize == '100' ? 'selected' : ''}>100개</option>
+            </select>
+        </div>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">
@@ -45,9 +93,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach var="t" items="${termsList}" varStatus="status">
+                        <c:forEach var="t" items="${termsList.content}" varStatus="status">
                         <tr style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#termsModal${t.termId}">
-                            <td class="ps-4 text-muted small">${status.count}</td>
+                            <td class="ps-4 text-muted small">${termsList.totalElements - (termsList.number * termsList.size + status.index)}</td>
                             <td>
                                 <c:choose>
                                     <c:when test="${t.type == 'SERVICE'}"><span class="badge bg-primary">이용약관</span></c:when>
@@ -76,7 +124,7 @@
                             <td class="text-muted small text-center">${t.createdAt.toString().substring(0, 10)}</td>
                         </tr>
                         </c:forEach>
-                        <c:if test="${empty termsList}">
+                        <c:if test="${empty termsList.content}">
                         <tr><td colspan="7" class="text-center text-muted py-4">등록된 약관이 없습니다.</td></tr>
                         </c:if>
                     </tbody>
@@ -84,8 +132,21 @@
             </div>
         </div>
 
+        <!-- 페이지네이션 -->
+        <ui:pagination page="${termsList}"/>
+
     </main>
 </div>
+
+<script>
+function changePageSize(select) {
+    const pageSize = select.value;
+    const url = new URL(window.location);
+    url.searchParams.set('pageSize', pageSize);
+    url.searchParams.set('page', '0');
+    window.location = url.toString();
+}
+</script>
 
 <%-- 약관 등록 모달 --%>
 <div class="modal fade" id="writeModal" tabindex="-1" aria-hidden="true">
@@ -181,7 +242,7 @@
 </div>
 
 <%-- 약관별 상세/수정 모달 --%>
-<c:forEach var="t" items="${termsList}">
+<c:forEach var="t" items="${termsList.content}">
     <div class="modal fade" id="termsModal${t.termId}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">

@@ -27,9 +27,10 @@ public class BannerController {
 
     // ── 관리자 목록 ─────────────────────────────────
     @GetMapping("/admin/banners")
-    public String adminList(Model model) {
+    public String adminList(@RequestParam(required = false) String search, Model model) {
         model.addAttribute("activeMenu", "banners");
-        model.addAttribute("banners", bannerService.getBanners());
+        model.addAttribute("banners", bannerService.searchBanners(search));
+        model.addAttribute("search", search);
         return "admin/banners/list";
     }
 
@@ -45,6 +46,10 @@ public class BannerController {
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endAt,
         RedirectAttributes ra
     ) {
+        if (title == null || title.isBlank()) {
+            ra.addFlashAttribute("errorMsg", "제목을 입력해주세요.");
+            return "redirect:/admin/banners";
+        }
         try {
             String imageUrl = storageService.upload(imageFile);
             bannerService.create(imageUrl, linkUrl, title, sortOrder, active, startAt, endAt);
@@ -69,6 +74,10 @@ public class BannerController {
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endAt,
         RedirectAttributes ra
     ) {
+        if (title == null || title.isBlank()) {
+            ra.addFlashAttribute("errorMsg", "제목을 입력해주세요.");
+            return "redirect:/admin/banners";
+        }
         try {
             String newImageUrl = (imageFile != null && !imageFile.isEmpty())
                 ? storageService.upload(imageFile) : null;

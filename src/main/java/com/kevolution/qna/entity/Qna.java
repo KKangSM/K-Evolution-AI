@@ -6,6 +6,7 @@ import com.kevolution.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /** 상품 문의 / 1:1 문의. product가 null이면 일반 문의. */
 @Entity
@@ -14,8 +15,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Qna {
 
+    /** PK — 등록 시각(yyyyMMddHHmmss)을 숫자로 변환해 부여. (auto-increment 미사용) */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "qna_id")
     private Long qnaId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,25 +43,24 @@ public class Qna {
     /** 고객이 답변을 확인한 일시 (null이면 미확인) */
     private LocalDateTime answerReadAt;
 
-    /** 비밀글 여부 */
-    @Column(name = "is_secret", nullable = false)
-    private boolean secret;
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        if (qnaId == null) {
+            qnaId = Long.parseLong(now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        }
     }
 
     @Builder
-    public Qna(Member member, Product product, String title, String content, boolean secret) {
+    public Qna(Member member, Product product, String title, String content) {
         this.member = member;
         this.product = product;
         this.title = title;
         this.content = content;
-        this.secret = secret;
     }
 
     /** 답변 등록 전에 작성자가 제목·내용을 수정한다. */

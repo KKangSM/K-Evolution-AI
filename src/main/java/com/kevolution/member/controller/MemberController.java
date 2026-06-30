@@ -1,6 +1,5 @@
 package com.kevolution.member.controller;
 
-import com.kevolution.config.SecurityConfig;
 import com.kevolution.member.entity.Member;
 import com.kevolution.member.service.MemberService;
 
@@ -30,18 +29,27 @@ public class MemberController {
     @GetMapping
     public String list(
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "USER") String role,
+            @RequestParam(required = false) String status,
             @AuthenticationPrincipal UserDetails userDetails,
             Model model
     ) {
-        PageRequest pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
+        PageRequest pageable = PageRequest.of(page, pageSize, Sort.by("createdAt").descending());
 
         // 요청자의 Member 정보 조회
         Member requester = memberService.findByUserId(userDetails.getUsername());
 
-        Page<Member> members = memberService.getMembers(pageable, requester.getRole());
+        // role 은 탭(기본 USER)으로 항상 지정됨 → searchMembers 단일 경로
+        Page<Member> members = memberService.searchMembers(search, role, status, pageable, requester.getRole());
+
         model.addAttribute("activeMenu", "members");
         model.addAttribute("members", members);
         model.addAttribute("requesterRole", requester.getRole());
+        model.addAttribute("search", search);
+        model.addAttribute("filterRole", role);
+        model.addAttribute("filterStatus", status);
         return "admin/members";
     }
 

@@ -41,14 +41,13 @@ public class QnaService {
     }
 
     @Transactional
-    public void writeQna(String userId, String title, String content, boolean secret) {
+    public void writeQna(String userId, String title, String content) {
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
         qnaRepository.save(Qna.builder()
                 .member(member)
                 .title(title)
                 .content(content)
-                .secret(secret)
                 .build());
     }
 
@@ -84,6 +83,20 @@ public class QnaService {
     // ── 관리자용 (/admin/qna) ──────────────────────
     public Page<Qna> getQnaList(Pageable pageable) {
         return qnaRepository.findAllByOrderByCreatedAtDesc(pageable);
+    }
+
+    public Page<Qna> searchQna(String keyword, String answered, String answerRead, String type, Pageable pageable) {
+        Boolean hasAnswer = (answered != null && !answered.isEmpty()) ? Boolean.parseBoolean(answered) : null;
+        Boolean readFlag = (answerRead != null && !answerRead.isEmpty()) ? Boolean.parseBoolean(answerRead) : null;
+        Boolean productOnly = (type != null && !type.isEmpty()) ? type.equals("product") : null;
+
+        return qnaRepository.searchQna(
+            (keyword != null && !keyword.isEmpty()) ? keyword : null,
+            hasAnswer,
+            readFlag,
+            productOnly,
+            pageable
+        );
     }
 
     public Qna getQna(Long qnaId) {

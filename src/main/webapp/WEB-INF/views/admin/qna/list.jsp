@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="ui" tagdir="/WEB-INF/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,12 +18,50 @@
 
     <main class="admin-main">
 
-        <div class="mb-4">
+        <div class="mb-3">
             <h4 class="page-title mb-1">문의 관리</h4>
-            <p class="text-muted small mb-0">행을 클릭하면 상세 내용과 답변 창이 열립니다.</p>
         </div>
 
         <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
+
+        <!-- 검색 폼 (필터 → 검색창 → 검색 → 초기화) -->
+        <ui:searchForm placeholder="제목, 내용 검색"
+                       resetUrl="${pageContext.request.contextPath}/admin/qna?type=${filterType}">
+            <%-- 현재 탭(유형)·페이지 크기 유지 --%>
+            <input type="hidden" name="type" value="${filterType}">
+            <input type="hidden" name="pageSize" value="${empty param.pageSize ? '20' : param.pageSize}">
+            <div class="col-md-2">
+                <select name="answered" class="form-select form-select-sm">
+                    <option value="">답변상태 전체</option>
+                    <option value="true" ${filterAnswered == 'true' ? 'selected' : ''}>답변완료</option>
+                    <option value="false" ${filterAnswered == 'false' ? 'selected' : ''}>미답변</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="answerRead" class="form-select form-select-sm">
+                    <option value="">고객확인 전체</option>
+                    <option value="true" ${filterAnswerRead == 'true' ? 'selected' : ''}>확인함</option>
+                    <option value="false" ${filterAnswerRead == 'false' ? 'selected' : ''}>미확인</option>
+                </select>
+            </div>
+        </ui:searchForm>
+
+        <!-- 유형 탭 + 페이지당 표시 -->
+        <div class="d-flex justify-content-between align-items-end mb-2">
+            <ul class="nav nav-tabs mb-0" role="tablist" style="border-bottom:0">
+                <li class="nav-item">
+                    <a class="nav-link ${filterType == 'product' ? 'active' : ''}" href="?type=product">상품문의</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link ${filterType == 'general' ? 'active' : ''}" href="?type=general">일반문의</a>
+                </li>
+            </ul>
+            <select name="pageSize" class="form-select form-select-sm" style="width:90px" onchange="changePageSize(this)">
+                <option value="20" ${empty param.pageSize || param.pageSize == '20' ? 'selected' : ''}>20개</option>
+                <option value="50" ${param.pageSize == '50' ? 'selected' : ''}>50개</option>
+                <option value="100" ${param.pageSize == '100' ? 'selected' : ''}>100개</option>
+            </select>
+        </div>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">
@@ -32,7 +71,6 @@
                         <th class="ps-4" style="width:60px">No.</th>
                         <th>제목</th>
                         <th style="width:100px">작성자</th>
-                        <th style="width:80px">비밀글</th>
                         <th style="width:90px">상태</th>
                         <th style="width:90px">고객확인</th>
                         <th style="width:110px">작성일</th>
@@ -41,14 +79,9 @@
                     <tbody>
                     <c:forEach var="q" items="${qnaList.content}" varStatus="status">
                         <tr style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#qnaModal${q.qnaId}">
-                            <td class="ps-4 text-muted small">${qnaList.number * qnaList.size + status.index + 1}</td>
+                            <td class="ps-4 text-muted small">${qnaList.totalElements - (qnaList.number * qnaList.size + status.index)}</td>
                             <td class="fw-medium text-dark">${q.title}</td>
                             <td class="small">${q.member.userId}</td>
-                            <td>
-                                <c:if test="${q.secret}">
-                                    <span class="badge bg-secondary">비밀</span>
-                                </c:if>
-                            </td>
                             <td>
                                 <c:choose>
                                     <c:when test="${q.answered}">
@@ -76,7 +109,7 @@
                     </c:forEach>
                     <c:if test="${empty qnaList.content}">
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">등록된 문의가 없습니다.</td>
+                            <td colspan="6" class="text-center text-muted py-4">등록된 문의가 없습니다.</td>
                         </tr>
                     </c:if>
                     </tbody>
@@ -84,17 +117,8 @@
             </div>
         </div>
 
-        <c:if test="${qnaList.totalPages > 1}">
-        <nav class="mt-3">
-            <ul class="pagination justify-content-center">
-                <c:forEach begin="0" end="${qnaList.totalPages - 1}" var="i">
-                    <li class="page-item ${qnaList.number == i ? 'active' : ''}">
-                        <a class="page-link" href="?page=${i}">${i + 1}</a>
-                    </li>
-                </c:forEach>
-            </ul>
-        </nav>
-        </c:if>
+        <!-- 페이지네이션 -->
+        <ui:pagination page="${qnaList}"/>
 
     </main>
 </div>
@@ -105,10 +129,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title fw-bold">
-                        ${q.title}
-                        <c:if test="${q.secret}"><span class="badge bg-secondary ms-1">비밀글</span></c:if>
-                    </h6>
+                    <h6 class="modal-title fw-bold">${q.title}</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
                 </div>
                 <div class="modal-body">
@@ -157,5 +178,14 @@
 </c:forEach>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function changePageSize(select) {
+    const pageSize = select.value;
+    const url = new URL(window.location);
+    url.searchParams.set('pageSize', pageSize);
+    url.searchParams.set('page', '0');
+    window.location = url.toString();
+}
+</script>
 </body>
 </html>

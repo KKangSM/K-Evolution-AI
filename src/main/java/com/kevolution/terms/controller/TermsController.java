@@ -5,6 +5,9 @@ import com.kevolution.terms.service.TermsService;
 import com.kevolution.storage.SupabaseStorageService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,14 +31,26 @@ public class TermsController {
     private final SupabaseStorageService storageService;
 
     @GetMapping
-    public String list(Model model, Authentication authentication) {
+    public String list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "SERVICE") String type,
+            @RequestParam(required = false) String contentType,
+            @RequestParam(required = false) String required,
+            @RequestParam(required = false) String active,
+            Model model,
+            Authentication authentication) {
         boolean isSystem = authentication != null &&
             authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_SYSTEM"));
 
-        List<Terms> termsList = termsService.getAllTerms();
+        // searchTerms 는 모든 조건이 null이면 전체 조회와 동일 → 분기 없이 호출해 페이지네이션 일관 유지
+        Page<Terms> termsList = termsService.searchTerms(search, type, contentType, required, active,
+                PageRequest.of(page, pageSize, Sort.by("createdAt").descending()));
+
         Map<Long, String> plainTextMap = new HashMap<>();
-        for (Terms term : termsList) {
+        for (Terms term : termsList.getContent()) {
             if ("TEXT".equals(term.getContentType())) {
                 plainTextMap.put(term.getTermId(), termsService.htmlToPlainText(term.getContent()));
             }
@@ -47,6 +61,11 @@ public class TermsController {
         model.addAttribute("plainTextMap", plainTextMap);
         model.addAttribute("types", Terms.Type.values());
         model.addAttribute("isSystem", isSystem);
+        model.addAttribute("search", search);
+        model.addAttribute("filterType", type);
+        model.addAttribute("filterContentType", contentType);
+        model.addAttribute("filterRequired", required);
+        model.addAttribute("filterActive", active);
         return "admin/terms/list";
     }
 

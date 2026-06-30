@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="ui" tagdir="/WEB-INF/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,7 +22,7 @@
 
     <main class="admin-main">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h4 class="page-title mb-1">배너 관리</h4>
                 <p class="text-muted small mb-0">행을 클릭하면 상세·수정 창이 열립니다. 노출순서 오름차순으로 정렬됩니다.</p>
@@ -33,6 +34,10 @@
         </div>
 
         <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
+
+        <!-- 검색 폼 (제목) -->
+        <ui:searchForm placeholder="제목 검색"
+                       resetUrl="${pageContext.request.contextPath}/admin/banners"/>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">
@@ -117,8 +122,8 @@
                         <div class="form-text">JPG, PNG, WEBP 등 (최대 10MB) · Supabase Storage 에 업로드됩니다.</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small text-muted">제목 (선택)</label>
-                        <input type="text" name="title" class="form-control" maxlength="100"
+                        <label class="form-label small text-muted">제목</label>
+                        <input type="text" name="title" class="form-control" maxlength="100" required
                                placeholder="예: 여름 시즌 오프 이벤트">
                     </div>
                     <div class="mb-3">
@@ -187,7 +192,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted">제목</label>
-                            <input type="text" name="title" class="form-control" maxlength="100"
+                            <input type="text" name="title" class="form-control" maxlength="100" required
                                    value="<c:out value='${b.title}'/>">
                         </div>
                         <div class="mb-3">

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="ui" tagdir="/WEB-INF/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,7 +18,7 @@
 
     <main class="admin-main">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h4 class="page-title mb-1">공지 관리</h4>
             </div>
@@ -28,6 +29,10 @@
         </div>
 
         <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
+
+        <!-- 검색 폼 (제목) -->
+        <ui:searchForm placeholder="제목 검색"
+                       resetUrl="${pageContext.request.contextPath}/admin/notice"/>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">
@@ -64,17 +69,7 @@
             </div>
         </div>
 
-        <c:if test="${notices.totalPages > 1}">
-            <nav class="mt-3">
-                <ul class="pagination justify-content-center">
-                    <c:forEach begin="0" end="${notices.totalPages - 1}" var="i">
-                        <li class="page-item ${notices.number == i ? 'active' : ''}">
-                            <a class="page-link" href="?page=${i}">${i + 1}</a>
-                        </li>
-                    </c:forEach>
-                </ul>
-            </nav>
-        </c:if>
+        <ui:pagination page="${notices}"/>
 
     </main>
 </div>

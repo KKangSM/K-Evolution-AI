@@ -1,9 +1,10 @@
 package com.kevolution.qna.controller;
 
-import com.kevolution.config.SecurityConfig;
+import com.kevolution.qna.entity.Qna;
 import com.kevolution.qna.service.QnaService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -38,9 +39,8 @@ public class QnaController {
     public String write(@AuthenticationPrincipal UserDetails user,
                         @RequestParam String title,
                         @RequestParam String content,
-                        @RequestParam(defaultValue = "false") boolean secret,
                         RedirectAttributes ra) {
-        qnaService.writeQna(user.getUsername(), title, content, secret);
+        qnaService.writeQna(user.getUsername(), title, content);
         ra.addFlashAttribute("successMsg", "문의가 등록되었습니다.");
         return "redirect:/support/qna";
     }
@@ -84,10 +84,25 @@ public class QnaController {
 
     // ── 관리자용 (/admin/qna = ROLE_ADMIN) ─────────
     @GetMapping("/admin/qna")
-    public String adminList(@RequestParam(defaultValue = "0") int page, Model model) {
+    public String adminList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String answered,
+            @RequestParam(required = false) String answerRead,
+            @RequestParam(defaultValue = "product") String type,
+            Model model) {
+
+        // type 은 탭(기본 상품문의)으로 항상 지정됨 → searchQna 단일 경로
+        Page<Qna> qnaList = qnaService.searchQna(search, answered, answerRead, type,
+                PageRequest.of(page, pageSize, Sort.by("createdAt").descending()));
+
         model.addAttribute("activeMenu", "qna");
-        model.addAttribute("qnaList", qnaService.getQnaList(
-                PageRequest.of(page, 20, Sort.by("createdAt").descending())));
+        model.addAttribute("qnaList", qnaList);
+        model.addAttribute("search", search);
+        model.addAttribute("filterAnswered", answered);
+        model.addAttribute("filterAnswerRead", answerRead);
+        model.addAttribute("filterType", type);
         return "admin/qna/list";
     }
 

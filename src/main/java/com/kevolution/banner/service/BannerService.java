@@ -26,6 +26,11 @@ public class BannerService {
         return bannerRepository.findAllByOrderBySortOrderAscBannerIdAsc();
     }
 
+    public List<Banner> searchBanners(String keyword) {
+        return bannerRepository.searchByTitle(
+                (keyword != null && !keyword.isEmpty()) ? keyword : null);
+    }
+
     public Banner getBanner(Long bannerId) {
         return bannerRepository.findById(bannerId)
             .orElseThrow(() -> new IllegalArgumentException("배너를 찾을 수 없습니다."));

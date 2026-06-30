@@ -101,6 +101,22 @@ public class MemberService {
         return memberRepository.findAll(pageable);
     }
 
+    public Page<Member> searchMembers(String keyword, String role, String status, Pageable pageable, Member.Role requesterRole) {
+        Member.Role roleEnum = (role != null && !role.isEmpty()) ? Member.Role.valueOf(role) : null;
+        Member.Status statusEnum = (status != null && !status.isEmpty()) ? Member.Status.valueOf(status) : null;
+
+        // Admin은 SYSTEM 계정을 조회할 수 없으므로 쿼리에서 제외 (페이지네이션 카운트 정확성 유지)
+        Member.Role excludeRole = (requesterRole == Member.Role.ADMIN) ? Member.Role.SYSTEM : null;
+
+        return memberRepository.searchMembers(
+            (keyword != null && !keyword.isEmpty()) ? keyword : null,
+            roleEnum,
+            statusEnum,
+            excludeRole,
+            pageable
+        );
+    }
+
     @Transactional
     public void changeRole(String targetMemberId, String requesterUserId, Member.Role newRole) {
         Member requester = memberRepository.findByUserId(requesterUserId)

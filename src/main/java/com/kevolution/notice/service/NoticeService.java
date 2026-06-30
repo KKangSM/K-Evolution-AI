@@ -23,6 +23,11 @@ public class NoticeService {
         return noticeRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
+    public Page<Notice> searchNotices(String keyword, Pageable pageable) {
+        return noticeRepository.searchByTitle(
+                (keyword != null && !keyword.isEmpty()) ? keyword : null, pageable);
+    }
+
     public Notice getNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다."));
