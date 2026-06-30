@@ -83,6 +83,10 @@ public class Member {
         this.status = Status.WITHDRAWN;
     }
 
+    public void changeStatus(Status status) {
+        this.status = status;
+    }
+
     public void updateInfo(String name, String phone) {
         this.name = name;
         this.phone = phone;

@@ -76,4 +76,25 @@ public class MemberController {
         }
         return "redirect:/admin/members";
     }
+
+    @PostMapping("/{memberId}/update-info")
+    public String updateInfo(
+            @PathVariable String memberId,
+            @RequestParam String name,
+            @RequestParam(required = false) String phone,
+            @RequestParam String role,
+            @RequestParam String status,
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes ra
+    ) {
+        try {
+            memberService.updateMemberInfo(memberId, name, phone,
+                    Member.Role.valueOf(role), Member.Status.valueOf(status),
+                    userDetails.getUsername());
+            ra.addFlashAttribute("successMsg", "회원 정보가 수정되었습니다.");
+        } catch (IllegalArgumentException | UsernameNotFoundException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
+        return "redirect:/admin/members";
+    }
 }

@@ -127,11 +127,46 @@ public class MemberService {
 
     @Transactional
     public void deleteMember(String targetMemberId, String requesterUserId) {
+        Member requester = memberRepository.findByUserId(requesterUserId)
+                .orElseThrow(() -> new UsernameNotFoundException("요청자를 찾을 수 없습니다."));
         Member member = memberRepository.findById(targetMemberId)
                 .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
+
         if (member.getUserId().equals(requesterUserId)) {
             throw new IllegalArgumentException("자기 자신은 삭제할 수 없습니다.");
         }
-        member.withdraw();
+
+        // SYSTEM만 삭제 가능
+        if (requester.getRole() != Member.Role.SYSTEM) {
+            throw new IllegalArgumentException("회원 삭제는 SYSTEM 계정만 가능합니다.");
+        }
+
+        memberRepository.delete(member);
+    }
+
+    @Transactional
+    public void updateMemberInfo(String memberId, String name, String phone,
+                                  Member.Role role, Member.Status status,
+                                  String requesterUserId) {
+        Member requester = memberRepository.findByUserId(requesterUserId)
+                .orElseThrow(() -> new UsernameNotFoundException("요청자를 찾을 수 없습니다."));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
+
+        if (member.getUserId().equals(requesterUserId)) {
+            throw new IllegalArgumentException("자기 자신의 정보는 수정할 수 없습니다.");
+        }
+
+        if (requester.getRole() == Member.Role.ADMIN && member.getRole() == Member.Role.SYSTEM) {
+            throw new IllegalArgumentException("SYSTEM 계정은 수정할 수 없습니다.");
+        }
+
+        if (requester.getRole() == Member.Role.ADMIN && role == Member.Role.SYSTEM) {
+            throw new IllegalArgumentException("SYSTEM 권한은 SYSTEM 계정만 부여할 수 있습니다.");
+        }
+
+        member.updateInfo(name, phone);
+        member.changeRole(role);
+        member.changeStatus(status);
     }
 }
