@@ -16,15 +16,15 @@ public class Banner {
     @Id
     private Long bannerId;
 
+    @Column(length = 100)
+    private String title;
+
     @Column(nullable = false, length = 500)
     private String imageUrl;
 
     /** 클릭 시 이동 URL */
     @Column(length = 500)
     private String linkUrl;
-
-    @Column(length = 100)
-    private String title;
 
     @Column(nullable = false)
     private int sortOrder;

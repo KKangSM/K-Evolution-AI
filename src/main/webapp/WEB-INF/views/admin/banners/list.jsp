@@ -123,8 +123,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label small text-muted">제목</label>
-                        <input type="text" name="title" class="form-control" maxlength="100" required
-                               placeholder="예: 여름 시즌 오프 이벤트">
+                        <input type="text" name="title" class="form-control" maxlength="100" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small text-muted">클릭 시 이동 URL (선택)</label>

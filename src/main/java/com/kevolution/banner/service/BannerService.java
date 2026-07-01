@@ -26,6 +26,11 @@ public class BannerService {
         return bannerRepository.findAllByOrderBySortOrderAscBannerIdAsc();
     }
 
+    /** 공개 노출용: 현재 시각 기준으로 활성·노출기간을 만족하는 배너만 */
+    public List<Banner> getVisibleBanners() {
+        return bannerRepository.findVisible(LocalDateTime.now());
+    }
+
     public List<Banner> searchBanners(String keyword) {
         return bannerRepository.searchByTitle(
                 (keyword != null && !keyword.isEmpty()) ? keyword : null);

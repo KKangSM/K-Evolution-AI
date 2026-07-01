@@ -109,19 +109,37 @@
     </a>
 </nav>
 
-<!-- 이벤트 캐러셀 -->
+<!-- 이벤트 캐러셀 (노출중인 배너) -->
+<c:if test="${not empty banners}">
 <div class="container mt-4">
     <div id="eventCarousel" class="carousel slide event-carousel shadow-sm" data-bs-ride="carousel">
+        <c:if test="${banners.size() > 1}">
         <div class="carousel-indicators">
-            <button type="button" data-bs-target="#eventCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="슬라이드 1"></button>
-            <button type="button" data-bs-target="#eventCarousel" data-bs-slide-to="1" aria-label="슬라이드 2"></button>
-            <button type="button" data-bs-target="#eventCarousel" data-bs-slide-to="2" aria-label="슬라이드 3"></button>
+            <c:forEach var="b" items="${banners}" varStatus="st">
+                <button type="button" data-bs-target="#eventCarousel" data-bs-slide-to="${st.index}"
+                        class="${st.first ? 'active' : ''}"
+                        <c:if test="${st.first}">aria-current="true"</c:if>
+                        aria-label="슬라이드 ${st.count}"></button>
+            </c:forEach>
         </div>
+        </c:if>
         <div class="carousel-inner">
-            <div class="carousel-item active"><div class="event-slide"></div></div>
-            <div class="carousel-item"><div class="event-slide"></div></div>
-            <div class="carousel-item"><div class="event-slide"></div></div>
+            <c:forEach var="b" items="${banners}" varStatus="st">
+            <div class="carousel-item ${st.first ? 'active' : ''}">
+                <c:choose>
+                    <c:when test="${not empty b.linkUrl}">
+                        <a href="${b.linkUrl}">
+                            <div class="event-slide" style="background-image:url('${b.imageUrl}'); background-size:cover; background-position:center;"></div>
+                        </a>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="event-slide" style="background-image:url('${b.imageUrl}'); background-size:cover; background-position:center;"></div>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+            </c:forEach>
         </div>
+        <c:if test="${banners.size() > 1}">
         <button class="carousel-control-prev" type="button" data-bs-target="#eventCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">이전</span>
@@ -130,8 +148,10 @@
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
             <span class="visually-hidden">다음</span>
         </button>
+        </c:if>
     </div>
 </div>
+</c:if>
 
 <div class="container my-5">
     <div class="row g-4">
