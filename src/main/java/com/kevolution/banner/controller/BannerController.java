@@ -1,6 +1,7 @@
 package com.kevolution.banner.controller;
 
 import com.kevolution.banner.service.BannerService;
+import com.kevolution.event.service.EventService;
 import com.kevolution.storage.SupabaseStorageService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 public class BannerController {
 
     private final BannerService bannerService;
+    private final EventService eventService;
     private final SupabaseStorageService storageService;
 
     // ── 관리자 목록 ─────────────────────────────────
@@ -30,6 +32,7 @@ public class BannerController {
     public String adminList(@RequestParam(required = false) String search, Model model) {
         model.addAttribute("activeMenu", "banners");
         model.addAttribute("banners", bannerService.searchBanners(search));
+        model.addAttribute("events", eventService.getAllEvents()); // 배너-이벤트 연결 드롭다운용
         model.addAttribute("search", search);
         return "admin/banners/list";
     }
@@ -51,7 +54,7 @@ public class BannerController {
             return "redirect:/admin/banners";
         }
         try {
-            String imageUrl = storageService.upload(imageFile);
+            String imageUrl = storageService.upload(imageFile, "banner");
             bannerService.create(imageUrl, linkUrl, title, sortOrder, active, startAt, endAt);
             ra.addFlashAttribute("successMsg",
                 "배너가 등록되었습니다. (Supabase 업로드 성공 — 키/연결 정상)");
@@ -80,7 +83,7 @@ public class BannerController {
         }
         try {
             String newImageUrl = (imageFile != null && !imageFile.isEmpty())
-                ? storageService.upload(imageFile) : null;
+                ? storageService.upload(imageFile, "banner") : null;
             String discardedUrl = bannerService.update(
                 bannerId, newImageUrl, linkUrl, title, sortOrder, active, startAt, endAt);
             if (discardedUrl != null) storageService.deleteByPublicUrl(discardedUrl); // 교체된 옛 파일 정리

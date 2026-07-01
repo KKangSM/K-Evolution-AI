@@ -19,8 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TermsService {
 
-    private static final String TERMS_FOLDER = "terms";
-
     private final TermsRepository termsRepository;
     private final SupabaseStorageService storageService;
 
@@ -61,7 +59,7 @@ public class TermsService {
         String contentValue;
         String contentType;
         if (file != null && !file.isEmpty()) {
-            contentValue = storageService.upload(file, TERMS_FOLDER);
+            contentValue = storageService.upload(file, "terms");
             contentType = "FILE";
         } else {
             contentValue = plainTextToHtml(content);
@@ -87,7 +85,7 @@ public class TermsService {
         String contentType = terms.getContentType();
 
         if (file != null && !file.isEmpty()) {
-            contentValue = storageService.upload(file, TERMS_FOLDER);
+            contentValue = storageService.upload(file, "terms");
             contentType = "FILE";
         } else if (content != null && !content.isBlank()) {
             contentValue = plainTextToHtml(content);

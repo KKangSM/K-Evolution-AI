@@ -23,7 +23,6 @@ import java.util.List;
 public class ProductController {
 
     private static final int ADMIN_PAGE_SIZE = 20;
-    private static final String IMAGE_FOLDER = "product";  // Supabase Storage 내 폴더
 
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
@@ -152,7 +151,7 @@ public class ProductController {
     /** 이미지 한 장을 Supabase Storage 에 올리고 공개 URL 을 돌려준다. (빈 파일이면 null) */
     private String uploadImage(MultipartFile file) {
         if (file == null || file.isEmpty()) return null;
-        return storageService.upload(file, IMAGE_FOLDER);
+        return storageService.upload(file, "product");
     }
 
     /** 여러 이미지를 Supabase Storage 에 올리고 공개 URL 목록을 돌려준다. (빈 파일은 건너뜀) */

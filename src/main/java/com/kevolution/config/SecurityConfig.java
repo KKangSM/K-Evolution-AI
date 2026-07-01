@@ -88,6 +88,7 @@ public class SecurityConfig {
                 .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
                 .requestMatchers("/auth/**", "/products/**", "/", "/css/**", "/js/**", "/images/**", "/uploads/**", "/.well-known/**").permitAll()
                 .requestMatchers("/support", "/support/notices", "/support/notices/**").permitAll()
+                .requestMatchers("/events", "/events/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // 일반 회원 전용 — ADMIN 은 URL 접근까지 차단.
                 // 단 SYSTEM 은 마스터키이므로 모두 통과시킨다.

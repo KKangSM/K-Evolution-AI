@@ -22,6 +22,10 @@
                 </c:forEach>
             </div>
             <div class="navbar-nav ms-auto align-items-lg-center">
+                <%-- 이벤트: 공개 페이지, 모두에게 노출 --%>
+                <a class="nav-link" href="${pageContext.request.contextPath}/events">
+                    <i class="bi bi-calendar-event"></i> 이벤트
+                </a>
                 <%-- 고객센터: ADMIN 만 숨김. 비로그인·일반회원·SYSTEM(마스터)에게 노출 --%>
                 <sec:authorize access="!hasRole('ROLE_ADMIN') or hasRole('ROLE_SYSTEM')">
                     <a class="nav-link" href="${pageContext.request.contextPath}/support">

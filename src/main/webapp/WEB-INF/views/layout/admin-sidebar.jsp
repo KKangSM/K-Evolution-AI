@@ -33,4 +33,8 @@
        href="${pageContext.request.contextPath}/admin/banners">
         <span><i class="bi bi-image"></i>배너 관리</span>
     </a>
+    <a class="menu-link ${activeMenu == 'events' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/events">
+        <span><i class="bi bi-calendar-event"></i>이벤트 관리</span>
+    </a>
 </nav>

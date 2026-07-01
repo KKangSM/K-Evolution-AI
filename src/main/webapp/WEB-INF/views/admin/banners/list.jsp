@@ -126,9 +126,19 @@
                         <input type="text" name="title" class="form-control" maxlength="100" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label small text-muted">연결 이벤트 (선택)</label>
+                        <select class="form-select event-select" data-target="writeLinkUrl">
+                            <option value="">선택 안 함 (직접 URL 입력)</option>
+                            <c:forEach var="ev" items="${events}">
+                                <option value="${ev.eventId}"><c:out value="${ev.title}"/></option>
+                            </c:forEach>
+                        </select>
+                        <div class="form-text">이벤트를 고르면 아래 링크가 자동으로 채워집니다.</div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label small text-muted">클릭 시 이동 URL (선택)</label>
-                        <input type="url" name="linkUrl" class="form-control" maxlength="500"
-                               placeholder="https://...">
+                        <input type="text" name="linkUrl" id="writeLinkUrl" class="form-control" maxlength="500"
+                               placeholder="https://... 또는 /events/123">
                     </div>
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -195,8 +205,18 @@
                                    value="<c:out value='${b.title}'/>">
                         </div>
                         <div class="mb-3">
+                            <label class="form-label small text-muted">연결 이벤트 (선택)</label>
+                            <select class="form-select event-select" data-target="editLinkUrl${b.bannerId}">
+                                <option value="">선택 안 함 (직접 URL 입력)</option>
+                                <c:forEach var="ev" items="${events}">
+                                    <option value="${ev.eventId}"><c:out value="${ev.title}"/></option>
+                                </c:forEach>
+                            </select>
+                            <div class="form-text">이벤트를 고르면 아래 링크가 자동으로 채워집니다.</div>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label small text-muted">클릭 시 이동 URL</label>
-                            <input type="url" name="linkUrl" class="form-control" maxlength="500"
+                            <input type="text" name="linkUrl" id="editLinkUrl${b.bannerId}" class="form-control" maxlength="500"
                                    value="<c:out value='${b.linkUrl}'/>">
                         </div>
                         <div class="row g-3">
@@ -262,6 +282,16 @@
             document.getElementById('bannerDeleteForm' + bannerId).submit();
         }
     }
+
+    // 이벤트 선택 시 링크 URL 을 /events/{id} 로 자동 채움
+    document.querySelectorAll('.event-select').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+            var target = document.getElementById(sel.dataset.target);
+            if (target && sel.value) {
+                target.value = '${pageContext.request.contextPath}/events/' + sel.value;
+            }
+        });
+    });
 </script>
 </body>
 </html>
