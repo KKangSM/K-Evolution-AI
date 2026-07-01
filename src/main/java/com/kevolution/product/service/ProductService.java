@@ -1,10 +1,13 @@
 package com.kevolution.product.service;
 
+import com.kevolution.product.dto.ProductOptionForm;
 import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.entity.ProductImage;
+import com.kevolution.product.entity.ProductOption;
 import com.kevolution.product.repository.CategoryRepository;
 import com.kevolution.product.repository.ProductImageRepository;
+import com.kevolution.product.repository.ProductOptionRepository;
 import com.kevolution.product.repository.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -15,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +30,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductImageRepository productImageRepository;
+    private final ProductOptionRepository productOptionRepository;
 
     public Page<Product> getProducts(String keyword, Long categoryId, Pageable pageable) {
         if (categoryId != null) {
@@ -52,6 +58,21 @@ public class ProductService {
         return productImageRepository.findByProductOrderBySortOrderAsc(getProduct(productId));
     }
 
+    /** 상품의 옵션 목록 (노출 순서순) */
+    public List<ProductOption> getProductOptions(Long productId) {
+        return productOptionRepository.findByProductOrderBySortOrderAsc(getProduct(productId));
+    }
+
+    /** 판매 중인 옵션을 옵션명(색상/사이즈 등)별로 묶어 노출 순서대로 반환한다. (상세 페이지 옵션 선택용) */
+    public Map<String, List<ProductOption>> getProductOptionsGrouped(Long productId) {
+        Map<String, List<ProductOption>> grouped = new LinkedHashMap<>();
+        for (ProductOption option : getProductOptions(productId)) {
+            if (!option.isActive()) continue;
+            grouped.computeIfAbsent(option.getOptionName(), key -> new ArrayList<>()).add(option);
+        }
+        return grouped;
+    }
+
     /** 메인 페이지 신상품 목록 (등록일 최신순) */
     public List<Product> getNewProducts(int size) {
         return productRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, size));
@@ -68,7 +89,8 @@ public class ProductService {
 
     @Transactional
     public Long createProduct(Long categoryId, String name, int price, int stock,
-                              String description, String imageUrl, List<String> detailImageUrls) {
+                              String description, String imageUrl, List<String> detailImageUrls,
+                              List<ProductOptionForm> options) {
         Product product = Product.builder()
             .category(findCategoryOrNull(categoryId))
             .name(name)
@@ -79,16 +101,19 @@ public class ProductService {
             .build();
         productRepository.save(product);
         saveProductImages(product, detailImageUrls);
+        saveProductOptions(product, options);
         return product.getProductId();
     }
 
     @Transactional
     public void updateProduct(Long productId, Long categoryId, String name, int price, int stock,
-                              String description, String imageUrl, List<String> newDetailImageUrls) {
+                              String description, String imageUrl, List<String> newDetailImageUrls,
+                              List<ProductOptionForm> options) {
         Product product = getProduct(productId);
         product.update(findCategoryOrNull(categoryId), name, price, stock,
                        description, emptyToNull(imageUrl));
         saveProductImages(product, newDetailImageUrls); // 새로 올린 이미지는 기존 뒤에 추가된다.
+        replaceProductOptions(product, options);        // 옵션은 폼 내용으로 전체 교체된다.
     }
 
     /** 상품과 그 이미지들을 삭제하고, Storage 에서 지워야 할 이미지 URL 목록(대표+추가)을 돌려준다. */
@@ -120,6 +145,30 @@ public class ProductService {
                 .thumbnail(false)
                 .build());
         }
+    }
+
+    /** 유효한(옵션명·옵션값이 있는) 옵션 행만 입력 순서대로 저장한다. */
+    private void saveProductOptions(Product product, List<ProductOptionForm> options) {
+        if (options == null || options.isEmpty()) return;
+        int sortOrder = 0;
+        for (ProductOptionForm form : options) {
+            if (!form.isValid()) continue;
+            productOptionRepository.save(ProductOption.builder()
+                .product(product)
+                .optionName(form.optionName().trim())
+                .optionValue(form.optionValue().trim())
+                .extraPrice(form.extraPrice())
+                .stock(form.stock())
+                .skuCode(emptyToNull(form.skuCode()))
+                .sortOrder(sortOrder++)
+                .build());
+        }
+    }
+
+    /** 기존 옵션을 모두 지우고 폼 내용으로 다시 저장한다. (옵션은 아직 주문/장바구니에서 참조되지 않아 교체 안전) */
+    private void replaceProductOptions(Product product, List<ProductOptionForm> options) {
+        productOptionRepository.deleteAll(productOptionRepository.findByProduct(product));
+        saveProductOptions(product, options);
     }
 
     private Category findCategoryOrNull(Long categoryId) {

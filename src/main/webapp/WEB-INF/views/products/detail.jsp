@@ -129,6 +129,28 @@
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                             <input type="hidden" name="productId" value="${product.productId}"/>
                             <input type="hidden" name="quantity" value="1"/>
+
+                            <%-- ── 옵션 선택 (색상/사이즈 등) ── --%>
+                            <c:if test="${not empty optionGroups}">
+                                <div class="mb-3 text-start">
+                                    <c:forEach var="group" items="${optionGroups}">
+                                        <label class="form-label small fw-semibold mb-1">${group.key}</label>
+                                        <select name="optionIds" class="form-select mb-2 option-select" required>
+                                            <option value="" selected disabled>${group.key} 선택</option>
+                                            <c:forEach var="opt" items="${group.value}">
+                                                <option value="${opt.optionId}" data-extra="${opt.extraPrice}"
+                                                    <c:if test="${opt.stock == 0}">disabled</c:if>>
+                                                    ${opt.optionValue}<c:if test="${opt.extraPrice > 0}"> (+<fmt:formatNumber value="${opt.extraPrice}" type="number" groupingUsed="true"/>원)</c:if><c:if test="${opt.stock == 0}"> — 품절</c:if>
+                                                </option>
+                                            </c:forEach>
+                                        </select>
+                                    </c:forEach>
+                                    <div class="small text-muted" id="optionExtraLine" style="display:none;">
+                                        옵션 추가금 <span class="fw-semibold" id="optionExtraAmount">+0원</span>
+                                    </div>
+                                </div>
+                            </c:if>
+
                             <button type="submit" class="btn btn-dark btn-lg w-100">
                                 <i class="bi bi-cart-plus me-1"></i> 장바구니 담기
                             </button>
@@ -158,6 +180,26 @@
             if (main) main.src = this.src;
         });
     });
+
+    // 옵션 선택 시 추가금 합계를 안내 문구로 갱신한다.
+    (function () {
+        const selects = document.querySelectorAll('.option-select');
+        if (!selects.length) return;
+        const line = document.getElementById('optionExtraLine');
+        const amount = document.getElementById('optionExtraAmount');
+
+        function updateExtra() {
+            let sum = 0;
+            selects.forEach(function (s) {
+                const opt = s.options[s.selectedIndex];
+                if (opt && opt.dataset.extra) sum += parseInt(opt.dataset.extra, 10) || 0;
+            });
+            line.style.display = sum > 0 ? 'block' : 'none';
+            amount.textContent = '+' + sum.toLocaleString() + '원';
+        }
+
+        selects.forEach(function (s) { s.addEventListener('change', updateExtra); });
+    })();
 </script>
 </body>
 </html>

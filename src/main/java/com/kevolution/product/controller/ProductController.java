@@ -1,5 +1,6 @@
 package com.kevolution.product.controller;
 
+import com.kevolution.product.dto.ProductOptionForm;
 import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.repository.CategoryRepository;
@@ -51,6 +52,7 @@ public class ProductController {
     public String detail(@PathVariable Long productId, Model model) {
         model.addAttribute("product", productService.getProduct(productId));
         model.addAttribute("images", productService.getProductImages(productId));
+        model.addAttribute("optionGroups", productService.getProductOptionsGrouped(productId));
         return "products/detail";
     }
 
@@ -85,12 +87,19 @@ public class ProductController {
         @RequestParam(required = false) String description,
         @RequestParam(required = false) MultipartFile imageFile,
         @RequestParam(required = false) List<MultipartFile> detailImages,
+        @RequestParam(required = false) List<String> optionNames,
+        @RequestParam(required = false) List<String> optionValues,
+        @RequestParam(required = false) List<String> optionExtraPrices,
+        @RequestParam(required = false) List<String> optionStocks,
+        @RequestParam(required = false) List<String> optionSkuCodes,
         RedirectAttributes ra
     ) {
         try {
             String imageUrl = uploadImage(imageFile);
             List<String> detailUrls = uploadImages(detailImages);
-            productService.createProduct(categoryId, name, price, stock, description, imageUrl, detailUrls);
+            List<ProductOptionForm> options = buildOptions(optionNames, optionValues,
+                optionExtraPrices, optionStocks, optionSkuCodes);
+            productService.createProduct(categoryId, name, price, stock, description, imageUrl, detailUrls, options);
             ra.addFlashAttribute("successMsg", "상품이 등록되었습니다.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "등록 중 오류가 발생했습니다: " + e.getMessage());
@@ -103,6 +112,7 @@ public class ProductController {
         model.addAttribute("activeMenu", "products");
         model.addAttribute("product", productService.getProduct(productId));
         model.addAttribute("images", productService.getProductImages(productId));
+        model.addAttribute("options", productService.getProductOptions(productId));
         model.addAttribute("categories", categoryRepository.findAll());
         return "admin/products/form";
     }
@@ -118,13 +128,20 @@ public class ProductController {
         @RequestParam(required = false) MultipartFile imageFile,
         @RequestParam(required = false) List<MultipartFile> detailImages,
         @RequestParam(required = false) String existingImageUrl,
+        @RequestParam(required = false) List<String> optionNames,
+        @RequestParam(required = false) List<String> optionValues,
+        @RequestParam(required = false) List<String> optionExtraPrices,
+        @RequestParam(required = false) List<String> optionStocks,
+        @RequestParam(required = false) List<String> optionSkuCodes,
         RedirectAttributes ra
     ) {
         try {
             boolean replaceThumbnail = (imageFile != null && !imageFile.isEmpty());
             String imageUrl = replaceThumbnail ? uploadImage(imageFile) : existingImageUrl;
             List<String> detailUrls = uploadImages(detailImages);
-            productService.updateProduct(productId, categoryId, name, price, stock, description, imageUrl, detailUrls);
+            List<ProductOptionForm> options = buildOptions(optionNames, optionValues,
+                optionExtraPrices, optionStocks, optionSkuCodes);
+            productService.updateProduct(productId, categoryId, name, price, stock, description, imageUrl, detailUrls, options);
             // 대표 이미지를 새로 올렸다면 교체된 옛 파일을 Storage 에서 정리한다.
             if (replaceThumbnail && existingImageUrl != null && !existingImageUrl.isBlank()) {
                 storageService.deleteByPublicUrl(existingImageUrl);
@@ -163,5 +180,36 @@ public class ProductController {
             if (url != null) urls.add(url);
         }
         return urls;
+    }
+
+    /** 폼의 옵션 입력(병렬 배열)을 옵션 폼 DTO 목록으로 묶는다. 빈 행은 서비스에서 걸러진다. */
+    private List<ProductOptionForm> buildOptions(List<String> names, List<String> values,
+                                                 List<String> extraPrices, List<String> stocks,
+                                                 List<String> skuCodes) {
+        List<ProductOptionForm> options = new ArrayList<>();
+        if (names == null) return options;
+        for (int i = 0; i < names.size(); i++) {
+            options.add(new ProductOptionForm(
+                names.get(i),
+                itemAt(values, i),
+                parseIntOrZero(itemAt(extraPrices, i)),
+                parseIntOrZero(itemAt(stocks, i)),
+                itemAt(skuCodes, i)
+            ));
+        }
+        return options;
+    }
+
+    private String itemAt(List<String> list, int index) {
+        return (list != null && index < list.size()) ? list.get(index) : null;
+    }
+
+    private int parseIntOrZero(String value) {
+        if (value == null || value.isBlank()) return 0;
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }

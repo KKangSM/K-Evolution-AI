@@ -110,6 +110,32 @@
                 <div class="form-text">상세 페이지에 표시될 추가 이미지 (여러 장 선택 가능)</div>
             </div>
 
+            <!-- 상품 옵션 (색상/사이즈 등) -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label mb-0">상품 옵션 <span class="form-text">(색상/사이즈 등 · 선택)</span></label>
+                    <button type="button" class="btn btn-sm btn-outline-dark" id="addOptionBtn">+ 옵션 추가</button>
+                </div>
+                <div id="optionRows" class="d-flex flex-column gap-2">
+                    <c:forEach var="opt" items="${options}">
+                        <div class="option-row d-flex gap-2">
+                            <input type="text" name="optionNames" class="form-control form-control-sm"
+                                   style="flex:1 1 22%" placeholder="옵션명 (예: 색상)" value="${opt.optionName}">
+                            <input type="text" name="optionValues" class="form-control form-control-sm"
+                                   style="flex:1 1 22%" placeholder="옵션값 (예: 블랙)" value="${opt.optionValue}">
+                            <input type="number" name="optionExtraPrices" class="form-control form-control-sm"
+                                   style="flex:1 1 16%" placeholder="추가금" value="${opt.extraPrice}">
+                            <input type="number" name="optionStocks" class="form-control form-control-sm"
+                                   style="flex:1 1 16%" placeholder="재고" value="${opt.stock}">
+                            <input type="text" name="optionSkuCodes" class="form-control form-control-sm"
+                                   style="flex:1 1 16%" placeholder="SKU(선택)" value="${opt.skuCode}">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-option" style="flex:0 0 auto">×</button>
+                        </div>
+                    </c:forEach>
+                </div>
+                <div class="form-text">옵션명·옵션값을 모두 입력한 행만 저장됩니다. 입력한 순서대로 노출됩니다.</div>
+            </div>
+
             <div class="mb-4">
                 <label class="form-label">상품 설명</label>
                 <textarea name="description" class="form-control" rows="5"
@@ -136,6 +162,32 @@
         preview.src = URL.createObjectURL(file);
         preview.style.display = 'block';
     });
+
+    // ── 상품 옵션 동적 행 추가/삭제 ──
+    (function () {
+        const rows = document.getElementById('optionRows');
+
+        function optionRowHtml() {
+            return '<div class="option-row d-flex gap-2">'
+                + '<input type="text" name="optionNames" class="form-control form-control-sm" style="flex:1 1 22%" placeholder="옵션명 (예: 색상)">'
+                + '<input type="text" name="optionValues" class="form-control form-control-sm" style="flex:1 1 22%" placeholder="옵션값 (예: 블랙)">'
+                + '<input type="number" name="optionExtraPrices" class="form-control form-control-sm" style="flex:1 1 16%" placeholder="추가금">'
+                + '<input type="number" name="optionStocks" class="form-control form-control-sm" style="flex:1 1 16%" placeholder="재고">'
+                + '<input type="text" name="optionSkuCodes" class="form-control form-control-sm" style="flex:1 1 16%" placeholder="SKU(선택)">'
+                + '<button type="button" class="btn btn-sm btn-outline-danger remove-option" style="flex:0 0 auto">&times;</button>'
+                + '</div>';
+        }
+
+        document.getElementById('addOptionBtn').addEventListener('click', function () {
+            rows.insertAdjacentHTML('beforeend', optionRowHtml());
+        });
+
+        rows.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-option')) {
+                e.target.closest('.option-row').remove();
+            }
+        });
+    })();
 </script>
 </body>
 </html>

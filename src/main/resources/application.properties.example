@@ -61,3 +61,5 @@ supabase.storage.bucket=YOUR_BUCKET_NAME
 # 파일 업로드 크기 제한 (배너/상품 이미지)
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=10MB
+# 멀티파트 파트 개수 제한 (Tomcat 기본 10). 상품 옵션 등 폼 필드가 많아 상향
+server.tomcat.max-part-count=1000
