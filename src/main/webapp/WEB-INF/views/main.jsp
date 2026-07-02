@@ -67,46 +67,19 @@
 </c:if>
 
 <!-- 카테고리 (공지 마퀴 아래, 가운데 정렬 + 아이콘) -->
-<%-- 고정 칸 세트: 칸을 추가/수정하려면 아래 <a class="cat-item"> 한 덩어리를 복사·수정.
-     링크의 categoryId, 라벨, 아이콘 파일명(static/images/category/*.svg)만 바꾸면 됩니다. --%>
+<%-- 카테고리 세트는 Category enum 이 단일 소스. 칸 추가/수정은 enum 만 고치면 됩니다. --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <nav class="cat-grid">
     <a class="cat-item" href="${ctx}/products">
         <span class="cat-thumb"><img src="${ctx}/images/category/all.svg" alt="전체"></span>
         <span class="cat-label">전체</span>
     </a>
-    <a class="cat-item" href="${ctx}/products?categoryId=1">
-        <span class="cat-thumb"><img src="${ctx}/images/category/clothing.svg" alt="의류"></span>
-        <span class="cat-label">의류</span>
-    </a>
-    <a class="cat-item" href="${ctx}/products?categoryId=2">
-        <span class="cat-thumb"><img src="${ctx}/images/category/shoes.svg" alt="신발"></span>
-        <span class="cat-label">신발</span>
-    </a>
-    <a class="cat-item" href="${ctx}/products?categoryId=3">
-        <span class="cat-thumb"><img src="${ctx}/images/category/bag.svg" alt="가방"></span>
-        <span class="cat-label">가방</span>
-    </a>
-    <a class="cat-item" href="${ctx}/products?categoryId=4">
-        <span class="cat-thumb"><img src="${ctx}/images/category/accessory.svg" alt="액세서리"></span>
-        <span class="cat-label">액세서리</span>
-    </a>
-    <a class="cat-item" href="${ctx}/products?categoryId=5">
-        <span class="cat-thumb"><img src="${ctx}/images/category/beauty.svg" alt="뷰티"></span>
-        <span class="cat-label">뷰티</span>
-    </a>
-    <a class="cat-item" href="${ctx}/products?categoryId=6">
-        <span class="cat-thumb"><img src="${ctx}/images/category/digital.svg" alt="디지털"></span>
-        <span class="cat-label">디지털</span>
-    </a>
-    <a class="cat-item" href="${ctx}/products?categoryId=7">
-        <span class="cat-thumb"><img src="${ctx}/images/category/living.svg" alt="리빙"></span>
-        <span class="cat-label">리빙</span>
-    </a>
-    <a class="cat-item" href="${ctx}/products?categoryId=8">
-        <span class="cat-thumb"><img src="${ctx}/images/category/food.svg" alt="식품"></span>
-        <span class="cat-label">식품</span>
-    </a>
+    <c:forEach var="cat" items="${globalCategories}">
+        <a class="cat-item" href="${ctx}/products?category=${cat}">
+            <span class="cat-thumb"><img src="${ctx}/images/category/${cat.icon}.svg" alt="${cat.label}"></span>
+            <span class="cat-label">${cat.label}</span>
+        </a>
+    </c:forEach>
 </nav>
 
 <!-- 이벤트 캐러셀 (노출중인 배너) -->
@@ -184,7 +157,7 @@
                             <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
                                  class="card-img-top product-img" alt="상품 이미지">
                             <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.name : ''}</p>
+                                <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.label : ''}</p>
                                 <h6 class="card-title flex-grow-1">${product.name}</h6>
                                 <div class="d-flex justify-content-between align-items-center mt-2">
                                     <span class="fw-bold">
@@ -228,7 +201,7 @@
                             <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
                                  class="card-img-top product-img" alt="상품 이미지">
                             <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.name : ''}</p>
+                                <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.label : ''}</p>
                                 <h6 class="card-title flex-grow-1">${product.name}</h6>
                                 <div class="d-flex justify-content-between align-items-center mt-2">
                                     <span class="fw-bold">

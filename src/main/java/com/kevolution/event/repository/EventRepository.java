@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
@@ -28,4 +29,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
            "AND (e.endAt IS NULL OR e.endAt >= :now) " +
            "ORDER BY e.createdAt DESC")
     List<Event> findVisible(@Param("now") LocalDateTime now);
+
+    /** 공개 상세 접근용: 해당 ID가 현재 노출 대상일 때만 반환 (예정/종료/숨김이면 empty) */
+    @Query("SELECT e FROM Event e WHERE e.eventId = :id AND e.active = true " +
+           "AND (e.startAt IS NULL OR e.startAt <= :now) " +
+           "AND (e.endAt IS NULL OR e.endAt >= :now)")
+    Optional<Event> findVisibleById(@Param("id") Long id, @Param("now") LocalDateTime now);
 }

@@ -45,6 +45,12 @@ public class EventService {
                 .orElseThrow(() -> new IllegalArgumentException("이벤트를 찾을 수 없습니다."));
     }
 
+    /** 공개 상세 접근용: 현재 노출중인 이벤트만 반환. 예정/종료/숨김이면 예외 → 접근 차단 */
+    public Event getVisibleEvent(Long eventId) {
+        return eventRepository.findVisibleById(eventId, LocalDateTime.now())
+                .orElseThrow(() -> new IllegalArgumentException("진행 중인 이벤트가 아닙니다."));
+    }
+
     /** 상세 조회 시 조회수 1 증가 (없는 ID는 조용히 무시) */
     @Transactional
     public void increaseViewCount(Long eventId) {

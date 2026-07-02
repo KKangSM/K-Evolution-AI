@@ -87,6 +87,11 @@ public class ProductOption {
         this.sortOrder = sortOrder;
     }
 
+    /** 재고 수량 직접 지정 (재고 관리 화면용) */
+    public void changeStock(int stock) {
+        this.stock = Math.max(0, stock);
+    }
+
     public void decreaseStock(int quantity) {
         if (this.stock < quantity) throw new IllegalStateException("옵션 재고가 부족합니다.");
         this.stock -= quantity;

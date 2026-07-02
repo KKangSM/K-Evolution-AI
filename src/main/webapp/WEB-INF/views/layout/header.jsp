@@ -16,8 +16,8 @@
                 <a class="header-cat-link d-block py-1" href="${pageContext.request.contextPath}/products">전체 상품</a>
                 <c:forEach var="cat" items="${globalCategories}">
                     <a class="header-cat-link d-block py-1"
-                       href="${pageContext.request.contextPath}/products?categoryId=${cat.categoryId}">
-                        ${cat.name}
+                       href="${pageContext.request.contextPath}/products?category=${cat}">
+                        ${cat.label}
                     </a>
                 </c:forEach>
             </div>

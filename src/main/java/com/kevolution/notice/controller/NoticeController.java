@@ -3,6 +3,8 @@ package com.kevolution.notice.controller;
 import com.kevolution.notice.service.NoticeService;
 import com.kevolution.storage.SupabaseStorageService;
 
+import static com.kevolution.config.ValidationUtils.isAnyBlank;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
@@ -53,6 +55,10 @@ public class NoticeController {
                         @RequestParam String content,
                         @RequestParam(required = false) MultipartFile imageFile,
                         RedirectAttributes ra) {
+        if (isAnyBlank(title, content)) {
+            ra.addFlashAttribute("errorMsg", "제목과 내용을 모두 입력해주세요.");
+            return "redirect:/admin/notice";
+        }
         try {
             String imageUrl = (imageFile != null && !imageFile.isEmpty())
                 ? storageService.upload(imageFile, "notice") : null;
@@ -70,6 +76,10 @@ public class NoticeController {
                        @RequestParam String content,
                        @RequestParam(required = false) MultipartFile imageFile,
                        RedirectAttributes ra) {
+        if (isAnyBlank(title, content)) {
+            ra.addFlashAttribute("errorMsg", "제목과 내용을 모두 입력해주세요.");
+            return "redirect:/admin/notice";
+        }
         try {
             String newImageUrl = (imageFile != null && !imageFile.isEmpty())
                 ? storageService.upload(imageFile, "notice") : null;

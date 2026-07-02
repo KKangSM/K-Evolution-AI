@@ -70,7 +70,7 @@
                             <td class="fw-semibold">${product.name}</td>
                             <td>
                                 <c:choose>
-                                    <c:when test="${not empty product.category}">${product.category.name}</c:when>
+                                    <c:when test="${not empty product.category}">${product.category.label}</c:when>
                                     <c:otherwise><span class="text-muted">-</span></c:otherwise>
                                 </c:choose>
                             </td>

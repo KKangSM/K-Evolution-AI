@@ -68,23 +68,6 @@ public class MemberController {
         return "redirect:/admin/members";
     }
 
-    @PostMapping("/{memberId}/role")
-    public String changeRole(
-            @PathVariable String memberId,
-            @RequestParam String role,
-            @AuthenticationPrincipal UserDetails userDetails,
-            RedirectAttributes ra
-    ) {
-        try {
-            String requesterId = userDetails.getUsername();
-            memberService.changeRole(memberId, requesterId, Member.Role.valueOf(role));
-            ra.addFlashAttribute("successMsg", "권한이 변경되었습니다.");
-        } catch (IllegalArgumentException | UsernameNotFoundException e) {
-            ra.addFlashAttribute("errorMsg", e.getMessage());
-        }
-        return "redirect:/admin/members";
-    }
-
     @PostMapping("/{memberId}/update-info")
     public String updateInfo(
             @PathVariable String memberId,

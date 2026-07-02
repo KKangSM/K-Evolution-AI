@@ -27,12 +27,12 @@
                        placeholder="상품명 검색" value="${keyword}">
             </div>
             <div class="col-md-4">
-                <select name="categoryId" class="form-select">
+                <select name="category" class="form-select">
                     <option value="">전체 카테고리</option>
-                    <c:forEach var="cat" items="${categories}">
-                        <option value="${cat.categoryId}"
-                            <c:if test="${cat.categoryId == categoryId}">selected</c:if>>
-                            ${cat.name}
+                    <c:forEach var="cat" items="${globalCategories}">
+                        <option value="${cat}"
+                            <c:if test="${cat == category}">selected</c:if>>
+                            ${cat.label}
                         </option>
                     </c:forEach>
                 </select>
@@ -60,7 +60,7 @@
                     <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
                          class="card-img-top product-img" alt="상품 이미지">
                     <div class="card-body d-flex flex-column">
-                        <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.name : ''}</p>
+                        <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.label : ''}</p>
                         <h6 class="card-title flex-grow-1">${product.name}</h6>
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <span class="fw-bold">
@@ -83,7 +83,7 @@
                 <li class="page-item <c:if test="${currentPage == 0}">disabled</c:if>">
                     <c:url value="/products" var="prevUrl">
                         <c:param name="keyword" value="${keyword}"/>
-                        <c:param name="categoryId" value="${categoryId}"/>
+                        <c:param name="category" value="${category}"/>
                         <c:param name="page" value="${currentPage - 1}"/>
                     </c:url>
                     <a class="page-link" href="${prevUrl}">이전</a>
@@ -92,7 +92,7 @@
                     <li class="page-item <c:if test="${i == currentPage}">active</c:if>">
                         <c:url value="/products" var="pageUrl">
                             <c:param name="keyword" value="${keyword}"/>
-                            <c:param name="categoryId" value="${categoryId}"/>
+                            <c:param name="category" value="${category}"/>
                             <c:param name="page" value="${i}"/>
                         </c:url>
                         <a class="page-link" href="${pageUrl}">${i + 1}</a>
@@ -101,7 +101,7 @@
                 <li class="page-item <c:if test="${currentPage == products.totalPages - 1}">disabled</c:if>">
                     <c:url value="/products" var="nextUrl">
                         <c:param name="keyword" value="${keyword}"/>
-                        <c:param name="categoryId" value="${categoryId}"/>
+                        <c:param name="category" value="${category}"/>
                         <c:param name="page" value="${currentPage + 1}"/>
                     </c:url>
                     <a class="page-link" href="${nextUrl}">다음</a>

@@ -49,12 +49,12 @@
 
             <div class="mb-3">
                 <label class="form-label">카테고리</label>
-                <select name="categoryId" class="form-select">
+                <select name="category" class="form-select">
                     <option value="">카테고리 없음</option>
-                    <c:forEach var="cat" items="${categories}">
-                        <option value="${cat.categoryId}"
-                            <c:if test="${isEdit and not empty product.category and product.category.categoryId == cat.categoryId}">selected</c:if>>
-                            ${cat.name}
+                    <c:forEach var="cat" items="${globalCategories}">
+                        <option value="${cat}"
+                            <c:if test="${isEdit and product.category == cat}">selected</c:if>>
+                            ${cat.label}
                         </option>
                     </c:forEach>
                 </select>

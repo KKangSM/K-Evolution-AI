@@ -49,7 +49,7 @@
 
                             <%-- 상품 정보 --%>
                             <div class="flex-grow-1">
-                                <p class="text-muted small mb-0">${not empty item.product.category ? item.product.category.name : ''}</p>
+                                <p class="text-muted small mb-0">${not empty item.product.category ? item.product.category.label : ''}</p>
                                 <a href="${pageContext.request.contextPath}/products/${item.product.productId}"
                                    class="fw-semibold text-dark text-decoration-none">${item.product.name}</a>
                                 <p class="text-muted small mb-0">

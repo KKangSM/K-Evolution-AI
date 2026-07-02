@@ -118,30 +118,6 @@ public class MemberService {
     }
 
     @Transactional
-    public void changeRole(String targetMemberId, String requesterUserId, Member.Role newRole) {
-        Member requester = memberRepository.findByUserId(requesterUserId)
-                .orElseThrow(() -> new UsernameNotFoundException("요청자를 찾을 수 없습니다."));
-        Member target = memberRepository.findById(targetMemberId)
-                .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
-
-        if (target.getUserId().equals(requesterUserId)) {
-            throw new IllegalArgumentException("자기 자신의 권한은 변경할 수 없습니다.");
-        }
-
-        // Admin은 SYSTEM 권한 부여 불가
-        if (requester.getRole() == Member.Role.ADMIN && newRole == Member.Role.SYSTEM) {
-            throw new IllegalArgumentException("SYSTEM 권한은 SYSTEM 계정만 부여할 수 있습니다.");
-        }
-
-        // Admin은 SYSTEM 계정을 관리할 수 없음
-        if (requester.getRole() == Member.Role.ADMIN && target.getRole() == Member.Role.SYSTEM) {
-            throw new IllegalArgumentException("SYSTEM 계정은 관리할 수 없습니다.");
-        }
-
-        target.changeRole(newRole);
-    }
-
-    @Transactional
     public void deleteMember(String targetMemberId, String requesterUserId) {
         Member requester = memberRepository.findByUserId(requesterUserId)
                 .orElseThrow(() -> new UsernameNotFoundException("요청자를 찾을 수 없습니다."));

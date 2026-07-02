@@ -55,8 +55,10 @@
                             <td class="fw-medium text-dark"><c:out value="${e.title}"/></td>
                             <td>
                                 <c:choose>
-                                    <c:when test="${e.active}"><span class="badge bg-success">노출중</span></c:when>
-                                    <c:otherwise><span class="badge bg-secondary">숨김</span></c:otherwise>
+                                    <c:when test="${e.exposureStatus == 'LIVE'}"><span class="badge bg-success">노출중</span></c:when>
+                                    <c:when test="${e.exposureStatus == 'SCHEDULED'}"><span class="badge bg-info text-dark">예정</span></c:when>
+                                    <c:when test="${e.exposureStatus == 'ENDED'}"><span class="badge bg-secondary">종료</span></c:when>
+                                    <c:otherwise><span class="badge bg-dark">숨김</span></c:otherwise>
                                 </c:choose>
                             </td>
                             <td class="small text-muted">
@@ -156,8 +158,10 @@
                     <h6 class="modal-title fw-bold">
                         <c:out value="${e.title}"/>
                         <c:choose>
-                            <c:when test="${e.active}"><span class="badge bg-success ms-1">노출중</span></c:when>
-                            <c:otherwise><span class="badge bg-secondary ms-1">숨김</span></c:otherwise>
+                            <c:when test="${e.exposureStatus == 'LIVE'}"><span class="badge bg-success ms-1">노출중</span></c:when>
+                            <c:when test="${e.exposureStatus == 'SCHEDULED'}"><span class="badge bg-info text-dark ms-1">예정</span></c:when>
+                            <c:when test="${e.exposureStatus == 'ENDED'}"><span class="badge bg-secondary ms-1">종료</span></c:when>
+                            <c:otherwise><span class="badge bg-dark ms-1">숨김</span></c:otherwise>
                         </c:choose>
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>

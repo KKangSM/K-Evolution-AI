@@ -3,6 +3,9 @@ package com.kevolution.qna.controller;
 import com.kevolution.qna.entity.Qna;
 import com.kevolution.qna.service.QnaService;
 
+import static com.kevolution.config.ValidationUtils.isAnyBlank;
+import static com.kevolution.config.ValidationUtils.isBlank;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,8 +43,16 @@ public class QnaController {
                         @RequestParam String title,
                         @RequestParam String content,
                         RedirectAttributes ra) {
-        qnaService.writeQna(user.getUsername(), title, content);
-        ra.addFlashAttribute("successMsg", "문의가 등록되었습니다.");
+        if (isAnyBlank(title, content)) {
+            ra.addFlashAttribute("errorMsg", "제목과 내용을 모두 입력해주세요.");
+            return "redirect:/support/qna";
+        }
+        try {
+            qnaService.writeQna(user.getUsername(), title, content);
+            ra.addFlashAttribute("successMsg", "문의가 등록되었습니다.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
         return "redirect:/support/qna";
     }
 
@@ -60,6 +71,10 @@ public class QnaController {
                        @RequestParam String title,
                        @RequestParam String content,
                        RedirectAttributes ra) {
+        if (isAnyBlank(title, content)) {
+            ra.addFlashAttribute("errorMsg", "제목과 내용을 모두 입력해주세요.");
+            return "redirect:/support/qna";
+        }
         try {
             qnaService.updateQna(qnaId, user.getUsername(), title, content);
             ra.addFlashAttribute("successMsg", "문의가 수정되었습니다.");
@@ -110,8 +125,16 @@ public class QnaController {
     public String answer(@PathVariable Long qnaId,
                          @RequestParam String answer,
                          RedirectAttributes ra) {
-        qnaService.answer(qnaId, answer);
-        ra.addFlashAttribute("successMsg", "답변이 등록되었습니다.");
+        if (isBlank(answer)) {
+            ra.addFlashAttribute("errorMsg", "답변 내용을 입력해주세요.");
+            return "redirect:/admin/qna";
+        }
+        try {
+            qnaService.answer(qnaId, answer);
+            ra.addFlashAttribute("successMsg", "답변이 등록되었습니다.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
         return "redirect:/admin/qna";
     }
 }

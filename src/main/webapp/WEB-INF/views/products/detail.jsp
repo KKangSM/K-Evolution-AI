@@ -87,7 +87,7 @@
 
             <c:if test="${not empty product.category}">
                 <span class="badge bg-light text-dark border mb-2 align-self-start">
-                    ${product.category.name}
+                    ${product.category.label}
                 </span>
             </c:if>
 

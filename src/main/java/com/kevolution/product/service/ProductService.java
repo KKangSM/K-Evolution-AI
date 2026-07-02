@@ -5,7 +5,6 @@ import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.entity.ProductImage;
 import com.kevolution.product.entity.ProductOption;
-import com.kevolution.product.repository.CategoryRepository;
 import com.kevolution.product.repository.ProductImageRepository;
 import com.kevolution.product.repository.ProductOptionRepository;
 import com.kevolution.product.repository.ProductRepository;
@@ -28,19 +27,15 @@ import java.util.Map;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductOptionRepository productOptionRepository;
 
-    public Page<Product> getProducts(String keyword, Long categoryId, Pageable pageable) {
-        if (categoryId != null) {
-            Category category = categoryRepository.findById(categoryId).orElse(null);
-            if (category != null) {
-                if (keyword != null && !keyword.isBlank()) {
-                    return productRepository.findByCategoryAndNameContainingIgnoreCase(category, keyword, pageable);
-                }
-                return productRepository.findByCategory(category, pageable);
+    public Page<Product> getProducts(String keyword, Category category, Pageable pageable) {
+        if (category != null) {
+            if (keyword != null && !keyword.isBlank()) {
+                return productRepository.findByCategoryAndNameContainingIgnoreCase(category, keyword, pageable);
             }
+            return productRepository.findByCategory(category, pageable);
         }
         if (keyword != null && !keyword.isBlank()) {
             return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
@@ -88,11 +83,11 @@ public class ProductService {
     // ---------------------------------------------------------------
 
     @Transactional
-    public Long createProduct(Long categoryId, String name, int price, int stock,
+    public Long createProduct(Category category, String name, int price, int stock,
                               String description, String imageUrl, List<String> detailImageUrls,
                               List<ProductOptionForm> options) {
         Product product = Product.builder()
-            .category(findCategoryOrNull(categoryId))
+            .category(category)
             .name(name)
             .price(price)
             .stock(stock)
@@ -102,18 +97,68 @@ public class ProductService {
         productRepository.save(product);
         saveProductImages(product, detailImageUrls);
         saveProductOptions(product, options);
+        syncStockFromOptions(product);
         return product.getProductId();
     }
 
     @Transactional
-    public void updateProduct(Long productId, Long categoryId, String name, int price, int stock,
+    public void updateProduct(Long productId, Category category, String name, int price, int stock,
                               String description, String imageUrl, List<String> newDetailImageUrls,
                               List<ProductOptionForm> options) {
         Product product = getProduct(productId);
-        product.update(findCategoryOrNull(categoryId), name, price, stock,
+        product.update(category, name, price, stock,
                        description, emptyToNull(imageUrl));
         saveProductImages(product, newDetailImageUrls); // 새로 올린 이미지는 기존 뒤에 추가된다.
         replaceProductOptions(product, options);        // 옵션은 폼 내용으로 전체 교체된다.
+        syncStockFromOptions(product);
+    }
+
+    // ---------------------------------------------------------------
+    // 재고 관리 (/admin/stock)
+    // 규칙: 옵션 있는 상품의 재고 원본은 옵션별 재고이고, product.stock 은 판매중
+    //       옵션 재고의 합계로 자동 동기화된다. (품절 배지·장바구니 차단·대시보드
+    //       집계가 지금처럼 product.stock 만 읽어도 항상 정확하도록)
+    //       옵션 없는 상품은 product.stock 을 직접 관리한다.
+    // ---------------------------------------------------------------
+
+    /** 재고 관리 화면용: 상품 목록의 옵션들을 상품 ID 별로 묶어 반환 (옵션 없는 상품은 미포함) */
+    public Map<Long, List<ProductOption>> getOptionsByProduct(List<Product> products) {
+        Map<Long, List<ProductOption>> grouped = new LinkedHashMap<>();
+        for (Product product : products) {
+            List<ProductOption> options = productOptionRepository.findByProductOrderBySortOrderAsc(product);
+            if (!options.isEmpty()) grouped.put(product.getProductId(), options);
+        }
+        return grouped;
+    }
+
+    /** 옵션 없는 상품의 재고 수정. 옵션 있는 상품은 옵션별 재고로만 관리한다. */
+    @Transactional
+    public void updateProductStock(Long productId, int stock) {
+        Product product = getProduct(productId);
+        if (!productOptionRepository.findByProduct(product).isEmpty()) {
+            throw new IllegalArgumentException("옵션이 있는 상품은 옵션별 재고로 관리됩니다.");
+        }
+        product.changeStock(stock);
+    }
+
+    /** 옵션 재고 수정 후 상품 재고(합계)를 동기화한다. */
+    @Transactional
+    public void updateOptionStock(Long optionId, int stock) {
+        ProductOption option = productOptionRepository.findById(optionId)
+            .orElseThrow(() -> new IllegalArgumentException("옵션을 찾을 수 없습니다."));
+        option.changeStock(stock);
+        syncStockFromOptions(option.getProduct());
+    }
+
+    /** 옵션 있는 상품이면 product.stock 을 판매중 옵션 재고 합계로 맞춘다. (옵션 없으면 그대로) */
+    private void syncStockFromOptions(Product product) {
+        List<ProductOption> options = productOptionRepository.findByProduct(product);
+        if (options.isEmpty()) return;
+        int total = options.stream()
+            .filter(ProductOption::isActive)
+            .mapToInt(ProductOption::getStock)
+            .sum();
+        product.changeStock(total);
     }
 
     /** 상품과 그 이미지들을 삭제하고, Storage 에서 지워야 할 이미지 URL 목록(대표+추가)을 돌려준다. */
@@ -169,11 +214,6 @@ public class ProductService {
     private void replaceProductOptions(Product product, List<ProductOptionForm> options) {
         productOptionRepository.deleteAll(productOptionRepository.findByProduct(product));
         saveProductOptions(product, options);
-    }
-
-    private Category findCategoryOrNull(Long categoryId) {
-        if (categoryId == null) return null;
-        return categoryRepository.findById(categoryId).orElse(null);
     }
 
     private String emptyToNull(String value) {

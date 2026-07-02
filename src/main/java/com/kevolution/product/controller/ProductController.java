@@ -3,7 +3,6 @@ package com.kevolution.product.controller;
 import com.kevolution.product.dto.ProductOptionForm;
 import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
-import com.kevolution.product.repository.CategoryRepository;
 import com.kevolution.product.service.ProductService;
 import com.kevolution.storage.SupabaseStorageService;
 
@@ -26,24 +25,23 @@ public class ProductController {
     private static final int ADMIN_PAGE_SIZE = 20;
 
     private final ProductService productService;
-    private final CategoryRepository categoryRepository;
     private final SupabaseStorageService storageService;
 
     // ── 공개 조회 ─────────────────────────────────
     @GetMapping("/products")
     public String list(
         @RequestParam(required = false) String keyword,
-        @RequestParam(required = false) Long categoryId,
+        @RequestParam(required = false) String category,
         @RequestParam(defaultValue = "0") int page,
         Model model
     ) {
-        Page<Product> products = productService.getProducts(keyword, categoryId, PageRequest.of(page, 12));
-        List<Category> categories = categoryRepository.findAll();
+        // 잘못된 카테고리 값은 null(전체)로 처리 — URL 조작으로 400 나지 않게
+        Category selected = Category.fromNameOrNull(category);
+        Page<Product> products = productService.getProducts(keyword, selected, PageRequest.of(page, 12));
 
         model.addAttribute("products", products);
-        model.addAttribute("categories", categories);
         model.addAttribute("keyword", keyword);
-        model.addAttribute("categoryId", categoryId);
+        model.addAttribute("category", selected);
         model.addAttribute("currentPage", page);
         return "products/list";
     }
@@ -74,13 +72,12 @@ public class ProductController {
     @GetMapping("/admin/products/register")
     public String registerForm(Model model) {
         model.addAttribute("activeMenu", "products");
-        model.addAttribute("categories", categoryRepository.findAll());
         return "admin/products/form";
     }
 
     @PostMapping("/admin/products/register")
     public String register(
-        @RequestParam(required = false) Long categoryId,
+        @RequestParam(required = false) String category,
         @RequestParam String name,
         @RequestParam int price,
         @RequestParam int stock,
@@ -99,7 +96,7 @@ public class ProductController {
             List<String> detailUrls = uploadImages(detailImages);
             List<ProductOptionForm> options = buildOptions(optionNames, optionValues,
                 optionExtraPrices, optionStocks, optionSkuCodes);
-            productService.createProduct(categoryId, name, price, stock, description, imageUrl, detailUrls, options);
+            productService.createProduct(Category.fromNameOrNull(category), name, price, stock, description, imageUrl, detailUrls, options);
             ra.addFlashAttribute("successMsg", "상품이 등록되었습니다.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "등록 중 오류가 발생했습니다: " + e.getMessage());
@@ -113,14 +110,13 @@ public class ProductController {
         model.addAttribute("product", productService.getProduct(productId));
         model.addAttribute("images", productService.getProductImages(productId));
         model.addAttribute("options", productService.getProductOptions(productId));
-        model.addAttribute("categories", categoryRepository.findAll());
         return "admin/products/form";
     }
 
     @PostMapping("/admin/products/{productId}/edit")
     public String edit(
         @PathVariable Long productId,
-        @RequestParam(required = false) Long categoryId,
+        @RequestParam(required = false) String category,
         @RequestParam String name,
         @RequestParam int price,
         @RequestParam int stock,
@@ -141,7 +137,7 @@ public class ProductController {
             List<String> detailUrls = uploadImages(detailImages);
             List<ProductOptionForm> options = buildOptions(optionNames, optionValues,
                 optionExtraPrices, optionStocks, optionSkuCodes);
-            productService.updateProduct(productId, categoryId, name, price, stock, description, imageUrl, detailUrls, options);
+            productService.updateProduct(productId, Category.fromNameOrNull(category), name, price, stock, description, imageUrl, detailUrls, options);
             // 대표 이미지를 새로 올렸다면 교체된 옛 파일을 Storage 에서 정리한다.
             if (replaceThumbnail && existingImageUrl != null && !existingImageUrl.isBlank()) {
                 storageService.deleteByPublicUrl(existingImageUrl);

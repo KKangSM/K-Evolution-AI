@@ -6,17 +6,10 @@
        href="${pageContext.request.contextPath}/admin">
         <span><i class="bi bi-speedometer2"></i>대시보드</span>
     </a>
-    <a class="menu-link ${activeMenu == 'products' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/admin/products">
-        <span><i class="bi bi-box-seam"></i>상품 관리</span>
-    </a>
     <a class="menu-link ${activeMenu == 'terms' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/admin/terms">
         <span><i class="bi bi-file-earmark-text"></i>약관 관리</span>
     </a>
-
-    <div class="menu-title">준비 중</div>
-    <a class="menu-link" href="#"><span><i class="bi bi-receipt"></i>주문 관리</span><span class="soon">준비중</span></a>
     <a class="menu-link ${activeMenu == 'members' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/admin/members">
         <span><i class="bi bi-people"></i>회원 관리</span>
@@ -37,4 +30,15 @@
        href="${pageContext.request.contextPath}/admin/events">
         <span><i class="bi bi-calendar-event"></i>이벤트 관리</span>
     </a>
+    <a class="menu-link ${activeMenu == 'stock' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/stock">
+        <span><i class="bi bi-clipboard-data"></i>재고 관리</span>
+    </a>
+
+    <div class="menu-title">준비 중</div>
+    <a class="menu-link ${activeMenu == 'products' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/products">
+        <span><i class="bi bi-box-seam"></i>상품 관리</span><span class="soon">준비중</span>
+    </a>
+    <a class="menu-link" href="#"><span><i class="bi bi-receipt"></i>주문 관리</span><span class="soon">준비중</span></a>
 </nav>

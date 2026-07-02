@@ -4,6 +4,8 @@ import com.kevolution.event.entity.Event;
 import com.kevolution.event.service.EventService;
 import com.kevolution.storage.SupabaseStorageService;
 
+import static com.kevolution.config.ValidationUtils.isAnyBlank;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,10 +37,17 @@ public class EventController {
     }
 
     @GetMapping("/events/{eventId}")
-    public String detail(@PathVariable Long eventId, Model model) {
-        eventService.increaseViewCount(eventId);
-        model.addAttribute("event", eventService.getEvent(eventId));
-        return "event/detail";
+    public String detail(@PathVariable Long eventId, Model model, RedirectAttributes ra) {
+        try {
+            // 노출중(active + 기간)인 이벤트만 상세 접근 허용 — 예정/종료/숨김은 차단
+            Event event = eventService.getVisibleEvent(eventId);
+            eventService.increaseViewCount(eventId);
+            model.addAttribute("event", event);
+            return "event/detail";
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/events";
+        }
     }
 
     // ── 관리자 관리 (/admin/** = ROLE_ADMIN) ──────────
@@ -61,6 +70,10 @@ public class EventController {
                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endAt,
                         @RequestParam(required = false) MultipartFile imageFile,
                         RedirectAttributes ra) {
+        if (isAnyBlank(title, content)) {
+            ra.addFlashAttribute("errorMsg", "제목과 내용을 모두 입력해주세요.");
+            return "redirect:/admin/events";
+        }
         try {
             String imageUrl = (imageFile != null && !imageFile.isEmpty())
                 ? storageService.upload(imageFile, "event") : null;
@@ -81,6 +94,10 @@ public class EventController {
                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endAt,
                        @RequestParam(required = false) MultipartFile imageFile,
                        RedirectAttributes ra) {
+        if (isAnyBlank(title, content)) {
+            ra.addFlashAttribute("errorMsg", "제목과 내용을 모두 입력해주세요.");
+            return "redirect:/admin/events";
+        }
         try {
             String newImageUrl = (imageFile != null && !imageFile.isEmpty())
                 ? storageService.upload(imageFile, "event") : null;

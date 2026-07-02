@@ -71,4 +71,17 @@ public class Banner {
     public void changeImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
+
+    /**
+     * 관리자 화면 표시용 실제 노출 상태 (active + 기간 종합).
+     * HIDDEN(숨김) / SCHEDULED(예정) / LIVE(노출중) / ENDED(종료)
+     */
+    @Transient
+    public String getExposureStatus() {
+        if (!active) return "HIDDEN";
+        LocalDateTime now = LocalDateTime.now();
+        if (startAt != null && now.isBefore(startAt)) return "SCHEDULED";
+        if (endAt != null && now.isAfter(endAt)) return "ENDED";
+        return "LIVE";
+    }
 }

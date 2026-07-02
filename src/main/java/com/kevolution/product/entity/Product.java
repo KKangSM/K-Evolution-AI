@@ -14,8 +14,9 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
+    /** 고정 enum — DB 에는 이름 문자열로 저장 (예: CLOTHING). 없으면 NULL */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", length = 30)
     private Category category;
 
     @Column(nullable = false, length = 200)
@@ -67,6 +68,11 @@ public class Product {
         this.stock = stock;
         this.description = description;
         this.imageUrl = imageUrl;
+    }
+
+    /** 재고 수량 직접 지정 (재고 관리 화면 / 옵션 합계 동기화용) */
+    public void changeStock(int stock) {
+        this.stock = Math.max(0, stock);
     }
 
     public void decreaseStock(int quantity) {

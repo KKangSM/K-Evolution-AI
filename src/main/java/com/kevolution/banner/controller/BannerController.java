@@ -4,6 +4,8 @@ import com.kevolution.banner.service.BannerService;
 import com.kevolution.event.service.EventService;
 import com.kevolution.storage.SupabaseStorageService;
 
+import static com.kevolution.config.ValidationUtils.isBlank;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -49,7 +51,7 @@ public class BannerController {
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endAt,
         RedirectAttributes ra
     ) {
-        if (title == null || title.isBlank()) {
+        if (isBlank(title)) {
             ra.addFlashAttribute("errorMsg", "제목을 입력해주세요.");
             return "redirect:/admin/banners";
         }
@@ -77,7 +79,7 @@ public class BannerController {
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endAt,
         RedirectAttributes ra
     ) {
-        if (title == null || title.isBlank()) {
+        if (isBlank(title)) {
             ra.addFlashAttribute("errorMsg", "제목을 입력해주세요.");
             return "redirect:/admin/banners";
         }
