@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * 재고 관리 — 상품/옵션별 재고를 목록에서 바로 수정한다.
- * 상품 정보 전체를 열지 않고 재고만 빠르게 만지는 운영용 화면.
+ * 재고 관리 — 옵션별 재고를 목록에서 바로 수정한다.
+ * 상품 정보 전체를 열지 않고 재고만 빠르게 만지는 운영용 화면. (재고는 옵션에만 존재)
  */
 @Controller
 @RequestMapping("/admin/stock")
@@ -34,28 +34,11 @@ public class StockController {
         model.addAttribute("activeMenu", "stock");
         model.addAttribute("products", products);
         model.addAttribute("optionMap", productService.getOptionsByProduct(products.getContent()));
+        model.addAttribute("stockMap", productService.getStockMap(products.getContent()));
         return "admin/stock/list";
     }
 
-    /** 옵션 없는 상품의 재고 수정 */
-    @PostMapping("/products/{productId}")
-    public String updateProductStock(
-        @PathVariable Long productId,
-        @RequestParam int stock,
-        @RequestParam(required = false) String search,
-        @RequestParam(defaultValue = "0") int page,
-        RedirectAttributes ra
-    ) {
-        try {
-            productService.updateProductStock(productId, stock);
-            ra.addFlashAttribute("successMsg", "재고가 수정되었습니다.");
-        } catch (IllegalArgumentException e) {
-            ra.addFlashAttribute("errorMsg", e.getMessage());
-        }
-        return redirectBack(search, page, ra);
-    }
-
-    /** 옵션 재고 수정 (상품 재고 합계는 서비스에서 자동 동기화) */
+    /** 옵션 재고 수정 */
     @PostMapping("/options/{optionId}")
     public String updateOptionStock(
         @PathVariable Long optionId,

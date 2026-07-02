@@ -66,7 +66,7 @@
                             <span class="fw-bold">
                                 <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
                             </span>
-                            <c:if test="${product.stock == 0}">
+                            <c:if test="${stockMap[product.productId] == 0}">
                                 <span class="badge bg-secondary">품절</span>
                             </c:if>
                         </div>

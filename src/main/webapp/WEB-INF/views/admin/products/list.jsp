@@ -78,9 +78,10 @@
                                 <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
                             </td>
                             <td class="text-end">
+                                <c:set var="pstock" value="${stockMap[product.productId]}"/>
                                 <c:choose>
-                                    <c:when test="${product.stock == 0}"><span class="badge bg-secondary">품절</span></c:when>
-                                    <c:otherwise>${product.stock}</c:otherwise>
+                                    <c:when test="${pstock == 0}"><span class="badge bg-secondary">품절</span></c:when>
+                                    <c:otherwise>${pstock}</c:otherwise>
                                 </c:choose>
                             </td>
                             <td class="text-center">

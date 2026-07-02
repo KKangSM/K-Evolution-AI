@@ -97,15 +97,15 @@
                 <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
             </div>
 
-            <%-- 재고 상태 --%>
+            <%-- 재고 상태 (옵션 재고 합계) --%>
             <div class="mb-4">
                 <c:choose>
-                    <c:when test="${product.stock == 0}">
+                    <c:when test="${totalStock == 0}">
                         <span class="badge bg-secondary px-3 py-2 fs-6">품절</span>
                     </c:when>
-                    <c:when test="${product.stock <= 5}">
+                    <c:when test="${totalStock <= 5}">
                         <span class="text-danger small fw-semibold">
-                            <i class="bi bi-exclamation-circle"></i> 재고 ${product.stock}개 남음
+                            <i class="bi bi-exclamation-circle"></i> 재고 ${totalStock}개 남음
                         </span>
                     </c:when>
                     <c:otherwise>
@@ -119,7 +119,7 @@
             <%-- 장바구니 버튼 --%>
             <div class="d-grid mb-5">
                 <c:choose>
-                    <c:when test="${product.stock == 0}">
+                    <c:when test="${totalStock == 0}">
                         <button class="btn btn-dark btn-lg" disabled>
                             <i class="bi bi-cart-x me-1"></i> 품절된 상품입니다
                         </button>
@@ -138,16 +138,13 @@
                                         <select name="optionIds" class="form-select mb-2 option-select" required>
                                             <option value="" selected disabled>${group.key} 선택</option>
                                             <c:forEach var="opt" items="${group.value}">
-                                                <option value="${opt.optionId}" data-extra="${opt.extraPrice}"
+                                                <option value="${opt.optionId}"
                                                     <c:if test="${opt.stock == 0}">disabled</c:if>>
-                                                    ${opt.optionValue}<c:if test="${opt.extraPrice > 0}"> (+<fmt:formatNumber value="${opt.extraPrice}" type="number" groupingUsed="true"/>원)</c:if><c:if test="${opt.stock == 0}"> — 품절</c:if>
+                                                    ${opt.optionValue}<c:if test="${opt.stock == 0}"> — 품절</c:if>
                                                 </option>
                                             </c:forEach>
                                         </select>
                                     </c:forEach>
-                                    <div class="small text-muted" id="optionExtraLine" style="display:none;">
-                                        옵션 추가금 <span class="fw-semibold" id="optionExtraAmount">+0원</span>
-                                    </div>
                                 </div>
                             </c:if>
 
@@ -181,25 +178,6 @@
         });
     });
 
-    // 옵션 선택 시 추가금 합계를 안내 문구로 갱신한다.
-    (function () {
-        const selects = document.querySelectorAll('.option-select');
-        if (!selects.length) return;
-        const line = document.getElementById('optionExtraLine');
-        const amount = document.getElementById('optionExtraAmount');
-
-        function updateExtra() {
-            let sum = 0;
-            selects.forEach(function (s) {
-                const opt = s.options[s.selectedIndex];
-                if (opt && opt.dataset.extra) sum += parseInt(opt.dataset.extra, 10) || 0;
-            });
-            line.style.display = sum > 0 ? 'block' : 'none';
-            amount.textContent = '+' + sum.toLocaleString() + '원';
-        }
-
-        selects.forEach(function (s) { s.addEventListener('change', updateExtra); });
-    })();
 </script>
 </body>
 </html>

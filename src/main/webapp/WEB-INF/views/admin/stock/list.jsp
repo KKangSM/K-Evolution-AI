@@ -58,7 +58,7 @@
                     <c:forEach var="p" items="${products.content}" varStatus="status">
                         <c:set var="options" value="${optionMap[p.productId]}"/>
 
-                        <%-- 상품 행 --%>
+                        <%-- 상품 행 (총재고 = 옵션 재고 합계, 표시 전용) --%>
                         <tr>
                             <td class="ps-4 text-muted small">${products.number * products.size + status.index + 1}</td>
                             <td>
@@ -68,52 +68,26 @@
                                 </c:if>
                             </td>
                             <td>
-                                <c:choose>
-                                    <c:when test="${empty options}"><span class="badge bg-secondary-subtle text-secondary border">단일</span></c:when>
-                                    <c:otherwise><span class="badge bg-primary-subtle text-primary border">옵션 ${options.size()}개</span></c:otherwise>
-                                </c:choose>
+                                <span class="badge bg-primary-subtle text-primary border">옵션 ${options.size()}개</span>
                             </td>
                             <td class="text-end">
+                                <c:set var="pstock" value="${stockMap[p.productId]}"/>
                                 <c:choose>
-                                    <c:when test="${p.stock == 0}"><span class="badge bg-secondary">품절</span></c:when>
-                                    <c:otherwise><span class="fw-semibold">${p.stock}</span></c:otherwise>
+                                    <c:when test="${pstock == 0}"><span class="badge bg-secondary">품절</span></c:when>
+                                    <c:otherwise><span class="fw-semibold">${pstock}</span></c:otherwise>
                                 </c:choose>
                             </td>
                             <td class="text-end pe-4">
-                                <c:choose>
-                                    <c:when test="${empty options}">
-                                        <form action="${ctx}/admin/stock/products/${p.productId}" method="post"
-                                              class="d-inline-flex gap-1 justify-content-end">
-                                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                            <input type="hidden" name="search" value="${param.search}"/>
-                                            <input type="hidden" name="page" value="${products.number}"/>
-                                            <input type="number" name="stock" min="0" required
-                                                   class="form-control form-control-sm text-end stock-input" value="${p.stock}">
-                                            <button type="submit" class="btn btn-sm btn-outline-dark">저장</button>
-                                        </form>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="text-muted small">옵션별 관리 ↓</span>
-                                    </c:otherwise>
-                                </c:choose>
+                                <span class="text-muted small">옵션별 관리 ↓</span>
                             </td>
                         </tr>
 
-                        <%-- 옵션 행 --%>
+                        <%-- 옵션 행 (재고 수정) --%>
                         <c:forEach var="opt" items="${options}">
                             <tr class="option-row">
                                 <td></td>
-                                <td class="option-label">
+                                <td class="option-label" colspan="2">
                                     └ ${opt.optionName}: ${opt.optionValue}
-                                    <c:if test="${not empty opt.skuCode}">
-                                        <span class="text-muted small ms-1">SKU ${opt.skuCode}</span>
-                                    </c:if>
-                                </td>
-                                <td>
-                                    <c:if test="${!opt.active}">
-                                        <span class="badge bg-dark">숨김</span>
-                                        <span class="text-muted small">합계 제외</span>
-                                    </c:if>
                                 </td>
                                 <td class="text-end">
                                     <c:choose>

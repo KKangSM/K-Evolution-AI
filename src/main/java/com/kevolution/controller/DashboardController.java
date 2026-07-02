@@ -38,7 +38,7 @@ public class DashboardController {
 
         // 처리 필요 항목
         model.addAttribute("pendingOrderCount", orderRepository.countByStatus(Order.Status.PENDING));
-        model.addAttribute("lowStockCount", productRepository.countByStockLessThan(LOW_STOCK_THRESHOLD));
+        model.addAttribute("lowStockCount", productRepository.countLowStock(LOW_STOCK_THRESHOLD));
         model.addAttribute("unansweredQna", qnaRepository.countByAnswerIsNull());
 
         // 최근 주문

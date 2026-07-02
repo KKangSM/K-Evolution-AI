@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -19,8 +20,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // 신상품: 등록일 내림차순
     List<Product> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    // 대시보드: 재고 부족 상품 수
-    long countByStockLessThan(int stock);
+    // 대시보드: 재고 부족 상품 수 (옵션 재고 합계가 기준 미만인 상품)
+    @Query("SELECT COUNT(p) FROM Product p WHERE " +
+           "(SELECT COALESCE(SUM(o.stock), 0) FROM ItemOption o WHERE o.product = p) < :threshold")
+    long countLowStock(@Param("threshold") int threshold);
 
     // 인기상품: 실제 주문 판매량(OrderItem 수량 합계) 내림차순.
     // LEFT JOIN이라 판매 이력이 없는 상품도 항상 포함되어 섹션이 비지 않는다.

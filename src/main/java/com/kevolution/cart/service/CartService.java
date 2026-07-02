@@ -7,6 +7,7 @@ import com.kevolution.cart.repository.CartRepository;
 import com.kevolution.member.entity.Member;
 import com.kevolution.member.repository.MemberRepository;
 import com.kevolution.product.entity.Product;
+import com.kevolution.product.repository.ItemOptionRepository;
 import com.kevolution.product.repository.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final ItemOptionRepository itemOptionRepository;
     private final MemberRepository memberRepository;
 
     public Member getMember(String userId) {
@@ -39,7 +41,7 @@ public class CartService {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
-        if (product.getStock() == 0) {
+        if (itemOptionRepository.sumStockByProduct(product) == 0) {
             throw new IllegalStateException("품절된 상품입니다.");
         }
 

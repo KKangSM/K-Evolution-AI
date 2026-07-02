@@ -3,6 +3,7 @@ package com.kevolution.product.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "product")
@@ -10,8 +11,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {
 
+    /** PK — 등록 시각(yyyyMMddHHmmss)을 숫자로 변환해 부여한다. (auto-increment 미사용) */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
 
     /** 고정 enum — DB 에는 이름 문자열로 저장 (예: CLOTHING). 없으면 NULL */
@@ -24,9 +25,6 @@ public class Product {
 
     @Column(nullable = false)
     private int price;
-
-    @Column(nullable = false)
-    private int stock;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -42,8 +40,13 @@ public class Product {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+        if (productId == null) {
+            // 등록 시각으로 PK 생성: 2026-06-25 14:30:45 → 20260625143045
+            productId = Long.parseLong(now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        }
     }
 
     @PreUpdate
@@ -52,35 +55,19 @@ public class Product {
     }
 
     @Builder
-    public Product(Category category, String name, int price, int stock, String description, String imageUrl) {
+    public Product(Category category, String name, int price, String description, String imageUrl) {
         this.category = category;
         this.name = name;
         this.price = price;
-        this.stock = stock;
         this.description = description;
         this.imageUrl = imageUrl;
     }
 
-    public void update(Category category, String name, int price, int stock, String description, String imageUrl) {
+    public void update(Category category, String name, int price, String description, String imageUrl) {
         this.category = category;
         this.name = name;
         this.price = price;
-        this.stock = stock;
         this.description = description;
         this.imageUrl = imageUrl;
-    }
-
-    /** 재고 수량 직접 지정 (재고 관리 화면 / 옵션 합계 동기화용) */
-    public void changeStock(int stock) {
-        this.stock = Math.max(0, stock);
-    }
-
-    public void decreaseStock(int quantity) {
-        if (this.stock < quantity) throw new IllegalStateException("재고가 부족합니다.");
-        this.stock -= quantity;
-    }
-
-    public void increaseStock(int quantity) {
-        this.stock += quantity;
     }
 }

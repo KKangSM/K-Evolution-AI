@@ -58,3 +58,6 @@ uploads/
 
 ### 구조 정리 도구가 남긴 로컬 백업 (커밋 금지) ###
 .git-align-backup/
+
+### 개인 작업 메모 (로컬 전용, 커밋 금지) ###
+docs/personal/

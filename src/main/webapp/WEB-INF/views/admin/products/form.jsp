@@ -60,17 +60,11 @@
                 </select>
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">판매가 (원)</label>
-                    <input type="number" name="price" class="form-control" required min="0"
-                           value="${product.price}" placeholder="0">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">재고 수량</label>
-                    <input type="number" name="stock" class="form-control" required min="0"
-                           value="${product.stock}" placeholder="0">
-                </div>
+            <div class="mb-3">
+                <label class="form-label">판매가 (원)</label>
+                <input type="number" name="price" class="form-control" required min="0"
+                       value="${product.price}" placeholder="0">
+                <div class="form-text">재고는 아래 옵션에서 관리합니다.</div>
             </div>
 
             <!-- 이미지 업로드 -->
@@ -110,30 +104,40 @@
                 <div class="form-text">상세 페이지에 표시될 추가 이미지 (여러 장 선택 가능)</div>
             </div>
 
-            <!-- 상품 옵션 (색상/사이즈 등) -->
+            <!-- 상품 옵션 (색상/사이즈 등) + 옵션별 재고 -->
             <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label mb-0">상품 옵션 <span class="form-text">(색상/사이즈 등 · 선택)</span></label>
+                    <label class="form-label mb-0">상품 옵션 · 재고 <span class="text-danger">*</span></label>
                     <button type="button" class="btn btn-sm btn-outline-dark" id="addOptionBtn">+ 옵션 추가</button>
                 </div>
                 <div id="optionRows" class="d-flex flex-column gap-2">
                     <c:forEach var="opt" items="${options}">
                         <div class="option-row d-flex gap-2">
                             <input type="text" name="optionNames" class="form-control form-control-sm"
-                                   style="flex:1 1 22%" placeholder="옵션명 (예: 색상)" value="${opt.optionName}">
+                                   style="flex:1 1 40%" placeholder="옵션명 (예: 사이즈)" value="${opt.optionName}">
                             <input type="text" name="optionValues" class="form-control form-control-sm"
-                                   style="flex:1 1 22%" placeholder="옵션값 (예: 블랙)" value="${opt.optionValue}">
-                            <input type="number" name="optionExtraPrices" class="form-control form-control-sm"
-                                   style="flex:1 1 16%" placeholder="추가금" value="${opt.extraPrice}">
+                                   style="flex:1 1 40%" placeholder="옵션값 (예: 250)" value="${opt.optionValue}">
                             <input type="number" name="optionStocks" class="form-control form-control-sm"
-                                   style="flex:1 1 16%" placeholder="재고" value="${opt.stock}">
-                            <input type="text" name="optionSkuCodes" class="form-control form-control-sm"
-                                   style="flex:1 1 16%" placeholder="SKU(선택)" value="${opt.skuCode}">
+                                   style="flex:1 1 20%" placeholder="재고" min="0" value="${opt.stock}">
                             <button type="button" class="btn btn-sm btn-outline-danger remove-option" style="flex:0 0 auto">×</button>
                         </div>
                     </c:forEach>
+                    <c:if test="${empty options}">
+                        <div class="option-row d-flex gap-2">
+                            <input type="text" name="optionNames" class="form-control form-control-sm"
+                                   style="flex:1 1 40%" placeholder="옵션명 (예: 사이즈)">
+                            <input type="text" name="optionValues" class="form-control form-control-sm"
+                                   style="flex:1 1 40%" placeholder="옵션값 (예: 250)">
+                            <input type="number" name="optionStocks" class="form-control form-control-sm"
+                                   style="flex:1 1 20%" placeholder="재고" min="0">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-option" style="flex:0 0 auto">×</button>
+                        </div>
+                    </c:if>
                 </div>
-                <div class="form-text">옵션명·옵션값을 모두 입력한 행만 저장됩니다. 입력한 순서대로 노출됩니다.</div>
+                <div class="form-text">
+                    재고는 옵션 단위로 관리합니다. 옵션이 없는 단순 상품도 재고를 위해 옵션 1줄(예: 기본 / 단일 / 재고)을 입력하세요.
+                    옵션명·옵션값이 모두 있는 행만 저장됩니다.
+                </div>
             </div>
 
             <div class="mb-4">
@@ -169,11 +173,9 @@
 
         function optionRowHtml() {
             return '<div class="option-row d-flex gap-2">'
-                + '<input type="text" name="optionNames" class="form-control form-control-sm" style="flex:1 1 22%" placeholder="옵션명 (예: 색상)">'
-                + '<input type="text" name="optionValues" class="form-control form-control-sm" style="flex:1 1 22%" placeholder="옵션값 (예: 블랙)">'
-                + '<input type="number" name="optionExtraPrices" class="form-control form-control-sm" style="flex:1 1 16%" placeholder="추가금">'
-                + '<input type="number" name="optionStocks" class="form-control form-control-sm" style="flex:1 1 16%" placeholder="재고">'
-                + '<input type="text" name="optionSkuCodes" class="form-control form-control-sm" style="flex:1 1 16%" placeholder="SKU(선택)">'
+                + '<input type="text" name="optionNames" class="form-control form-control-sm" style="flex:1 1 40%" placeholder="옵션명 (예: 사이즈)">'
+                + '<input type="text" name="optionValues" class="form-control form-control-sm" style="flex:1 1 40%" placeholder="옵션값 (예: 250)">'
+                + '<input type="number" name="optionStocks" class="form-control form-control-sm" style="flex:1 1 20%" placeholder="재고" min="0">'
                 + '<button type="button" class="btn btn-sm btn-outline-danger remove-option" style="flex:0 0 auto">&times;</button>'
                 + '</div>';
         }
