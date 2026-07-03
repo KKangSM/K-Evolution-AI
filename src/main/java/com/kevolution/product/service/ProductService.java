@@ -132,21 +132,27 @@ public class ProductService {
     // 재고 관리 (/admin/stock) — 재고는 옵션 단위로만 수정한다.
     // ---------------------------------------------------------------
 
-    /** 재고 관리 화면용: 상품 목록의 옵션들을 상품 ID 별로 묶어 반환 */
+    /** 재고 관리 화면용: 상품 목록의 옵션들을 상품 ID 별로 묶어 반환 (단일 쿼리로 조회 후 메모리에서 그룹핑) */
     public Map<Long, List<ItemOption>> getOptionsByProduct(List<Product> products) {
         Map<Long, List<ItemOption>> grouped = new LinkedHashMap<>();
-        for (Product product : products) {
-            grouped.put(product.getProductId(), itemOptionRepository.findByProductOrderBySortOrderAsc(product));
+        if (products == null || products.isEmpty()) return grouped;
+        // 상품 순서를 유지하기 위해 빈 리스트로 먼저 채워 둔다.
+        for (Product product : products) grouped.put(product.getProductId(), new ArrayList<>());
+        // 옵션을 한 번에 가져와 상품별로 분배 (기존: 상품 수만큼 쿼리 → 현재: 1회)
+        for (ItemOption option : itemOptionRepository.findByProductInOrderBySortOrderAsc(products)) {
+            grouped.get(option.getProduct().getProductId()).add(option);
         }
         return grouped;
     }
 
-    /** 옵션 재고 수정 */
+    /** 옵션 재고 일괄 수정 — 한 상품의 여러 옵션 재고를 한 트랜잭션에서 저장한다(하나라도 실패하면 전체 롤백). */
     @Transactional
-    public void updateOptionStock(Long optionId, int stock) {
-        ItemOption option = itemOptionRepository.findById(optionId)
-            .orElseThrow(() -> new IllegalArgumentException("옵션을 찾을 수 없습니다."));
-        option.changeStock(stock);
+    public void updateOptionStocks(Map<Long, Integer> stockByOptionId) {
+        stockByOptionId.forEach((optionId, stock) -> {
+            ItemOption option = itemOptionRepository.findById(optionId)
+                .orElseThrow(() -> new IllegalArgumentException("옵션을 찾을 수 없습니다."));
+            option.changeStock(stock);
+        });
     }
 
     /** 상품과 그 이미지·옵션을 삭제하고, Storage 에서 지워야 할 이미지 URL 목록(대표+추가)을 돌려준다. */

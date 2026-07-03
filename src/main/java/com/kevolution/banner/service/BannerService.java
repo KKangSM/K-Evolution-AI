@@ -4,6 +4,8 @@ import com.kevolution.banner.entity.Banner;
 import com.kevolution.banner.repository.BannerRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +33,9 @@ public class BannerService {
         return bannerRepository.findVisible(LocalDateTime.now());
     }
 
-    public List<Banner> searchBanners(String keyword) {
+    public Page<Banner> searchBanners(String keyword, Pageable pageable) {
         return bannerRepository.searchByTitle(
-                (keyword != null && !keyword.isEmpty()) ? keyword : null);
+                (keyword != null && !keyword.isEmpty()) ? keyword : null, pageable);
     }
 
     public Banner getBanner(Long bannerId) {

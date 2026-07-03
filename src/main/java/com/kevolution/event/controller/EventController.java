@@ -53,9 +53,10 @@ public class EventController {
     // ── 관리자 관리 (/admin/** = ROLE_ADMIN) ──────────
     @GetMapping("/admin/events")
     public String adminList(@RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "20") int pageSize,
                             @RequestParam(required = false) String search,
                             Model model) {
-        Page<Event> events = eventService.searchEvents(search, PageRequest.of(page, 20));
+        Page<Event> events = eventService.searchEvents(search, PageRequest.of(page, pageSize));
         model.addAttribute("activeMenu", "events");
         model.addAttribute("events", events);
         model.addAttribute("search", search);

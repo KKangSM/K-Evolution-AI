@@ -56,11 +56,7 @@
                     <a class="nav-link ${filterType == 'general' ? 'active' : ''}" href="?type=general">일반문의</a>
                 </li>
             </ul>
-            <select name="pageSize" class="form-select form-select-sm" style="width:90px" onchange="changePageSize(this)">
-                <option value="20" ${empty param.pageSize || param.pageSize == '20' ? 'selected' : ''}>20개</option>
-                <option value="50" ${param.pageSize == '50' ? 'selected' : ''}>50개</option>
-                <option value="100" ${param.pageSize == '100' ? 'selected' : ''}>100개</option>
-            </select>
+            <ui:pageSize/>
         </div>
 
         <div class="card shadow-sm">
@@ -178,14 +174,5 @@
 </c:forEach>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-function changePageSize(select) {
-    const pageSize = select.value;
-    const url = new URL(window.location);
-    url.searchParams.set('pageSize', pageSize);
-    url.searchParams.set('page', '0');
-    window.location = url.toString();
-}
-</script>
 </body>
 </html>

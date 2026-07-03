@@ -42,10 +42,11 @@ public class NoticeController {
     // ── 관리자 관리 (/admin/** = ROLE_ADMIN) ──────────
     @GetMapping("/admin/notice")
     public String adminList(@RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "20") int pageSize,
                             @RequestParam(required = false) String search,
                             Model model) {
         model.addAttribute("activeMenu", "notice");
-        model.addAttribute("notices", noticeService.searchNotices(search, PageRequest.of(page, 20)));
+        model.addAttribute("notices", noticeService.searchNotices(search, PageRequest.of(page, pageSize)));
         model.addAttribute("search", search);
         return "admin/notice/list";
     }

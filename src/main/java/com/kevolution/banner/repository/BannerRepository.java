@@ -2,6 +2,8 @@ package com.kevolution.banner.repository;
 
 import com.kevolution.banner.entity.Banner;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,5 +30,5 @@ public interface BannerRepository extends JpaRepository<Banner, Long> {
     @Query("SELECT b FROM Banner b WHERE " +
            "(:keyword IS NULL OR b.title LIKE %:keyword%) " +
            "ORDER BY b.sortOrder ASC, b.bannerId ASC")
-    List<Banner> searchByTitle(@Param("keyword") String keyword);
+    Page<Banner> searchByTitle(@Param("keyword") String keyword, Pageable pageable);
 }

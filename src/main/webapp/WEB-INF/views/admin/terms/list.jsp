@@ -71,11 +71,7 @@
                        href="?type=PRIVACY">개인정보처리방침</a>
                 </li>
             </ul>
-            <select name="pageSize" class="form-select form-select-sm" style="width:90px" onchange="changePageSize(this)">
-                <option value="20" ${empty param.pageSize || param.pageSize == '20' ? 'selected' : ''}>20개</option>
-                <option value="50" ${param.pageSize == '50' ? 'selected' : ''}>50개</option>
-                <option value="100" ${param.pageSize == '100' ? 'selected' : ''}>100개</option>
-            </select>
+            <ui:pageSize/>
         </div>
 
         <div class="card shadow-sm">
@@ -137,16 +133,6 @@
 
     </main>
 </div>
-
-<script>
-function changePageSize(select) {
-    const pageSize = select.value;
-    const url = new URL(window.location);
-    url.searchParams.set('pageSize', pageSize);
-    url.searchParams.set('page', '0');
-    window.location = url.toString();
-}
-</script>
 
 <%-- 약관 등록 모달 --%>
 <div class="modal fade" id="writeModal" tabindex="-1" aria-hidden="true">

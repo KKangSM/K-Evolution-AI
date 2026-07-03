@@ -22,8 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private static final int ADMIN_PAGE_SIZE = 20;
-
     private final ProductService productService;
     private final SupabaseStorageService storageService;
 
@@ -60,16 +58,15 @@ public class ProductController {
     // ── 관리자 관리 (/admin/** = ROLE_ADMIN) ──────────
     @GetMapping("/admin/products")
     public String adminList(
-        @RequestParam(required = false) String keyword,
+        @RequestParam(required = false) String search,
         @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int pageSize,
         Model model
     ) {
-        Page<Product> products = productService.getProducts(keyword, null, PageRequest.of(page, ADMIN_PAGE_SIZE));
+        Page<Product> products = productService.getProducts(search, null, PageRequest.of(page, pageSize));
         model.addAttribute("activeMenu", "products");
         model.addAttribute("products", products);
         model.addAttribute("stockMap", productService.getStockMap(products.getContent()));
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("currentPage", page);
         return "admin/products/list";
     }
 

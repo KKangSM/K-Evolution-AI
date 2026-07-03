@@ -7,6 +7,7 @@ import com.kevolution.storage.SupabaseStorageService;
 import static com.kevolution.config.ValidationUtils.isBlank;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,9 +32,12 @@ public class BannerController {
 
     // ── 관리자 목록 ─────────────────────────────────
     @GetMapping("/admin/banners")
-    public String adminList(@RequestParam(required = false) String search, Model model) {
+    public String adminList(@RequestParam(required = false) String search,
+                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "20") int pageSize,
+                            Model model) {
         model.addAttribute("activeMenu", "banners");
-        model.addAttribute("banners", bannerService.searchBanners(search));
+        model.addAttribute("banners", bannerService.searchBanners(search, PageRequest.of(page, pageSize)));
         model.addAttribute("events", eventService.getAllEvents()); // 배너-이벤트 연결 드롭다운용
         model.addAttribute("search", search);
         return "admin/banners/list";

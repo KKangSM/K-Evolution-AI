@@ -37,7 +37,15 @@
 
         <!-- 검색 폼 (제목) -->
         <ui:searchForm placeholder="제목 검색"
-                       resetUrl="${pageContext.request.contextPath}/admin/banners"/>
+                       resetUrl="${pageContext.request.contextPath}/admin/banners">
+            <%-- 페이지 크기 유지 --%>
+            <input type="hidden" name="pageSize" value="${empty param.pageSize ? '20' : param.pageSize}">
+        </ui:searchForm>
+
+        <!-- 페이지당 표시 -->
+        <div class="d-flex justify-content-end mb-2">
+            <ui:pageSize/>
+        </div>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">
@@ -52,7 +60,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <c:forEach var="b" items="${banners}">
+                    <c:forEach var="b" items="${banners.content}">
                         <tr style="cursor:pointer"
                             data-bs-toggle="modal" data-bs-target="#bannerModal${b.bannerId}">
                             <td class="ps-4 text-muted">${b.sortOrder}</td>
@@ -90,13 +98,15 @@
                             </td>
                         </tr>
                     </c:forEach>
-                    <c:if test="${empty banners}">
+                    <c:if test="${empty banners.content}">
                         <tr><td colspan="5" class="text-center text-muted py-5">등록된 배너가 없습니다.</td></tr>
                     </c:if>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <ui:pagination page="${banners}"/>
 
     </main>
 </div>
@@ -171,7 +181,7 @@
 </div>
 
 <%-- ── 배너별 상세/수정 모달 ─────────────────────── --%>
-<c:forEach var="b" items="${banners}">
+<c:forEach var="b" items="${banners.content}">
     <div class="modal fade" id="bannerModal${b.bannerId}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">

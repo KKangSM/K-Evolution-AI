@@ -10,8 +10,15 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
     <style>
         .stock-input { width: 90px; }
+        .product-row { cursor: pointer; }
+        .product-row .toggle-icon { transition: transform .15s ease; color: #999; }
+        .product-row.open .toggle-icon { transform: rotate(90deg); }
+        .option-row { display: none; }
+        .option-row.show { display: table-row; }
         .option-row td { background: #fafafa; }
-        .option-label { padding-left: 1.5rem; color: #555; }
+        /* 옵션이 상품 하위임을 시각적으로: 크게 들여쓰기 */
+        .option-row .nest { padding-left: 3.25rem; }
+        .option-label { color: #555; }
     </style>
 </head>
 <body class="admin-body">
@@ -37,18 +44,26 @@
         <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
 
         <!-- 검색 폼 (상품명) -->
-        <ui:searchForm placeholder="상품명 검색" resetUrl="${ctx}/admin/stock"/>
+        <ui:searchForm placeholder="상품명 검색" resetUrl="${ctx}/admin/stock">
+            <%-- 페이지 크기 유지 --%>
+            <input type="hidden" name="pageSize" value="${empty param.pageSize ? '20' : param.pageSize}">
+        </ui:searchForm>
+
+        <!-- 페이지당 표시 -->
+        <div class="d-flex justify-content-end mb-2">
+            <ui:pageSize/>
+        </div>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-light">
+                    <thead class="table-light text-center">
                     <tr>
-                        <th class="ps-4" style="width:60px">No.</th>
+                        <th style="width:60px">No.</th>
                         <th>상품 / 옵션</th>
                         <th style="width:110px">구분</th>
-                        <th style="width:110px" class="text-end">현재 재고</th>
-                        <th style="width:220px" class="text-end pe-4">재고 수정</th>
+                        <th style="width:110px">현재 재고</th>
+                        <th style="width:220px">재고 수정</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -57,57 +72,76 @@
                     </c:if>
                     <c:forEach var="p" items="${products.content}" varStatus="status">
                         <c:set var="options" value="${optionMap[p.productId]}"/>
+                        <%-- 방금 재고를 수정한 상품이면 펼친 상태로 렌더 --%>
+                        <c:set var="isOpen" value="${param.expand == p.productId}"/>
 
-                        <%-- 상품 행 (총재고 = 옵션 재고 합계, 표시 전용) --%>
-                        <tr>
-                            <td class="ps-4 text-muted small">${products.number * products.size + status.index + 1}</td>
+                        <%-- 상품 행 (총재고 = 옵션 재고 합계, 표시 전용 / 클릭 시 옵션 펼침) --%>
+                        <tr class="product-row ${isOpen ? 'open' : ''}" data-group="opt-${p.productId}">
+                            <td class="text-center text-muted small">${products.number * products.size + status.index + 1}</td>
                             <td>
+                                <i class="bi bi-chevron-right toggle-icon me-1 small"></i>
                                 <span class="fw-semibold"><c:out value="${p.name}"/></span>
                                 <c:if test="${not empty p.category}">
                                     <span class="text-muted small ms-1">${p.category.label}</span>
                                 </c:if>
                             </td>
-                            <td>
+                            <td class="text-center">
                                 <span class="badge bg-primary-subtle text-primary border">옵션 ${options.size()}개</span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-center">
                                 <c:set var="pstock" value="${stockMap[p.productId]}"/>
                                 <c:choose>
                                     <c:when test="${pstock == 0}"><span class="badge bg-secondary">품절</span></c:when>
                                     <c:otherwise><span class="fw-semibold">${pstock}</span></c:otherwise>
                                 </c:choose>
                             </td>
-                            <td class="text-end pe-4">
-                                <span class="text-muted small">옵션별 관리 ↓</span>
+                            <td class="text-center">
+                                <span class="text-muted small toggle-hint">${isOpen ? '접기' : '클릭하여 옵션 보기'}</span>
                             </td>
                         </tr>
 
-                        <%-- 옵션 행 (재고 수정) --%>
+                        <%-- 옵션 행 (재고 입력 — 저장은 상품별 폼 하나로 일괄 처리) --%>
                         <c:forEach var="opt" items="${options}">
-                            <tr class="option-row">
+                            <tr class="option-row ${isOpen ? 'show' : ''}" data-group="opt-${p.productId}">
                                 <td></td>
-                                <td class="option-label" colspan="2">
+                                <td class="option-label nest" colspan="2">
                                     └ ${opt.optionName}: ${opt.optionValue}
                                 </td>
-                                <td class="text-end">
+                                <td class="text-center">
                                     <c:choose>
                                         <c:when test="${opt.stock == 0}"><span class="badge bg-secondary">품절</span></c:when>
                                         <c:otherwise>${opt.stock}</c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td class="text-end pe-4">
-                                    <form action="${ctx}/admin/stock/options/${opt.optionId}" method="post"
-                                          class="d-inline-flex gap-1 justify-content-end">
-                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                        <input type="hidden" name="search" value="${param.search}"/>
-                                        <input type="hidden" name="page" value="${products.number}"/>
-                                        <input type="number" name="stock" min="0" required
-                                               class="form-control form-control-sm text-end stock-input" value="${opt.stock}">
-                                        <button type="submit" class="btn btn-sm btn-outline-dark">저장</button>
-                                    </form>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center">
+                                        <input type="hidden" name="optionId" value="${opt.optionId}"
+                                               form="stockForm-${p.productId}"/>
+                                        <input type="number" name="stock" min="0" required value="${opt.stock}"
+                                               form="stockForm-${p.productId}"
+                                               class="form-control form-control-sm text-center stock-input">
+                                    </div>
                                 </td>
                             </tr>
                         </c:forEach>
+
+                        <%-- 저장 행 (해당 상품의 모든 옵션 재고를 한 번에 저장) --%>
+                        <c:if test="${not empty options}">
+                            <tr class="option-row ${isOpen ? 'show' : ''}" data-group="opt-${p.productId}">
+                                <td></td>
+                                <td colspan="3" class="text-muted small nest">사이즈별 재고를 입력한 뒤 저장을 누르면 한 번에 반영됩니다.</td>
+                                <td class="text-center">
+                                    <form id="stockForm-${p.productId}"
+                                          action="${ctx}/admin/stock/products/${p.productId}" method="post" class="d-inline">
+                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                                        <input type="hidden" name="search" value="${param.search}"/>
+                                        <input type="hidden" name="page" value="${products.number}"/>
+                                        <input type="hidden" name="pageSize" value="${empty param.pageSize ? '20' : param.pageSize}"/>
+                                        <button type="submit" class="btn btn-sm btn-dark px-3">저장</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </c:if>
                     </c:forEach>
                     </tbody>
                 </table>
@@ -120,5 +154,23 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 상품 행 클릭 시 해당 옵션 행 펼치기/접기 (기본은 접힘)
+    document.querySelectorAll('.product-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+            var group = row.getAttribute('data-group');
+            var open = row.classList.toggle('open');
+            document.querySelectorAll('.option-row[data-group="' + group + '"]').forEach(function (opt) {
+                opt.classList.toggle('show', open);
+            });
+            var hint = row.querySelector('.toggle-hint');
+            if (hint) hint.textContent = open ? '접기' : '클릭하여 옵션 보기';
+        });
+    });
+
+    // 저장 후 펼친 채로 복귀한 상품을 화면에 보이도록 스크롤
+    var opened = document.querySelector('.product-row.open');
+    if (opened) opened.scrollIntoView({ block: 'center' });
+</script>
 </body>
 </html>

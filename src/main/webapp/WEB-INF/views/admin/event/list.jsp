@@ -32,7 +32,15 @@
 
         <!-- 검색 폼 (제목) -->
         <ui:searchForm placeholder="제목 검색"
-                       resetUrl="${pageContext.request.contextPath}/admin/events"/>
+                       resetUrl="${pageContext.request.contextPath}/admin/events">
+            <%-- 페이지 크기 유지 --%>
+            <input type="hidden" name="pageSize" value="${empty param.pageSize ? '20' : param.pageSize}">
+        </ui:searchForm>
+
+        <!-- 페이지당 표시 -->
+        <div class="d-flex justify-content-end mb-2">
+            <ui:pageSize/>
+        </div>
 
         <div class="card shadow-sm">
             <div class="card-body p-0">
