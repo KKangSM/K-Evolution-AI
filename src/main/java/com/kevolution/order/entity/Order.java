@@ -27,6 +27,10 @@ public class Order {
     @JoinColumn(name = "member_coupon_id")
     private IssuedCoupon issuedCoupon;
 
+    /** 토스페이먼츠에 넘기는 주문번호(문자열). 결제 승인 콜백에서 이 값으로 주문을 되찾는다. */
+    @Column(name = "toss_order_id", unique = true, length = 64)
+    private String tossOrderId;
+
     @Column(nullable = false, length = 50)
     private String receiverName;
 
@@ -66,10 +70,11 @@ public class Order {
     }
 
     @Builder
-    public Order(Member member, IssuedCoupon issuedCoupon, String receiverName, String receiverPhone,
-                 String address, int totalPrice, int discountAmount, int finalPrice) {
+    public Order(Member member, IssuedCoupon issuedCoupon, String tossOrderId, String receiverName,
+                 String receiverPhone, String address, int totalPrice, int discountAmount, int finalPrice) {
         this.member = member;
         this.issuedCoupon = issuedCoupon;
+        this.tossOrderId = tossOrderId;
         this.receiverName = receiverName;
         this.receiverPhone = receiverPhone;
         this.address = address;
@@ -77,6 +82,18 @@ public class Order {
         this.discountAmount = discountAmount;
         this.finalPrice = finalPrice;
         this.status = Status.PENDING;
+    }
+
+    /** 주문 항목 추가 (연관관계 편의 메서드) */
+    public void addOrderItem(OrderItem item) {
+        this.orderItems.add(item);
+    }
+
+    /** 결제 직전 배송지 정보 변경 */
+    public void updateShipping(String receiverName, String receiverPhone, String address) {
+        this.receiverName = receiverName;
+        this.receiverPhone = receiverPhone;
+        this.address = address;
     }
 
     public void markAsPaid() {

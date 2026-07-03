@@ -93,7 +93,7 @@ public class SecurityConfig {
                 // 일반 회원 전용 — ADMIN 은 URL 접근까지 차단.
                 // 단 SYSTEM 은 마스터키이므로 모두 통과시킨다.
                 // (SYSTEM 이거나, 또는 USER 이면서 ADMIN 이 아닌 계정만 통과)
-                .requestMatchers("/support/qna/**", "/mypage/**", "/cart/**")
+                .requestMatchers("/support/qna/**", "/mypage/**", "/cart/**", "/order/**")
                     .access(new WebExpressionAuthorizationManager(
                         "hasRole('SYSTEM') or (hasRole('USER') and !hasRole('ADMIN'))"))
                 .anyRequest().authenticated()

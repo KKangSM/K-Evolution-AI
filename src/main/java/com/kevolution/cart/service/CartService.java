@@ -69,6 +69,13 @@ public class CartService {
         cartItemRepository.delete(getCartItemWithOwnerCheck(userId, cartItemId));
     }
 
+    /** 결제 완료 후 장바구니 비우기 (orphanRemoval 로 항목 삭제) */
+    @Transactional
+    public void clearCart(String userId) {
+        Cart cart = getCart(getMember(userId));
+        cart.getCartItems().clear();
+    }
+
     private CartItem getCartItemWithOwnerCheck(String userId, Long cartItemId) {
         CartItem item = cartItemRepository.findById(cartItemId)
             .orElseThrow(() -> new IllegalArgumentException("장바구니 항목을 찾을 수 없습니다."));

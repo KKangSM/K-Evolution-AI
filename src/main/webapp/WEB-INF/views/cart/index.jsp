@@ -118,11 +118,12 @@
                                 type="number" groupingUsed="true"/>원
                         </span>
                     </div>
-                    <div class="d-grid">
-                        <button class="btn btn-dark btn-lg" disabled>
-                            주문하기 (준비 중)
+                    <form action="${pageContext.request.contextPath}/order/checkout" method="post" class="d-grid">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                        <button class="btn btn-dark btn-lg" type="submit">
+                            주문하기
                         </button>
-                    </div>
+                    </form>
                     <p class="text-muted small text-center mt-2 mb-0">5만원 이상 구매 시 무료배송</p>
                 </div>
             </div>

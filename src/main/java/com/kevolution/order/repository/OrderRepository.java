@@ -7,9 +7,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByMemberOrderByCreatedAtDesc(Member member);
+
+    /** 토스 결제 승인 콜백에서 주문번호(문자열)로 주문 조회 */
+    Optional<Order> findByTossOrderId(String tossOrderId);
 
     // 대시보드 집계
     List<Order> findTop5ByOrderByCreatedAtDesc();
