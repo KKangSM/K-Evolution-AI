@@ -64,12 +64,42 @@
         </div>
     </div>
 
+    <%-- 쿠폰 --%>
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">쿠폰</h6>
+            <c:choose>
+                <c:when test="${empty coupons}">
+                    <p class="text-muted small mb-0">사용 가능한 쿠폰이 없습니다.</p>
+                </c:when>
+                <c:otherwise>
+                    <select id="couponSelect" class="form-select">
+                        <option value="">쿠폰 선택 안 함</option>
+                        <c:forEach var="ic" items="${coupons}">
+                            <option value="${ic.issuedCouponId}">
+                                <c:out value="${ic.coupon.name}"/>
+                                (<c:choose>
+                                    <c:when test="${ic.coupon.discountType == 'PERCENT'}">${ic.coupon.discountValue}% 할인</c:when>
+                                    <c:otherwise><fmt:formatNumber value="${ic.coupon.discountValue}" type="number" groupingUsed="true"/>원 할인</c:otherwise>
+                                </c:choose>)
+                            </option>
+                        </c:forEach>
+                    </select>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </div>
+
     <%-- 금액 --%>
     <div class="card shadow-sm mb-3">
         <div class="card-body">
             <div class="d-flex justify-content-between mb-2">
                 <span class="text-muted">상품 합계</span>
                 <span><fmt:formatNumber value="${order.totalPrice}" type="number" groupingUsed="true"/>원</span>
+            </div>
+            <div id="discountRow" class="d-flex justify-content-between mb-2 text-danger ${order.discountAmount > 0 ? '' : 'd-none'}">
+                <span>쿠폰 할인</span>
+                <span>-<span id="discountValue"><fmt:formatNumber value="${order.discountAmount}" type="number" groupingUsed="true"/></span>원</span>
             </div>
             <div class="d-flex justify-content-between mb-2">
                 <span class="text-muted">배송비</span>
@@ -84,7 +114,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <span class="fw-bold fs-5">최종 결제금액</span>
                 <span class="fw-bold fs-5">
-                    <fmt:formatNumber value="${order.finalPrice}" type="number" groupingUsed="true"/>원
+                    <span id="finalPrice"><fmt:formatNumber value="${order.finalPrice}" type="number" groupingUsed="true"/></span>원
                 </span>
             </div>
         </div>
@@ -112,6 +142,7 @@
     const clientKey = "${clientKey}";
     const customerKey = "${customerKey}";
     const tossOrderId = "${order.tossOrderId}";
+    const orderId = "${order.orderId}";
     const amount = { currency: "KRW", value: ${order.finalPrice} };
     const csrfHeader = "${_csrf.headerName}";
     const csrfToken = "${_csrf.token}";
@@ -119,6 +150,8 @@
     const payButton = document.getElementById("payButton");
     const tossPayments = TossPayments(clientKey);
     const widgets = tossPayments.widgets({ customerKey });
+
+    const nf = new Intl.NumberFormat("ko-KR");
 
     async function init() {
         await widgets.setAmount(amount);
@@ -129,6 +162,46 @@
         payButton.disabled = false;
     }
     init();
+
+    // 쿠폰 선택 → 서버에서 할인·최종금액 재계산 후 위젯 금액 갱신
+    const couponSelect = document.getElementById("couponSelect");
+    if (couponSelect) {
+        couponSelect.addEventListener("change", async () => {
+            const issuedCouponId = couponSelect.value;
+            const body = new URLSearchParams();
+            if (issuedCouponId) body.append("issuedCouponId", issuedCouponId);
+
+            const resp = await fetch(ctx + "/order/" + orderId + "/coupon", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                    [csrfHeader]: csrfToken,
+                },
+                body: body.toString(),
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                alert(data.message || "쿠폰 적용에 실패했습니다.");
+                couponSelect.value = "";
+                return;
+            }
+
+            // 화면 금액 갱신
+            const discount = ${order.totalPrice} + (${shipping}) - data.finalPrice;
+            const discountRow = document.getElementById("discountRow");
+            if (discount > 0) {
+                document.getElementById("discountValue").textContent = nf.format(discount);
+                discountRow.classList.remove("d-none");
+            } else {
+                discountRow.classList.add("d-none");
+            }
+            document.getElementById("finalPrice").textContent = nf.format(data.finalPrice);
+
+            // 토스 위젯 결제금액 갱신
+            amount.value = data.finalPrice;
+            await widgets.setAmount(amount);
+        });
+    }
 
     payButton.addEventListener("click", async () => {
         const form = document.getElementById("shippingForm");

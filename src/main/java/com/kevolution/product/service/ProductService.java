@@ -72,6 +72,26 @@ public class ProductService {
         return itemOptionRepository.sumStockByProduct(product);
     }
 
+    /**
+     * 판매 확정 시 상품 재고를 차감한다. 주문/장바구니는 옵션을 지정하지 않으므로,
+     * 옵션 재고를 노출 순서대로 소진한다. 총재고가 부족하면 예외를 던져 전체 트랜잭션을 롤백시킨다.
+     */
+    @Transactional
+    public void decreaseStock(Product product, int quantity) {
+        int remaining = quantity;
+        for (ItemOption option : itemOptionRepository.findByProductOrderBySortOrderAsc(product)) {
+            if (remaining <= 0) break;
+            int take = Math.min(option.getStock(), remaining);
+            if (take > 0) {
+                option.decreaseStock(take);
+                remaining -= take;
+            }
+        }
+        if (remaining > 0) {
+            throw new IllegalStateException(product.getName() + "의 재고가 부족합니다.");
+        }
+    }
+
     /** 목록 화면용: 상품별 총재고 맵 (productId → 합계). 품절 판단에 사용. */
     public Map<Long, Integer> getStockMap(List<Product> products) {
         Map<Long, Integer> map = new LinkedHashMap<>();

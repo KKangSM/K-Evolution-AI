@@ -89,6 +89,13 @@ public class Order {
         this.orderItems.add(item);
     }
 
+    /** 결제 직전 쿠폰 적용/해제. 할인액과 최종 결제금액을 함께 갱신한다. (쿠폰 해제 시 null 전달) */
+    public void applyCoupon(IssuedCoupon issuedCoupon, int discountAmount, int finalPrice) {
+        this.issuedCoupon = issuedCoupon;
+        this.discountAmount = discountAmount;
+        this.finalPrice = finalPrice;
+    }
+
     /** 결제 직전 배송지 정보 변경 */
     public void updateShipping(String receiverName, String receiverPhone, String address) {
         this.receiverName = receiverName;

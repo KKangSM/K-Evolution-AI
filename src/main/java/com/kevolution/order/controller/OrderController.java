@@ -49,6 +49,7 @@ public class OrderController {
             model.addAttribute("orderName", buildOrderName(order));
             model.addAttribute("clientKey", tossClientKey);
             model.addAttribute("customerKey", order.getMember().getMemberId());
+            model.addAttribute("coupons", orderService.getSelectableCoupons(user.getUsername(), orderId));
             return "order/pay";
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
@@ -66,6 +67,20 @@ public class OrderController {
                                                @AuthenticationPrincipal UserDetails user) {
         orderService.updateShipping(user.getUsername(), orderId, receiverName, receiverPhone, address);
         return ResponseEntity.ok().build();
+    }
+
+    /** 결제 직전 쿠폰 적용/해제 (결제 페이지에서 fetch 로 호출). 갱신된 최종 결제금액을 돌려준다. */
+    @PostMapping("/{orderId}/coupon")
+    @ResponseBody
+    public ResponseEntity<?> applyCoupon(@PathVariable Long orderId,
+                                         @RequestParam(required = false) Long issuedCouponId,
+                                         @AuthenticationPrincipal UserDetails user) {
+        try {
+            int finalPrice = orderService.applyCoupon(user.getUsername(), orderId, issuedCouponId);
+            return ResponseEntity.ok(java.util.Map.of("finalPrice", finalPrice));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
     }
 
     // ── 결제 결과 콜백 ─────────────────────────────────────────
