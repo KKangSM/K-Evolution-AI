@@ -38,6 +38,20 @@ public class OrderController {
         }
     }
 
+    /** 상품 상세 "바로구매" → 장바구니를 거치지 않고 결제 대기 주문 생성 후 결제 페이지로 이동 (PRG) */
+    @PostMapping("/direct")
+    public String direct(@RequestParam Long productId,
+                         @RequestParam(defaultValue = "1") int quantity,
+                         @AuthenticationPrincipal UserDetails user, RedirectAttributes ra) {
+        try {
+            Order order = orderService.createDirect(user.getUsername(), productId, quantity);
+            return "redirect:/order/pay/" + order.getOrderId();
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/products/" + productId;
+        }
+    }
+
     /** 결제위젯 페이지 */
     @GetMapping("/pay/{orderId}")
     public String pay(@PathVariable Long orderId,

@@ -116,6 +116,23 @@
                 </c:choose>
             </div>
 
+            <%-- 장바구니 담기 결과 안내 (버튼 바로 위, 즉시 클릭 가능) --%>
+            <c:if test="${not empty successMsg}">
+                <div class="alert alert-dark d-flex align-items-center justify-content-between gap-2 py-2 mb-3">
+                    <span class="d-flex align-items-center gap-2 fw-semibold">
+                        <i class="bi bi-check-circle-fill"></i> ${successMsg}
+                    </span>
+                    <a href="${pageContext.request.contextPath}/cart" class="btn btn-light btn-sm fw-semibold flex-shrink-0">
+                        장바구니로 이동 <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </c:if>
+            <c:if test="${not empty errorMsg}">
+                <div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3">
+                    <i class="bi bi-exclamation-circle-fill"></i> ${errorMsg}
+                </div>
+            </c:if>
+
             <%-- 장바구니 버튼 --%>
             <div class="d-grid mb-5">
                 <c:choose>
@@ -148,9 +165,16 @@
                                 </div>
                             </c:if>
 
-                            <button type="submit" class="btn btn-dark btn-lg w-100">
-                                <i class="bi bi-cart-plus me-1"></i> 장바구니 담기
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-outline-dark btn-lg flex-fill">
+                                    <i class="bi bi-cart-plus me-1"></i> 장바구니
+                                </button>
+                                <button type="submit"
+                                        formaction="${pageContext.request.contextPath}/order/direct"
+                                        class="btn btn-dark btn-lg flex-fill">
+                                    <i class="bi bi-bag-check me-1"></i> 바로구매
+                                </button>
+                            </div>
                         </form>
                     </c:otherwise>
                 </c:choose>

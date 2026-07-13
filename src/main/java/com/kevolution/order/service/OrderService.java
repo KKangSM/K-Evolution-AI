@@ -14,6 +14,7 @@ import com.kevolution.order.entity.OrderItem;
 import com.kevolution.order.entity.Payment;
 import com.kevolution.order.repository.OrderRepository;
 import com.kevolution.order.repository.PaymentRepository;
+import com.kevolution.product.entity.Product;
 import com.kevolution.product.service.ProductService;
 
 import lombok.RequiredArgsConstructor;
@@ -69,6 +70,7 @@ public class OrderService {
             .totalPrice(totalPrice)
             .discountAmount(discountAmount)
             .finalPrice(finalPrice)
+            .fromCart(true)
             .build();
 
         for (CartItem item : cart.getCartItems()) {
@@ -80,6 +82,46 @@ public class OrderService {
                 .quantity(item.getQuantity())
                 .build());
         }
+
+        return orderRepository.save(order);
+    }
+
+    /** "바로구매": 장바구니를 거치지 않고 단일 상품으로 결제 대기(PENDING) 주문을 만든다. */
+    @Transactional
+    public Order createDirect(String userId, Long productId, int quantity) {
+        Member member = cartService.getMember(userId);
+        Product product = productService.getProduct(productId);
+
+        if (quantity < 1) {
+            throw new IllegalStateException("수량은 1개 이상이어야 합니다.");
+        }
+        if (productService.getTotalStock(product) < quantity) {
+            throw new IllegalStateException("재고가 부족합니다.");
+        }
+
+        int totalPrice = product.getPrice() * quantity;
+        int shippingFee = shippingFeeFor(totalPrice);
+        int finalPrice = totalPrice + shippingFee;
+
+        Order order = Order.builder()
+            .member(member)
+            .tossOrderId(generateTossOrderId())
+            .receiverName(nvl(member.getName()))
+            .receiverPhone(nvl(member.getPhone()))
+            .address(nvl(member.getAddress()))
+            .totalPrice(totalPrice)
+            .discountAmount(0) // 쿠폰은 결제 페이지에서 선택 → applyCoupon 으로 반영
+            .finalPrice(finalPrice)
+            .fromCart(false)
+            .build();
+
+        order.addOrderItem(OrderItem.builder()
+            .order(order)
+            .product(product)
+            .productName(product.getName())
+            .price(product.getPrice())
+            .quantity(quantity)
+            .build());
 
         return orderRepository.save(order);
     }
@@ -193,7 +235,10 @@ public class OrderService {
                 ? OffsetDateTime.parse(res.approvedAt()).toLocalDateTime() : null)
             .build());
 
-        cartService.clearCart(userId);
+        // 바로구매 주문은 장바구니를 거치지 않았으므로 비우지 않는다.
+        if (order.isFromCart()) {
+            cartService.clearCart(userId);
+        }
         return order;
     }
 

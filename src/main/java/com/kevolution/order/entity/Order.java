@@ -49,6 +49,10 @@ public class Order {
     @Column(nullable = false)
     private int finalPrice;
 
+    /** 장바구니 주문이면 true, "바로구매" 주문이면 false. 결제 승인 후 장바구니 비우기 여부를 가른다. */
+    @Column(nullable = false)
+    private boolean fromCart;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Status status;
@@ -71,7 +75,8 @@ public class Order {
 
     @Builder
     public Order(Member member, IssuedCoupon issuedCoupon, String tossOrderId, String receiverName,
-                 String receiverPhone, String address, int totalPrice, int discountAmount, int finalPrice) {
+                 String receiverPhone, String address, int totalPrice, int discountAmount, int finalPrice,
+                 boolean fromCart) {
         this.member = member;
         this.issuedCoupon = issuedCoupon;
         this.tossOrderId = tossOrderId;
@@ -81,6 +86,7 @@ public class Order {
         this.totalPrice = totalPrice;
         this.discountAmount = discountAmount;
         this.finalPrice = finalPrice;
+        this.fromCart = fromCart;
         this.status = Status.PENDING;
     }
 
