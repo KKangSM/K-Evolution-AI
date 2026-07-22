@@ -12,6 +12,12 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByMemberOrderByCreatedAtDesc(Member member);
 
+    /** 주문 내역 화면용 — 주문 상품/상품정보까지 한 번에 로딩(LazyInitialization 방지) */
+    @Query("SELECT DISTINCT o FROM Order o "
+         + "JOIN FETCH o.orderItems oi JOIN FETCH oi.product "
+         + "WHERE o.member.userId = :userId ORDER BY o.createdAt DESC")
+    List<Order> findWithItemsByUserId(@Param("userId") String userId);
+
     /** 토스 결제 승인 콜백에서 주문번호(문자열)로 주문 조회 */
     Optional<Order> findByTossOrderId(String tossOrderId);
 

@@ -52,6 +52,24 @@
             </a>
         </div>
         <div class="col-6">
+            <a href="${pageContext.request.contextPath}/mypage/wishlist" class="text-decoration-none">
+                <div class="card h-100 shadow-sm text-center py-4">
+                    <div class="fs-2 mb-2">❤️</div>
+                    <div class="fw-bold">찜 목록</div>
+                    <div class="text-muted small">찜한 상품 보기</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6">
+            <a href="${pageContext.request.contextPath}/mypage/returns" class="text-decoration-none">
+                <div class="card h-100 shadow-sm text-center py-4">
+                    <div class="fs-2 mb-2">↩️</div>
+                    <div class="fw-bold">반품·교환 내역</div>
+                    <div class="text-muted small">신청 및 처리 현황</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6">
             <a href="${pageContext.request.contextPath}/support" class="text-decoration-none">
                 <div class="card h-100 shadow-sm text-center py-4">
                     <div class="fs-2 mb-2">💬</div>

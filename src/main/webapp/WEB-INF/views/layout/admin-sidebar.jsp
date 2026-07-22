@@ -34,6 +34,10 @@
        href="${pageContext.request.contextPath}/admin/stock">
         <span><i class="bi bi-clipboard-data"></i>재고 관리</span>
     </a>
+    <a class="menu-link ${activeMenu == 'returns' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/returns">
+        <span><i class="bi bi-arrow-return-left"></i>반품·교환 관리</span>
+    </a>
 
     <div class="menu-title">준비 중</div>
     <a class="menu-link ${activeMenu == 'products' ? 'active' : ''}"

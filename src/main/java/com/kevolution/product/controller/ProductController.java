@@ -5,10 +5,13 @@ import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.service.ProductService;
 import com.kevolution.storage.SupabaseStorageService;
+import com.kevolution.wishlist.service.WishlistService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +27,7 @@ public class ProductController {
 
     private final ProductService productService;
     private final SupabaseStorageService storageService;
+    private final WishlistService wishlistService;
 
     // ── 공개 조회 ─────────────────────────────────
     @GetMapping("/products")
@@ -46,12 +50,16 @@ public class ProductController {
     }
 
     @GetMapping("/products/{productId}")
-    public String detail(@PathVariable Long productId, Model model) {
+    public String detail(@PathVariable Long productId,
+                         @AuthenticationPrincipal UserDetails user,
+                         Model model) {
         Product product = productService.getProduct(productId);
         model.addAttribute("product", product);
         model.addAttribute("images", productService.getProductImages(productId));
         model.addAttribute("optionGroups", productService.getProductOptionsGrouped(productId));
         model.addAttribute("totalStock", productService.getTotalStock(product));
+        model.addAttribute("wished", wishlistService.isWished(user == null ? null : user.getUsername(), product));
+        model.addAttribute("wishCount", wishlistService.count(product));
         return "products/detail";
     }
 

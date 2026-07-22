@@ -178,6 +178,14 @@
                         </form>
                     </c:otherwise>
                 </c:choose>
+
+                <%-- 찜(위시리스트) 버튼 --%>
+                <button type="button" id="wishBtn" data-wished="${wished}"
+                        class="btn btn-lg mt-2 ${wished ? 'btn-danger' : 'btn-outline-danger'}">
+                    <i id="wishIcon" class="bi ${wished ? 'bi-heart-fill' : 'bi-heart'} me-1"></i>
+                    <span id="wishLabel">${wished ? '찜 완료' : '찜하기'}</span>
+                    <span class="badge bg-light text-danger ms-1" id="wishCount">${wishCount}</span>
+                </button>
             </div>
 
             <hr>
@@ -202,6 +210,40 @@
         });
     });
 
+    // 찜(위시리스트) 토글 — 로그인 안 했으면 로그인 페이지로 이동
+    (function () {
+        const btn = document.getElementById('wishBtn');
+        if (!btn) return;
+        const ctx = '${pageContext.request.contextPath}';
+        const CSRF_TOKEN = '${_csrf.token}', CSRF_HEADER = '${_csrf.headerName}';
+        btn.addEventListener('click', function () {
+            fetch(ctx + '/wishlist/${product.productId}/toggle', {
+                method: 'POST',
+                headers: { [CSRF_HEADER]: CSRF_TOKEN }
+            }).then(function (res) {
+                if (res.status === 401 || res.status === 403) {
+                    location.href = ctx + '/auth/login';
+                    return null;
+                }
+                return res.json();
+            }).then(function (data) {
+                if (!data) return;
+                const icon = document.getElementById('wishIcon');
+                const label = document.getElementById('wishLabel');
+                const count = document.getElementById('wishCount');
+                let n = parseInt(count.textContent || '0', 10);
+                if (data.wished) {
+                    btn.classList.remove('btn-outline-danger'); btn.classList.add('btn-danger');
+                    icon.classList.remove('bi-heart'); icon.classList.add('bi-heart-fill');
+                    label.textContent = '찜 완료'; count.textContent = n + 1;
+                } else {
+                    btn.classList.remove('btn-danger'); btn.classList.add('btn-outline-danger');
+                    icon.classList.remove('bi-heart-fill'); icon.classList.add('bi-heart');
+                    label.textContent = '찜하기'; count.textContent = Math.max(0, n - 1);
+                }
+            }).catch(function () { alert('잠시 후 다시 시도해주세요.'); });
+        });
+    })();
 </script>
 </body>
 </html>

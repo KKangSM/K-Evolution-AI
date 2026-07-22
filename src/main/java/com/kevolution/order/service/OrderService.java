@@ -126,6 +126,11 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    /** 주문 내역 — 본인의 전체 주문을 상품까지 로딩해 최신순으로 반환 */
+    public List<Order> getMyOrders(String userId) {
+        return orderRepository.findWithItemsByUserId(userId);
+    }
+
     /** 결제 페이지에서 쓸, 본인 소유의 결제 대기 주문 조회 */
     public Order getPayableOrder(String userId, Long orderId) {
         Order order = orderRepository.findById(orderId)
