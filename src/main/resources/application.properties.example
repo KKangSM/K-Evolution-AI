@@ -48,6 +48,12 @@ spring.mvc.hiddenmethod.filter.enabled=true
 toss.secret-key=test_sk_여기에입력
 toss.client-key=test_ck_여기에입력
 
+# KG이니시스 웹표준결제(INIStdPay)
+# 아래는 이니시스 공용 테스트 MID/사인키 (실결제·정산 없음). 운영 시 발급받은 값으로 교체.
+# signKey 는 가맹점관리자 ▶ 상점정보 ▶ 계약정보 ▶ KEY 정보 ▶ 웹결제 Sign Key 에서 확인.
+inicis.mid=INIpayTest
+inicis.sign-key=SU5JTElURV9UUklQTEVERVNfS0VZU1RS
+
 # Supabase (배너 등 이미지 저장용 Storage)
 # SECRET_KEY 는 service_role 급 비밀이므로 example 에 적지 말고 application.properties 에만 입력.
 SUPABASE_URL=https://YOUR-PROJECT.supabase.co

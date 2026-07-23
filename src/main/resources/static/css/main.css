@@ -1,57 +1,363 @@
+/* 팝아트 만화체 폰트 (@import 는 반드시 파일 최상단이어야 유효) */
+@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+
 /* ===== 메인 페이지 스타일 ===== */
 
-/* 레이아웃 / 푸터: 맨아래 고정이 아니라 헤더처럼 화면 하단에 sticky 로 따라다님 */
+/* 레이아웃 / 푸터: 페이지 맨 아래에 고정(내용이 짧아도 화면 하단에 붙음, 스크롤 따라다니지 않음) */
 body { min-height: 100vh; display: flex; flex-direction: column; }
 .site-footer {
     margin-top: auto;
-    position: sticky;
-    bottom: 0;
-    z-index: 1010;
 }
 
-/* 이벤트 캐러셀 */
-.event-carousel .carousel-inner { border-radius: 1rem; }
-.event-slide {
-    display: flex; align-items: center; justify-content: center;
-    height: 280px; background: #e9ecef;
-}
+/* =====================================================================
+ * 히어로: 풀폭 캐러셀 + 브랜드 카피/검색 오버레이 (29CM 감도)
+ * ===================================================================== */
+.hero-stage { position: relative; overflow: hidden; }
 
-/* 히어로 배너 */
-.hero {
+/* 캐러셀 슬라이드 / 폴백은 같은 높이 */
+.hero-slide {
+    height: 460px;
+    background-color: #16213e;
+    background-size: cover;
+    background-position: center;
+}
+.hero-fallback {
+    height: 460px;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+/* 카피/검색 오버레이 — 클릭은 배너로 통과, 검색폼만 활성 */
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    background: linear-gradient(180deg,
+        rgba(10, 14, 25, .55) 0%,
+        rgba(10, 14, 25, .20) 42%,
+        rgba(10, 14, 25, .60) 100%);
+}
+.hero-title {
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    font-size: 3.25rem;
     color: #fff;
-    padding: 3rem 0 2rem;
+    margin-bottom: .5rem;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, .35);
 }
-.hero h1 { font-weight: 800; letter-spacing: -1px; font-size: 3rem; }
-.hero .lead { font-size: 0.8rem; }
-.hero-search { max-width: 560px; }
-
-/* 카테고리 칩 */
-.category-chip {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: 84px; height: 84px; border-radius: 16px;
-    background: #fff; border: 1px solid #eee; color: #333;
-    text-decoration: none; font-size: 0.85rem; font-weight: 600;
-    transition: all 0.15s;
+.hero-sub {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, .9);
+    margin-bottom: 1.75rem;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, .35);
 }
-.category-chip:hover { border-color: #0f3460; color: #0f3460; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.category-chip .emoji { font-size: 1.6rem; margin-bottom: 4px; }
+.hero-search { max-width: 560px; pointer-events: auto; }
 
-/* 섹션 제목 */
+/* 캐러셀 컨트롤/인디케이터는 스크림 위로 */
+.hero-stage .carousel-indicators,
+.hero-stage .carousel-control-prev,
+.hero-stage .carousel-control-next { z-index: 6; }
+
+@media (max-width: 575.98px) {
+    .hero-slide, .hero-fallback { height: 360px; }
+    .hero-title { font-size: 2.25rem; }
+    .hero-sub { font-size: .92rem; }
+}
+
+/* =====================================================================
+ * 베네핏 바 — 카테고리 위 신뢰 요소
+ * ===================================================================== */
+.benefit-bar {
+    background: var(--kv-surface);
+    border-bottom: 1px solid var(--kv-border);
+}
+.benefit-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: .5rem 2.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: .95rem 1rem;
+}
+.benefit-item {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .92rem;
+    font-weight: 600;
+    color: #374151;
+}
+.benefit-item i {
+    font-size: 1.2rem;
+    color: var(--kv-primary);
+    vertical-align: -.1em;
+}
+.benefit-item .benefit-sub {
+    color: var(--kv-muted);
+    font-weight: 400;
+    font-size: .82rem;
+}
+
+/* =====================================================================
+ * 상품 레일 (가로 스크롤) — MD's PICK / 신상품
+ * ===================================================================== */
+.rail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1rem;
+}
+.rail-title {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 1.35rem;
+    margin: 0;
+}
+.rail-title .rail-sub {
+    color: var(--kv-muted);
+    font-size: .85rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-left: .55rem;
+}
+.rail-more {
+    flex-shrink: 0;
+    color: var(--kv-muted);
+    font-size: .85rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.rail-more:hover { color: var(--kv-primary); }
+.rail-more i { font-size: .72rem; }
+
+.product-rail {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding: .25rem .25rem 1rem;
+    margin: 0 -.25rem;
+    scrollbar-width: thin;
+    scrollbar-color: #d5d9de transparent;
+}
+.product-rail::-webkit-scrollbar { height: 6px; }
+.product-rail::-webkit-scrollbar-thumb {
+    background: #d5d9de;
+    border-radius: 3px;
+}
+.rail-card {
+    flex: 0 0 auto;
+    width: 210px;
+    scroll-snap-align: start;
+}
+@media (max-width: 575.98px) {
+    .rail-card { width: 158px; }
+}
+
+/* =====================================================================
+ * 상품 카드
+ * ===================================================================== */
+.product-card {
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(17, 24, 39, .12);
+}
+.product-img {
+    height: 240px;
+    object-fit: cover;
+    transition: transform .35s ease;
+}
+.product-card:hover .product-img { transform: scale(1.04); }
+
+/* 섹션 제목 (다른 페이지 호환용) */
 .section-title { font-weight: 700; border-left: 4px solid #0f3460; padding-left: 12px; }
-
-/* 상품 카드 */
-.product-card { cursor: pointer; transition: transform 0.2s; }
-.product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-.product-img { height: 200px; object-fit: cover; }
-
-/* 공지 마퀴 배너 CSS 는 전역 theme.css 로 이동(헤더 공통 요소) */
 
 /* 인기상품 순위 배지 */
 .rank-badge {
-    position: absolute; top: 8px; left: 8px; z-index: 2;
-    width: 28px; height: 28px; border-radius: 50%;
-    background: rgba(15,52,96,0.9); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 0.85rem;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(15, 52, 96, 0.9);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
 }
+
+/* 공지 마퀴 배너 CSS 는 전역 theme.css 로 이동(헤더 공통 요소) */
+
+/* =====================================================================
+ * 팝아트 액센트 테마 (.theme-popart) — 홈 화면 전용
+ * 원색 + 두꺼운 검은 외곽선 + 하프톤(벤데이) 점 + 만화풍 타이틀.
+ * 상품 카드/상세페이지는 건드리지 않고 히어로·섹션·배지·버튼만 팝하게.
+ * (Bangers 폰트 @import 는 파일 최상단에 선언되어 있음)
+ * ===================================================================== */
+.theme-popart {
+    --pop-red:    #ff2e4d;
+    --pop-yellow: #ffd23f;
+    --pop-blue:   #2d7dd2;
+    --pop-ink:    #10121a;
+    --pop-line:   3px solid var(--pop-ink);
+    --pop-hard:   6px 6px 0 var(--pop-ink);      /* 만화풍 하드 섀도우 */
+    --pop-font:   'Bangers', var(--kv-font-sans);
+    /* 은은한 하프톤 도트 배경 (원색 점무늬) */
+    background-color: #fff8ec !important;
+    background-image: radial-gradient(var(--pop-yellow) 1.5px, transparent 1.6px);
+    background-size: 22px 22px;
+}
+
+/* ---- 히어로: 굵은 검은 프레임 + 하프톤 오버레이 + 만화 타이틀 ---- */
+.theme-popart .hero-stage {
+    border: 5px solid var(--pop-ink);
+    border-radius: 0;
+    box-shadow: var(--pop-hard);
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.theme-popart .hero-overlay {
+    background:
+        radial-gradient(rgba(0,0,0,.28) 1.4px, transparent 1.5px) 0 0 / 10px 10px,
+        linear-gradient(180deg, rgba(10,14,25,.45) 0%, rgba(10,14,25,.15) 45%, rgba(10,14,25,.55) 100%);
+}
+.theme-popart .hero-title {
+    font-family: var(--pop-font);
+    font-weight: 400;
+    font-size: 4.5rem;
+    letter-spacing: .04em;
+    color: var(--pop-yellow);
+    /* 검은 외곽선 + 하드 섀도우 = 팝아트 문자 */
+    -webkit-text-stroke: 2.5px var(--pop-ink);
+    text-shadow: 5px 5px 0 var(--pop-red);
+}
+.theme-popart .hero-sub {
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 2px 2px 0 var(--pop-ink);
+    letter-spacing: 0;
+}
+.theme-popart .hero-search .input-group {
+    border: var(--pop-line);
+    border-radius: 0;
+    box-shadow: var(--pop-hard);
+}
+.theme-popart .hero-search .form-control,
+.theme-popart .hero-search .btn { border-radius: 0 !important; }
+.theme-popart .hero-search .btn { background: var(--pop-yellow) !important; font-weight: 800; }
+
+@media (max-width: 575.98px) {
+    .theme-popart .hero-title { font-size: 3rem; -webkit-text-stroke-width: 2px; }
+}
+
+/* ---- 베네핏 바: 원색 밴드 + 굵은 밑줄 ---- */
+.theme-popart .benefit-bar {
+    background: var(--pop-blue);
+    border-bottom: 4px solid var(--pop-ink);
+}
+.theme-popart .benefit-item,
+.theme-popart .benefit-item i { color: #fff; }
+.theme-popart .benefit-item .benefit-sub { color: rgba(255,255,255,.8); }
+
+/* ---- 카테고리: 두꺼운 외곽선 원 + 원색 로테이션 ---- */
+.theme-popart .cat-thumb {
+    border: var(--pop-line);
+    box-shadow: 3px 3px 0 var(--pop-ink);
+    background: #fff;
+}
+.theme-popart .cat-item:nth-child(3n+1):hover .cat-thumb { background: var(--pop-red); }
+.theme-popart .cat-item:nth-child(3n+2):hover .cat-thumb { background: var(--pop-yellow); }
+.theme-popart .cat-item:nth-child(3n):hover   .cat-thumb { background: var(--pop-blue); }
+.theme-popart .cat-item:hover .cat-thumb { transform: translate(-1px,-3px); box-shadow: 5px 6px 0 var(--pop-ink); }
+
+/* ---- 섹션 타이틀: 만화 폰트 + 노란 하이라이트 + ⚡ 마커 ---- */
+.theme-popart .rail-title {
+    font-family: var(--pop-font);
+    font-weight: 400;
+    font-size: 2rem;
+    letter-spacing: .03em;
+    color: var(--pop-ink);
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .1rem .55rem;
+    background: linear-gradient(transparent 55%, var(--pop-yellow) 55% 92%, transparent 92%);
+}
+.theme-popart .rail-title::before {
+    content: "\26A1";                 /* ⚡ */
+    font-family: var(--kv-font-sans);
+    -webkit-text-stroke: 1px var(--pop-ink);
+}
+.theme-popart .rail-title .rail-sub {
+    font-family: var(--kv-font-sans);
+    font-weight: 600;
+    color: var(--pop-red);
+}
+.theme-popart .rail-more {
+    font-weight: 800;
+    color: var(--pop-ink);
+    border: 2px solid var(--pop-ink);
+    border-radius: 999px;
+    padding: .1rem .7rem;
+    background: #fff;
+}
+.theme-popart .rail-more:hover { background: var(--pop-yellow); color: var(--pop-ink); }
+
+/* ---- 상품 카드: 깔끔함 유지하되 팝아트와 어우러지게 검은 외곽선만 ---- */
+.theme-popart .product-card {
+    border: var(--pop-line);
+    border-radius: 0;
+    box-shadow: 4px 4px 0 var(--pop-ink);
+}
+.theme-popart .product-card:hover {
+    transform: translate(-2px,-4px);
+    box-shadow: 7px 8px 0 var(--pop-ink);
+}
+
+/* ---- 순위 배지: 팝아트 스티커(빨강 원 + 검은 외곽선) ---- */
+.theme-popart .rank-badge {
+    background: var(--pop-red);
+    border: 2.5px solid var(--pop-ink);
+    box-shadow: 2px 2px 0 var(--pop-ink);
+    width: 32px; height: 32px;
+    font-size: .95rem;
+}
+
+/* ---- 품절 배지 ---- */
+.theme-popart .badge.bg-secondary {
+    background: var(--pop-ink) !important;
+    border: 2px solid var(--pop-ink);
+    border-radius: 0;
+}
+
+/* ---- 전체 상품 보러가기 버튼: 노란 팝 버튼 ---- */
+.theme-popart .btn-dark.btn-lg {
+    background: var(--pop-yellow) !important;
+    color: var(--pop-ink) !important;
+    border: var(--pop-line) !important;
+    border-radius: 0 !important;
+    box-shadow: var(--pop-hard);
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    transition: transform .1s ease, box-shadow .1s ease;
+}
+.theme-popart .btn-dark.btn-lg:hover {
+    transform: translate(-2px,-2px);
+    box-shadow: 8px 8px 0 var(--pop-ink);
+}
+
+/* ---- 푸터: 검은 바탕에 노란 상단 굵은 라인 ---- */
+.theme-popart .site-footer { border-top: 5px solid var(--pop-yellow); }

@@ -11,7 +11,7 @@
     <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
 </head>
-<body class="bg-light">
+<body class="bg-light theme-popart">
 
 <%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
@@ -21,24 +21,75 @@
 </c:if>
 <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
 
-<!-- 히어로 배너 -->
-<section class="hero text-center">
-    <div class="container">
-        <h1 class="mb-3">K-Evolution</h1>
-        <p class="lead mb-4 text-light opacity-75">당신의 일상을 진화시키는 셀렉트 쇼핑</p>
-
-        <!-- 상품 검색 -->
-        <form action="${pageContext.request.contextPath}/products" method="get" class="hero-search mx-auto">
-            <div class="input-group input-group-lg shadow">
-                <input type="text" name="keyword" class="form-control border-0"
-                       placeholder="어떤 상품을 찾으세요?" aria-label="상품 검색">
-                <button class="btn bg-white text-dark px-4 d-flex align-items-center" type="submit" aria-label="검색">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                    </svg>
+<!-- ============================================================
+     히어로: 풀폭 이벤트 캐러셀 + 브랜드 카피/검색 오버레이
+     - 배너가 있으면 클릭 가능한 풀폭 캐러셀, 없으면 그라디언트 폴백
+     - 오버레이는 pointer-events:none, 검색폼만 auto → 배너 링크와 공존
+     ============================================================ -->
+<section class="hero-stage">
+    <c:choose>
+        <c:when test="${not empty banners}">
+            <div id="eventCarousel" class="carousel slide" data-bs-ride="carousel">
+                <c:if test="${banners.size() > 1}">
+                <div class="carousel-indicators">
+                    <c:forEach var="b" items="${banners}" varStatus="st">
+                        <button type="button" data-bs-target="#eventCarousel" data-bs-slide-to="${st.index}"
+                                class="${st.first ? 'active' : ''}"
+                                <c:if test="${st.first}">aria-current="true"</c:if>
+                                aria-label="슬라이드 ${st.count}"></button>
+                    </c:forEach>
+                </div>
+                </c:if>
+                <div class="carousel-inner">
+                    <c:forEach var="b" items="${banners}" varStatus="st">
+                    <div class="carousel-item ${st.first ? 'active' : ''}">
+                        <c:choose>
+                            <c:when test="${not empty b.linkUrl}">
+                                <a href="${b.linkUrl}">
+                                    <div class="hero-slide" style="background-image:url('${b.imageUrl}');"></div>
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="hero-slide" style="background-image:url('${b.imageUrl}');"></div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                    </c:forEach>
+                </div>
+                <c:if test="${banners.size() > 1}">
+                <button class="carousel-control-prev" type="button" data-bs-target="#eventCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">이전</span>
                 </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#eventCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">다음</span>
+                </button>
+                </c:if>
             </div>
-        </form>
+        </c:when>
+        <c:otherwise>
+            <div class="hero-fallback"></div>
+        </c:otherwise>
+    </c:choose>
+
+    <!-- 브랜드 카피 + 검색 (배너 위 오버레이) -->
+    <div class="hero-overlay">
+        <div class="container text-center">
+            <h1 class="hero-title">K-Evolution</h1>
+            <p class="hero-sub">당신의 일상을 진화시키는 셀렉트 쇼핑</p>
+            <form action="${pageContext.request.contextPath}/products" method="get" class="hero-search mx-auto">
+                <div class="input-group input-group-lg shadow">
+                    <input type="text" name="keyword" class="form-control border-0"
+                           placeholder="어떤 상품을 찾으세요?" aria-label="상품 검색">
+                    <button class="btn bg-white text-dark px-4 d-flex align-items-center" type="submit" aria-label="검색">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </section>
 
@@ -66,7 +117,25 @@
     </div>
 </c:if>
 
-<!-- 카테고리 (공지 마퀴 아래, 가운데 정렬 + 아이콘) -->
+<!-- 베네핏 바 (신뢰 요소) -->
+<div class="benefit-bar">
+    <div class="benefit-row">
+        <span class="benefit-item">
+            <i class="bi bi-truck"></i> 무료배송
+            <span class="benefit-sub">5만원 이상 구매 시</span>
+        </span>
+        <span class="benefit-item">
+            <i class="bi bi-piggy-bank"></i> 적립 혜택
+            <span class="benefit-sub">구매금액 최대 3%</span>
+        </span>
+        <span class="benefit-item">
+            <i class="bi bi-shield-check"></i> 안심 결제
+            <span class="benefit-sub">토스페이먼츠 간편결제</span>
+        </span>
+    </div>
+</div>
+
+<!-- 카테고리 (가운데 정렬 + 아이콘) -->
 <%-- 카테고리 세트는 Category enum 이 단일 소스. 칸 추가/수정은 enum 만 고치면 됩니다. --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <nav class="cat-grid">
@@ -82,79 +151,24 @@
     </c:forEach>
 </nav>
 
-<!-- 이벤트 캐러셀 (노출중인 배너) -->
-<c:if test="${not empty banners}">
-<div class="container mt-4">
-    <div id="eventCarousel" class="carousel slide event-carousel shadow-sm" data-bs-ride="carousel">
-        <c:if test="${banners.size() > 1}">
-        <div class="carousel-indicators">
-            <c:forEach var="b" items="${banners}" varStatus="st">
-                <button type="button" data-bs-target="#eventCarousel" data-bs-slide-to="${st.index}"
-                        class="${st.first ? 'active' : ''}"
-                        <c:if test="${st.first}">aria-current="true"</c:if>
-                        aria-label="슬라이드 ${st.count}"></button>
-            </c:forEach>
-        </div>
-        </c:if>
-        <div class="carousel-inner">
-            <c:forEach var="b" items="${banners}" varStatus="st">
-            <div class="carousel-item ${st.first ? 'active' : ''}">
-                <c:choose>
-                    <c:when test="${not empty b.linkUrl}">
-                        <a href="${b.linkUrl}">
-                            <div class="event-slide" style="background-image:url('${b.imageUrl}'); background-size:cover; background-position:center;"></div>
-                        </a>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="event-slide" style="background-image:url('${b.imageUrl}'); background-size:cover; background-position:center;"></div>
-                    </c:otherwise>
-                </c:choose>
-            </div>
-            </c:forEach>
-        </div>
-        <c:if test="${banners.size() > 1}">
-        <button class="carousel-control-prev" type="button" data-bs-target="#eventCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">이전</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#eventCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">다음</span>
-        </button>
-        </c:if>
+<!-- MD's PICK (인기상품) — 가로 스크롤 레일 -->
+<section class="container mt-4 mt-lg-5">
+    <div class="rail-head">
+        <h2 class="rail-title">MD's PICK <span class="rail-sub">지금 가장 잘나가는 셀렉트</span></h2>
+        <a href="${ctx}/products" class="rail-more">더보기 <i class="bi bi-chevron-right"></i></a>
     </div>
-</div>
-</c:if>
-
-<div class="container my-5">
-    <div class="row g-4">
-
-        <!-- 인기상품 -->
-        <div class="col-lg-6">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="section-title mb-0">인기상품</h6>
-                <a href="${pageContext.request.contextPath}/products" class="text-muted small">더보기 &rsaquo;</a>
-            </div>
-            <div class="row g-3">
-                <c:if test="${empty popularProducts}">
-                    <c:forEach begin="1" end="3">
-                        <div class="col-4">
-                            <div class="card product-card h-100">
-                                <div class="product-img bg-light"></div>
-                                <div class="card-body">
-                                    <p class="placeholder-glow mb-1"><span class="placeholder col-7"></span></p>
-                                    <p class="placeholder-glow mb-0"><span class="placeholder col-5"></span></p>
-                                </div>
-                            </div>
-                        </div>
-                    </c:forEach>
-                </c:if>
+    <c:choose>
+        <c:when test="${empty popularProducts}">
+            <p class="text-muted small mb-0">아직 인기상품이 없어요.</p>
+        </c:when>
+        <c:otherwise>
+            <div class="product-rail">
                 <c:forEach var="product" items="${popularProducts}" varStatus="status">
-                    <div class="col-4">
+                    <div class="rail-card">
                         <div class="card product-card h-100 position-relative"
-                             onclick="location.href='${pageContext.request.contextPath}/products/${product.productId}'">
+                             onclick="location.href='${ctx}/products/${product.productId}'">
                             <span class="rank-badge">${status.index + 1}</span>
-                            <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
+                            <img src="${empty product.imageUrl ? 'https://placehold.co/300x360?text=No+Image' : product.imageUrl}"
                                  class="card-img-top product-img" alt="상품 이미지">
                             <div class="card-body d-flex flex-column">
                                 <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.label : ''}</p>
@@ -172,64 +186,56 @@
                     </div>
                 </c:forEach>
             </div>
-        </div>
+        </c:otherwise>
+    </c:choose>
+</section>
 
-        <!-- 신상품 -->
-        <div class="col-lg-6">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="section-title mb-0">신상품</h6>
-                <a href="${pageContext.request.contextPath}/products" class="text-muted small">더보기 &rsaquo;</a>
-            </div>
-            <div class="row g-3">
-                <c:if test="${empty newProducts}">
-                    <c:forEach begin="1" end="3">
-                        <div class="col-4">
-                            <div class="card product-card h-100">
-                                <div class="product-img bg-light"></div>
-                                <div class="card-body">
-                                    <p class="placeholder-glow mb-1"><span class="placeholder col-7"></span></p>
-                                    <p class="placeholder-glow mb-0"><span class="placeholder col-5"></span></p>
-                                </div>
-                            </div>
-                        </div>
-                    </c:forEach>
-                </c:if>
-                <c:forEach var="product" items="${newProducts}">
-                    <div class="col-4">
-                        <div class="card product-card h-100"
-                             onclick="location.href='${pageContext.request.contextPath}/products/${product.productId}'">
-                            <img src="${empty product.imageUrl ? 'https://placehold.co/300x200?text=No+Image' : product.imageUrl}"
-                                 class="card-img-top product-img" alt="상품 이미지">
-                            <div class="card-body d-flex flex-column">
-                                <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.label : ''}</p>
-                                <h6 class="card-title flex-grow-1">${product.name}</h6>
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <span class="fw-bold">
-                                        <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
-                                    </span>
-                                    <c:if test="${stockMap[product.productId] == 0}">
-                                        <span class="badge bg-secondary">품절</span>
-                                    </c:if>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </c:forEach>
-            </div>
-        </div>
-
+<!-- 신상품 — 가로 스크롤 레일 -->
+<section class="container mt-5">
+    <div class="rail-head">
+        <h2 class="rail-title">신상품 <span class="rail-sub">방금 입고된 따끈한 신상</span></h2>
+        <a href="${ctx}/products" class="rail-more">더보기 <i class="bi bi-chevron-right"></i></a>
     </div>
+    <c:choose>
+        <c:when test="${empty newProducts}">
+            <p class="text-muted small mb-0">아직 신상품이 없어요.</p>
+        </c:when>
+        <c:otherwise>
+            <div class="product-rail">
+                <c:forEach var="product" items="${newProducts}">
+                    <div class="rail-card">
+                        <div class="card product-card h-100"
+                             onclick="location.href='${ctx}/products/${product.productId}'">
+                            <img src="${empty product.imageUrl ? 'https://placehold.co/300x360?text=No+Image' : product.imageUrl}"
+                                 class="card-img-top product-img" alt="상품 이미지">
+                            <div class="card-body d-flex flex-column">
+                                <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.label : ''}</p>
+                                <h6 class="card-title flex-grow-1">${product.name}</h6>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="fw-bold">
+                                        <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
+                                    </span>
+                                    <c:if test="${stockMap[product.productId] == 0}">
+                                        <span class="badge bg-secondary">품절</span>
+                                    </c:if>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </c:forEach>
+            </div>
+        </c:otherwise>
+    </c:choose>
 
     <!-- 전체 상품 보러가기 -->
     <div class="text-center mt-5">
-        <a href="${pageContext.request.contextPath}/products" class="btn btn-dark btn-lg px-4 fw-semibold">
+        <a href="${ctx}/products" class="btn btn-dark btn-lg px-4 fw-semibold">
             전체 상품 보러가기
         </a>
     </div>
+</section>
 
-</div>
-
-<footer class="bg-dark text-light py-4 site-footer">
+<footer class="bg-dark text-light py-4 site-footer mt-5">
     <div class="container text-center small text-light">
         <div class="opacity-75 mb-1">
             <i class="bi bi-telephone"></i> 고객센터 02-0000-0000

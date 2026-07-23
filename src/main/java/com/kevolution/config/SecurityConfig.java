@@ -15,10 +15,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 
 @Configuration
 @EnableWebSecurity
@@ -72,6 +78,23 @@ public class SecurityConfig {
         };
     }
 
+    /**
+     * 미인증 요청 진입점 분기:
+     *  - AJAX(X-Requested-With: XMLHttpRequest) → 401 Unauthorized
+     *  - 그 외 → 로그인 페이지(/auth/login)로 리다이렉트
+     */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPoints = new LinkedHashMap<>();
+        entryPoints.put(
+            new RequestHeaderRequestMatcher("X-Requested-With", "XMLHttpRequest"),
+            (request, response, ex) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED));
+
+        DelegatingAuthenticationEntryPoint delegating = new DelegatingAuthenticationEntryPoint(entryPoints);
+        delegating.setDefaultEntryPoint(new LoginUrlAuthenticationEntryPoint("/auth/login"));
+        return delegating;
+    }
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -98,6 +121,10 @@ public class SecurityConfig {
                         "hasRole('SYSTEM') or (hasRole('USER') and !hasRole('ADMIN'))"))
                 .anyRequest().authenticated()
             )
+            // 미인증 접근 처리:
+            //  - AJAX(fetch, X-Requested-With 헤더) 요청 → 401 (찜 토글 스크립트가 받아 로그인 페이지로 유도)
+            //  - 그 외 일반 페이지 이동 → 로그인 페이지로 302 리다이렉트(원래 가려던 곳은 saved request 로 보존)
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint()))
             .formLogin(form -> form
                 .loginPage("/auth/login")
                 .loginProcessingUrl("/auth/login")

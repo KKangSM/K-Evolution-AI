@@ -17,7 +17,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MainController {
 
-    private static final int SECTION_SIZE = 3;
+    // 메인 상품 레일(가로 스크롤)을 채우기 위한 섹션당 노출 개수
+    private static final int SECTION_SIZE = 8;
 
     private final ProductService productService;
     private final NoticeRepository noticeRepository;

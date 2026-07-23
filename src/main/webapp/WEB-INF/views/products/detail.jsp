@@ -145,7 +145,6 @@
                         <form action="${pageContext.request.contextPath}/cart/add" method="post">
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                             <input type="hidden" name="productId" value="${product.productId}"/>
-                            <input type="hidden" name="quantity" value="1"/>
 
                             <%-- ── 옵션 선택 (색상/사이즈 등) ── --%>
                             <c:if test="${not empty optionGroups}">
@@ -156,6 +155,7 @@
                                             <option value="" selected disabled>${group.key} 선택</option>
                                             <c:forEach var="opt" items="${group.value}">
                                                 <option value="${opt.optionId}"
+                                                    data-label="${opt.optionValue}" data-stock="${opt.stock}"
                                                     <c:if test="${opt.stock == 0}">disabled</c:if>>
                                                     ${opt.optionValue}<c:if test="${opt.stock == 0}"> — 품절</c:if>
                                                 </option>
@@ -163,28 +163,68 @@
                                         </select>
                                     </c:forEach>
                                 </div>
+
+                                <%-- ── 선택된 옵션 카드 (옵션 선택 후 표시): 이름 + 수량 + 금액 ── --%>
+                                <div id="selectedOptionCard" class="border rounded-3 bg-white p-3 mb-2 d-none">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="fw-semibold small" id="selOptLabel"></span>
+                                        <button type="button" class="btn-close btn-sm" id="selOptClear" aria-label="선택 해제"></button>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="input-group" style="width: 130px;">
+                                            <button class="btn btn-outline-secondary" type="button" id="qtyMinus" aria-label="수량 감소">−</button>
+                                            <input type="number" name="quantity" id="qtyInput"
+                                                   class="form-control text-center" value="1" min="1" inputmode="numeric">
+                                            <button class="btn btn-outline-secondary" type="button" id="qtyPlus" aria-label="수량 증가">+</button>
+                                        </div>
+                                        <span class="fw-bold" id="linePrice"></span>
+                                    </div>
+                                    <div class="text-muted small mt-1" id="selOptStock"></div>
+                                </div>
+
+                                <%-- ── 합계 ── --%>
+                                <div id="totalRow" class="d-flex justify-content-between align-items-center border-top pt-2 mb-3 d-none">
+                                    <span class="text-muted small">총 <span id="totalQty">0</span>개</span>
+                                    <span class="fs-5 fw-bold" id="totalPrice"></span>
+                                </div>
                             </c:if>
 
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-outline-dark btn-lg flex-fill">
+                            <%-- ── 옵션이 없는 상품: 수량 바로 선택 ── --%>
+                            <c:if test="${empty optionGroups}">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <label class="form-label small fw-semibold mb-0" for="qtyInput">수량</label>
+                                    <div class="input-group" style="width: 140px;">
+                                        <button class="btn btn-outline-secondary" type="button" id="qtyMinus" aria-label="수량 감소">−</button>
+                                        <input type="number" name="quantity" id="qtyInput"
+                                               class="form-control text-center" value="1"
+                                               min="1" max="${totalStock}" inputmode="numeric">
+                                        <button class="btn btn-outline-secondary" type="button" id="qtyPlus" aria-label="수량 증가">+</button>
+                                    </div>
+                                    <span class="text-muted small">재고 ${totalStock}개</span>
+                                </div>
+                            </c:if>
+
+                            <%-- 장바구니 / 구매하기 — 버튼 대신 아이콘+텍스트 클릭 링크로 --%>
+                            <div class="d-flex gap-4 mt-1">
+                                <button type="submit" class="btn btn-link text-decoration-none p-0 text-dark fw-semibold">
                                     <i class="bi bi-cart-plus me-1"></i> 장바구니
                                 </button>
                                 <button type="submit"
                                         formaction="${pageContext.request.contextPath}/order/direct"
-                                        class="btn btn-dark btn-lg flex-fill">
-                                    <i class="bi bi-bag-check me-1"></i> 바로구매
+                                        class="btn btn-link text-decoration-none p-0 text-dark fw-semibold">
+                                    <i class="bi bi-bag-check me-1"></i> 구매하기
                                 </button>
                             </div>
                         </form>
                     </c:otherwise>
                 </c:choose>
 
-                <%-- 찜(위시리스트) 버튼 --%>
+                <%-- 찜(위시리스트) — 버튼 대신 하트+텍스트 클릭 링크로 깔끔하게 --%>
                 <button type="button" id="wishBtn" data-wished="${wished}"
-                        class="btn btn-lg mt-2 ${wished ? 'btn-danger' : 'btn-outline-danger'}">
+                        class="btn btn-link text-decoration-none p-0 mt-3 ${wished ? 'text-danger' : 'text-secondary'}">
                     <i id="wishIcon" class="bi ${wished ? 'bi-heart-fill' : 'bi-heart'} me-1"></i>
                     <span id="wishLabel">${wished ? '찜 완료' : '찜하기'}</span>
-                    <span class="badge bg-light text-danger ms-1" id="wishCount">${wishCount}</span>
+                    <span id="wishCount">${wishCount}</span>
                 </button>
             </div>
 
@@ -210,6 +250,86 @@
         });
     });
 
+    // 수량 스텝퍼 + 옵션 선택 카드
+    (function () {
+        const input = document.getElementById('qtyInput');
+        if (!input) return;
+        const minus = document.getElementById('qtyMinus');
+        const plus  = document.getElementById('qtyPlus');
+        const UNIT_PRICE = Number('${product.price}') || 0;
+        const won = function (n) { return n.toLocaleString('ko-KR') + '원'; };
+
+        // 옵션 관련 요소 (옵션 없는 상품이면 null)
+        const selects = Array.prototype.slice.call(document.querySelectorAll('.option-select'));
+        const hasOptions = selects.length > 0;
+        const card       = document.getElementById('selectedOptionCard');
+        const totalRow   = document.getElementById('totalRow');
+        const selLabel   = document.getElementById('selOptLabel');
+        const selStock   = document.getElementById('selOptStock');
+        const linePrice  = document.getElementById('linePrice');
+        const totalQty   = document.getElementById('totalQty');
+        const totalPrice = document.getElementById('totalPrice');
+        const clearBtn   = document.getElementById('selOptClear');
+
+        // 현재 허용 최대 수량(재고). 옵션 상품은 선택된 옵션 재고의 최솟값.
+        function currentMax() {
+            if (!hasOptions) return parseInt(input.getAttribute('max') || '0', 10);
+            let m = Infinity;
+            selects.forEach(function (s) {
+                const o = s.options[s.selectedIndex];
+                if (o && o.value) m = Math.min(m, parseInt(o.getAttribute('data-stock') || '0', 10));
+            });
+            return m === Infinity ? 0 : m;
+        }
+        function allSelected() {
+            return selects.every(function (s) { return s.value; });
+        }
+        function clamp() {
+            const max = currentMax();
+            let v = parseInt(input.value, 10);
+            if (isNaN(v) || v < 1) v = 1;
+            if (max > 0 && v > max) v = max;
+            input.value = v;
+        }
+        function refresh() {
+            clamp();
+            const v = parseInt(input.value, 10) || 1;
+            if (linePrice)  linePrice.textContent  = won(UNIT_PRICE * v);
+            if (totalQty)   totalQty.textContent   = v;
+            if (totalPrice) totalPrice.textContent = won(UNIT_PRICE * v);
+        }
+
+        // 옵션 상품: 선택 여부에 따라 카드 표시/숨김
+        function syncCard() {
+            if (!hasOptions) return;
+            if (allSelected()) {
+                const labels = selects.map(function (s) {
+                    return s.options[s.selectedIndex].getAttribute('data-label');
+                }).join(' / ');
+                selLabel.textContent = labels;
+                selStock.textContent = '재고 ' + currentMax() + '개';
+                card.classList.remove('d-none');
+                totalRow.classList.remove('d-none');
+                input.value = 1;
+                refresh();
+            } else {
+                card.classList.add('d-none');
+                totalRow.classList.add('d-none');
+            }
+        }
+
+        minus.addEventListener('click', function () { input.value = (parseInt(input.value, 10) || 1) - 1; refresh(); });
+        plus.addEventListener('click',  function () { input.value = (parseInt(input.value, 10) || 0) + 1; refresh(); });
+        input.addEventListener('change', refresh);
+        selects.forEach(function (s) { s.addEventListener('change', syncCard); });
+        if (clearBtn) clearBtn.addEventListener('click', function () {
+            selects.forEach(function (s) { s.selectedIndex = 0; });
+            syncCard();
+        });
+
+        if (hasOptions) syncCard(); else refresh();
+    })();
+
     // 찜(위시리스트) 토글 — 로그인 안 했으면 로그인 페이지로 이동
     (function () {
         const btn = document.getElementById('wishBtn');
@@ -219,9 +339,10 @@
         btn.addEventListener('click', function () {
             fetch(ctx + '/wishlist/${product.productId}/toggle', {
                 method: 'POST',
-                headers: { [CSRF_HEADER]: CSRF_TOKEN }
+                headers: { [CSRF_HEADER]: CSRF_TOKEN, 'X-Requested-With': 'XMLHttpRequest' }
             }).then(function (res) {
                 if (res.status === 401 || res.status === 403) {
+                    alert('로그인이 필요한 기능입니다.');
                     location.href = ctx + '/auth/login';
                     return null;
                 }
@@ -233,11 +354,11 @@
                 const count = document.getElementById('wishCount');
                 let n = parseInt(count.textContent || '0', 10);
                 if (data.wished) {
-                    btn.classList.remove('btn-outline-danger'); btn.classList.add('btn-danger');
+                    btn.classList.remove('text-secondary'); btn.classList.add('text-danger');
                     icon.classList.remove('bi-heart'); icon.classList.add('bi-heart-fill');
                     label.textContent = '찜 완료'; count.textContent = n + 1;
                 } else {
-                    btn.classList.remove('btn-danger'); btn.classList.add('btn-outline-danger');
+                    btn.classList.remove('text-danger'); btn.classList.add('text-secondary');
                     icon.classList.remove('bi-heart-fill'); icon.classList.add('bi-heart');
                     label.textContent = '찜하기'; count.textContent = Math.max(0, n - 1);
                 }
