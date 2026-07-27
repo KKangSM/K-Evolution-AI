@@ -9,20 +9,26 @@ import com.kevolution.member.entity.Member;
 import com.kevolution.member.repository.IssuedCouponRepository;
 import com.kevolution.order.client.TossPaymentClient;
 import com.kevolution.order.dto.TossConfirmResponse;
+import com.kevolution.order.entity.Delivery;
 import com.kevolution.order.entity.Order;
 import com.kevolution.order.entity.OrderItem;
 import com.kevolution.order.entity.Payment;
+import com.kevolution.order.repository.DeliveryRepository;
 import com.kevolution.order.repository.OrderRepository;
 import com.kevolution.order.repository.PaymentRepository;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.service.ProductService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -37,6 +43,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+    private final DeliveryRepository deliveryRepository;
     private final IssuedCouponRepository issuedCouponRepository;
     private final CartService cartService;
     private final ProductService productService;
@@ -245,6 +252,69 @@ public class OrderService {
             cartService.clearCart(userId);
         }
         return order;
+    }
+
+    // ── 관리자 주문 관리 ────────────────────────────────────────
+
+    /** 관리자 목록: 상태 필터 + 주문자명/연락처 검색 */
+    public Page<Order> searchOrders(Order.Status status, String keyword, Pageable pageable) {
+        return orderRepository.searchOrders(status,
+            (keyword != null && !keyword.isBlank()) ? keyword : null, pageable);
+    }
+
+    /** 목록에 표시할 주문별 배송정보 맵 (orderId → Delivery). 배송정보가 없는 주문은 키가 없다. */
+    public Map<Long, Delivery> getDeliveryMap(List<Order> orders) {
+        Map<Long, Delivery> map = new HashMap<>();
+        if (orders.isEmpty()) return map;
+        for (Delivery d : deliveryRepository.findByOrderIn(orders)) {
+            map.put(d.getOrder().getOrderId(), d);
+        }
+        return map;
+    }
+
+    /** 결제완료 주문에 송장을 등록해 배송을 시작한다. 배송정보가 없으면 새로 만든다. */
+    @Transactional
+    public void registerShipping(Long orderId, String courier, String trackingNo) {
+        Order order = getOrder(orderId);
+        if (order.getStatus() != Order.Status.PAID) {
+            throw new IllegalStateException("결제 완료된 주문만 배송 처리할 수 있습니다.");
+        }
+        Delivery delivery = deliveryRepository.findByOrder(order)
+            .orElseGet(() -> Delivery.builder()
+                .order(order)
+                .recipient(order.getReceiverName())
+                .address(order.getAddress())
+                .build());
+        delivery.ship(courier, trackingNo);
+        deliveryRepository.save(delivery);
+    }
+
+    /** 배송 상태를 다음 단계로 변경한다. (transit=배송중, complete=배송완료) */
+    @Transactional
+    public void updateDeliveryStatus(Long orderId, String action) {
+        Order order = getOrder(orderId);
+        Delivery delivery = deliveryRepository.findByOrder(order)
+            .orElseThrow(() -> new IllegalStateException("먼저 송장을 등록해 배송을 시작해주세요."));
+        switch (action) {
+            case "transit" -> delivery.markInTransit();
+            case "complete" -> delivery.complete();
+            default -> throw new IllegalArgumentException("올바르지 않은 배송 상태입니다.");
+        }
+    }
+
+    /** 관리자 주문 취소 (결제완료·결제대기 → 취소). 이미 취소된 주문은 예외. */
+    @Transactional
+    public void cancelOrder(Long orderId) {
+        Order order = getOrder(orderId);
+        if (order.getStatus() == Order.Status.CANCELLED) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+        order.cancel();
+    }
+
+    private Order getOrder(Long orderId) {
+        return orderRepository.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
     }
 
     // ── 내부 유틸 ──────────────────────────────────────────────

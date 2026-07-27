@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -93,9 +94,20 @@
 
             <h1 class="fs-3 fw-bold mb-3">${product.name}</h1>
 
-            <div class="price-tag mb-4">
+            <div class="price-tag mb-2">
                 <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
             </div>
+
+            <%-- 별점 요약 (리뷰 영역으로 스크롤) --%>
+            <c:if test="${reviewCount > 0}">
+                <a href="#reviews" class="text-decoration-none text-dark mb-4 d-inline-flex align-items-center gap-1">
+                    <span class="text-warning">
+                        <c:forEach begin="1" end="5" var="i"><i class="bi ${i <= reviewAvg ? 'bi-star-fill' : 'bi-star'}"></i></c:forEach>
+                    </span>
+                    <span class="fw-semibold">${reviewAvg}</span>
+                    <span class="text-muted small">리뷰 ${reviewCount}개</span>
+                </a>
+            </c:if>
 
             <%-- 재고 상태 (옵션 재고 합계) --%>
             <div class="mb-4">
@@ -237,6 +249,59 @@
             </c:if>
 
         </div>
+    </div>
+
+    <%-- ── 상품 리뷰 ── --%>
+    <div id="reviews" class="mt-5 pt-4 border-top">
+        <div class="d-flex align-items-center gap-2 mb-4">
+            <h5 class="fw-bold mb-0">상품 리뷰</h5>
+            <span class="text-muted">${reviewCount}</span>
+            <c:if test="${reviewCount > 0}">
+                <span class="ms-2 text-warning">
+                    <c:forEach begin="1" end="5" var="i"><i class="bi ${i <= reviewAvg ? 'bi-star-fill' : 'bi-star'}"></i></c:forEach>
+                </span>
+                <span class="fw-semibold">${reviewAvg}</span>
+            </c:if>
+        </div>
+
+        <c:choose>
+            <c:when test="${empty reviews}">
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-chat-square-heart" style="font-size:2rem"></i>
+                    <div class="mt-2">아직 작성된 리뷰가 없습니다.</div>
+                    <div class="small">이 상품을 구매하셨다면 첫 리뷰를 남겨보세요!</div>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <c:forEach var="r" items="${reviews}">
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-warning">
+                                    <c:forEach begin="1" end="5" var="i"><i class="bi ${i <= r.rating ? 'bi-star-fill' : 'bi-star'}"></i></c:forEach>
+                                </span>
+                                <span class="text-muted small">
+                                    <c:out value="${fn:substring(r.member.name, 0, 1)}"/>○○ · ${fn:substring(r.createdAt, 0, 10)}
+                                </span>
+                            </div>
+                            <div class="mb-2" style="white-space:pre-wrap; font-size:.9rem;"><c:out value="${r.content}"/></div>
+                            <c:if test="${not empty r.images}">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <c:forEach var="img" items="${r.images}">
+                                        <img src="${img.imageUrl}" alt="리뷰 이미지"
+                                             style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #e9ecef;cursor:pointer"
+                                             onclick="window.open(this.src)">
+                                    </c:forEach>
+                                </div>
+                            </c:if>
+                        </div>
+                    </div>
+                </c:forEach>
+                <c:if test="${reviewCount > 20}">
+                    <div class="text-center text-muted small mt-3">최근 20개의 리뷰만 표시됩니다.</div>
+                </c:if>
+            </c:otherwise>
+        </c:choose>
     </div>
 </div>
 

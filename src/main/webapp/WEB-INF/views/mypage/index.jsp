@@ -52,6 +52,15 @@
             </a>
         </div>
         <div class="col-6">
+            <a href="${pageContext.request.contextPath}/mypage/reviews" class="text-decoration-none">
+                <div class="card h-100 shadow-sm text-center py-4">
+                    <div class="fs-2 mb-2">⭐</div>
+                    <div class="fw-bold">내 리뷰</div>
+                    <div class="text-muted small">작성한 상품 리뷰</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6">
             <a href="${pageContext.request.contextPath}/mypage/wishlist" class="text-decoration-none">
                 <div class="card h-100 shadow-sm text-center py-4">
                     <div class="fs-2 mb-2">❤️</div>

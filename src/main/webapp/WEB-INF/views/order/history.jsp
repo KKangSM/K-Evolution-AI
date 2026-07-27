@@ -51,17 +51,28 @@
                             </div>
                         </div>
                         <c:if test="${order.status == 'PAID'}">
-                            <c:choose>
-                                <c:when test="${returnedItemIds.contains(item.orderItemId)}">
-                                    <span class="badge bg-light text-secondary border">신청됨</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary return-btn"
-                                            data-item-id="${item.orderItemId}" data-item-name="${item.productName}">
-                                        반품·교환
-                                    </button>
-                                </c:otherwise>
-                            </c:choose>
+                            <div class="d-flex flex-column gap-1 align-items-end">
+                                <c:choose>
+                                    <c:when test="${reviewedItemIds.contains(item.orderItemId)}">
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> 리뷰완료</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a href="${pageContext.request.contextPath}/mypage/reviews/write?orderItemId=${item.orderItemId}"
+                                           class="btn btn-sm btn-dark">리뷰 작성</a>
+                                    </c:otherwise>
+                                </c:choose>
+                                <c:choose>
+                                    <c:when test="${returnedItemIds.contains(item.orderItemId)}">
+                                        <span class="badge bg-light text-secondary border">반품·교환 신청됨</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary return-btn"
+                                                data-item-id="${item.orderItemId}" data-item-name="${item.productName}">
+                                            반품·교환
+                                        </button>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
                         </c:if>
                     </div>
                 </c:forEach>

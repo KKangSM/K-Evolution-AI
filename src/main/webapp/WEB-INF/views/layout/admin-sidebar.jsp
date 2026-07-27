@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
-<%-- activeMenu 모델 속성으로 현재 메뉴 강조 (dashboard / products / terms / members / qna) --%>
+<%-- activeMenu 모델 속성으로 현재 메뉴 강조 (dashboard / products / terms / members / qna / coupons) --%>
 <nav class="admin-sidebar">
     <div class="menu-title">메뉴</div>
     <a class="menu-link ${activeMenu == 'dashboard' ? 'active' : ''}"
@@ -38,11 +38,16 @@
        href="${pageContext.request.contextPath}/admin/returns">
         <span><i class="bi bi-arrow-return-left"></i>반품·교환 관리</span>
     </a>
-
-    <div class="menu-title">준비 중</div>
     <a class="menu-link ${activeMenu == 'products' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/admin/products">
-        <span><i class="bi bi-box-seam"></i>상품 관리</span><span class="soon">준비중</span>
+        <span><i class="bi bi-box-seam"></i>상품 관리</span>
     </a>
-    <a class="menu-link" href="#"><span><i class="bi bi-receipt"></i>주문 관리</span><span class="soon">준비중</span></a>
+    <a class="menu-link ${activeMenu == 'coupons' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/coupons">
+        <span><i class="bi bi-ticket-perforated"></i>쿠폰 관리</span>
+    </a>
+    <a class="menu-link ${activeMenu == 'orders' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/orders">
+        <span><i class="bi bi-receipt"></i>주문 관리</span>
+    </a>
 </nav>

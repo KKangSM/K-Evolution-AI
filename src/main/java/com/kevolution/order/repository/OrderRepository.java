@@ -3,6 +3,8 @@ package com.kevolution.order.repository;
 import com.kevolution.member.entity.Member;
 import com.kevolution.order.entity.Order;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +13,15 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByMemberOrderByCreatedAtDesc(Member member);
+
+    /** 관리자 주문 관리: 상태 필터 + 주문자명/연락처 검색 (둘 다 null 이면 전체) 최신순 */
+    @Query("SELECT o FROM Order o WHERE "
+         + "(:status IS NULL OR o.status = :status) AND "
+         + "(:keyword IS NULL OR o.receiverName LIKE %:keyword% OR o.receiverPhone LIKE %:keyword%) "
+         + "ORDER BY o.createdAt DESC")
+    Page<Order> searchOrders(@Param("status") Order.Status status,
+                             @Param("keyword") String keyword,
+                             Pageable pageable);
 
     /** 주문 내역 화면용 — 주문 상품/상품정보까지 한 번에 로딩(LazyInitialization 방지) */
     @Query("SELECT DISTINCT o FROM Order o "

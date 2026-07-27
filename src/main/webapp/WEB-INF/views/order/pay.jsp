@@ -57,8 +57,15 @@
                 </div>
                 <div class="mb-0">
                     <label class="form-label small text-muted mb-1">주소</label>
-                    <input type="text" class="form-control" name="address"
-                           value="<c:out value='${order.address}'/>" required>
+                    <div class="input-group mb-2">
+                        <input type="text" id="zipcode" class="form-control" placeholder="우편번호" maxlength="20">
+                        <button type="button" class="btn btn-outline-secondary" id="zipSearchBtn">우편번호 검색</button>
+                    </div>
+                    <input type="text" id="roadAddress" class="form-control mb-2"
+                           value="<c:out value='${order.address}'/>" placeholder="주소" required maxlength="200">
+                    <input type="text" id="addressDetail" class="form-control"
+                           placeholder="상세주소 (선택)" maxlength="200">
+                    <input type="hidden" name="address" id="addressCombined">
                 </div>
             </form>
         </div>
@@ -137,6 +144,7 @@
 
 <script src="https://js.tosspayments.com/v2/standard"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
     const ctx = "${ctx}";
     const clientKey = "${clientKey}";
@@ -152,6 +160,20 @@
     const widgets = tossPayments.widgets({ customerKey });
 
     const nf = new Intl.NumberFormat("ko-KR");
+
+    // 우편번호 검색 (카카오/다음 우편번호 서비스 — 별도 키 불필요)
+    const PostcodeService = (window.daum && window.daum.Postcode)
+                         || (window.kakao && window.kakao.Postcode);
+    document.getElementById("zipSearchBtn").addEventListener("click", () => {
+        if (!PostcodeService) { alert("우편번호 서비스를 불러오지 못했습니다. 직접 입력해주세요."); return; }
+        new PostcodeService({
+            oncomplete: function (data) {
+                document.getElementById("zipcode").value = data.zonecode;
+                document.getElementById("roadAddress").value = data.roadAddress || data.jibunAddress;
+                document.getElementById("addressDetail").focus();
+            }
+        }).open();
+    });
 
     async function init() {
         await widgets.setAmount(amount);
@@ -206,6 +228,13 @@
     payButton.addEventListener("click", async () => {
         const form = document.getElementById("shippingForm");
         if (!form.reportValidity()) return;
+
+        // 우편번호 + 도로명 + 상세주소를 하나의 주소 문자열로 합쳐 저장
+        const zip = document.getElementById("zipcode").value.trim();
+        const road = document.getElementById("roadAddress").value.trim();
+        const detail = document.getElementById("addressDetail").value.trim();
+        document.getElementById("addressCombined").value =
+            (zip ? "[" + zip + "] " : "") + road + (detail ? " " + detail : "");
 
         payButton.disabled = true;
         try {

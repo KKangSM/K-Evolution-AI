@@ -4,6 +4,7 @@ import com.kevolution.product.dto.ProductOptionForm;
 import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.service.ProductService;
+import com.kevolution.review.service.ReviewService;
 import com.kevolution.storage.SupabaseStorageService;
 import com.kevolution.wishlist.service.WishlistService;
 
@@ -28,6 +29,7 @@ public class ProductController {
     private final ProductService productService;
     private final SupabaseStorageService storageService;
     private final WishlistService wishlistService;
+    private final ReviewService reviewService;
 
     // ── 공개 조회 ─────────────────────────────────
     @GetMapping("/products")
@@ -60,6 +62,9 @@ public class ProductController {
         model.addAttribute("totalStock", productService.getTotalStock(product));
         model.addAttribute("wished", wishlistService.isWished(user == null ? null : user.getUsername(), product));
         model.addAttribute("wishCount", wishlistService.count(product));
+        model.addAttribute("reviews", reviewService.getProductReviews(product, PageRequest.of(0, 20)).getContent());
+        model.addAttribute("reviewCount", reviewService.countByProduct(product));
+        model.addAttribute("reviewAvg", reviewService.averageRating(product));
         return "products/detail";
     }
 
