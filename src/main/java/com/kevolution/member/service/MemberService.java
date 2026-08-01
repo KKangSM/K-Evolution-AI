@@ -91,6 +91,37 @@ public class MemberService {
                         TermsAgreement.builder().member(member).terms(t).build()));
     }
 
+    /**
+     * 소셜(OAuth2) 회원 추가정보 입력 완료 — 휴대폰 저장 + 필수 약관 동의 이력 저장.
+     * phone 이 채워지면 가입이 완료된 것으로 간주된다(ProfileCompletionInterceptor 통과).
+     */
+    @Transactional
+    public void completeOAuthProfile(String userId, String phone, List<Long> termIds) {
+        if (phone == null || phone.isBlank()) {
+            throw new IllegalArgumentException("휴대폰 번호를 입력해주세요.");
+        }
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
+
+        List<Long> agreedIds = termIds != null ? termIds : List.of();
+        List<Terms> activeTerms = termsService.getActiveTerms();
+
+        // 서버측 필수 약관 동의 검증 (클라이언트 우회 방지)
+        boolean allRequiredAgreed = activeTerms.stream()
+                .filter(Terms::isRequired)
+                .allMatch(t -> agreedIds.contains(t.getTermId()));
+        if (!allRequiredAgreed) {
+            throw new IllegalArgumentException("필수 약관에 모두 동의해야 합니다.");
+        }
+
+        member.completeProfile(phone.trim());
+
+        activeTerms.stream()
+                .filter(t -> agreedIds.contains(t.getTermId()))
+                .forEach(t -> termsAgreementRepository.save(
+                        TermsAgreement.builder().member(member).terms(t).build()));
+    }
+
     // ── 회원 관리 (/admin/members) ──────────────────
     public Page<Member> getMembers(Pageable pageable, Member.Role requesterRole) {
         // Admin은 SYSTEM 계정을 조회할 수 없음

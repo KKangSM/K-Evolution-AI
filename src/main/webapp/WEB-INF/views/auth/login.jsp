@@ -54,6 +54,17 @@
                 <button type="submit" class="btn btn-dark w-100">로그인</button>
             </form>
 
+            <div class="d-flex align-items-center my-3 text-muted small">
+                <hr class="flex-grow-1 my-0"><span class="px-2">또는</span><hr class="flex-grow-1 my-0">
+            </div>
+
+            <!-- 소셜 로그인 (GET 링크라 CSRF 토큰 불필요) -->
+            <a href="${pageContext.request.contextPath}/oauth2/authorization/google"
+               class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2">
+                <img src="https://www.google.com/favicon.ico" alt="" width="18" height="18">
+                구글로 로그인
+            </a>
+
             <p class="text-center text-muted small mt-3 mb-0">
                 계정이 없으신가요?
                 <a href="${pageContext.request.contextPath}/auth/signup" class="text-decoration-none">회원가입</a>

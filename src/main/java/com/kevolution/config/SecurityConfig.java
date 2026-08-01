@@ -32,11 +32,8 @@ import java.util.LinkedHashMap;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final BCryptPasswordEncoder passwordEncoder;   // EncoderConfig 에서 제공 (순환 참조 방지)
 
     /**
      * 권한 계층: SYSTEM > ADMIN > USER.
@@ -99,7 +96,7 @@ public class SecurityConfig {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
@@ -110,6 +107,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
                 .requestMatchers("/auth/**", "/products/**", "/", "/css/**", "/js/**", "/images/**", "/uploads/**", "/.well-known/**").permitAll()
+                // 소셜 로그인 시작(/oauth2/authorization/**)·콜백(/login/oauth2/code/**) 경로 허용
+                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                 .requestMatchers("/support", "/support/notices", "/support/notices/**").permitAll()
                 .requestMatchers("/events", "/events/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -133,6 +132,13 @@ public class SecurityConfig {
                 .usernameParameter("id")
                 .passwordParameter("password")
                 .permitAll()
+            )
+            // 소셜 로그인(구글). 로그인 페이지·성공 후 분기는 폼 로그인과 동일하게 재사용.
+            .oauth2Login(oauth -> oauth
+                .loginPage("/auth/login")
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(authenticationSuccessHandler())
+                .failureUrl("/auth/login?error=true")
             )
             .logout(logout -> logout
                 .logoutUrl("/auth/logout")

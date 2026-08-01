@@ -3,8 +3,12 @@ package com.kevolution.auth.controller;
 import com.kevolution.member.service.MemberService;
 import com.kevolution.terms.service.TermsService;
 
+import com.kevolution.member.entity.Member;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -49,6 +53,37 @@ public class AuthController {
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
             return "redirect:/auth/signup";
+        }
+    }
+
+    // ── 소셜 로그인 추가정보 입력 (첫 구글 로그인 시 휴대폰·약관동의 수집) ──
+    @GetMapping("/auth/complete-profile")
+    public String completeProfileForm(@AuthenticationPrincipal UserDetails user, Model model) {
+        if (user == null) return "redirect:/auth/login";
+        Member member = memberService.findByUserId(user.getUsername());
+        // 이미 추가정보를 입력했거나(휴대폰 있음) 일반 폼 회원이면 완성 페이지가 불필요 → 홈으로
+        if (member.getProvider() == null || member.getPhone() != null) {
+            return "redirect:/";
+        }
+        model.addAttribute("memberName", member.getName());
+        model.addAttribute("termsList", termsService.getActiveTerms());
+        return "auth/complete-profile";
+    }
+
+    @PostMapping("/auth/complete-profile")
+    public String completeProfile(
+        @AuthenticationPrincipal UserDetails user,
+        @RequestParam String phone,
+        @RequestParam(name = "termIds", required = false) List<Long> termIds,
+        RedirectAttributes ra
+    ) {
+        if (user == null) return "redirect:/auth/login";
+        try {
+            memberService.completeOAuthProfile(user.getUsername(), phone, termIds);
+            return "redirect:/";
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/auth/complete-profile";
         }
     }
 

@@ -13,6 +13,9 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, String> {
     Optional<Member> findByUserId(String userId);
     boolean existsByUserId(String userId);
+
+    /** 소셜 로그인 계정 조회 (제공자 + 제공자 고유 ID) */
+    Optional<Member> findByProviderAndProviderId(String provider, String providerId);
     Page<Member> findByRoleNot(Member.Role role, Pageable pageable);
 
     /** 특정 상태·권한의 회원 전체 (쿠폰 일괄 발급 대상 조회용) */

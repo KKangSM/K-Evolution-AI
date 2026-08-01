@@ -43,6 +43,18 @@ public class Member {
     @Column(length = 500)
     private String address;
 
+    /** 소셜 로그인 제공자 (예: GOOGLE). 일반(폼) 회원은 NULL */
+    @Column(length = 20)
+    private String provider;
+
+    /** 소셜 제공자의 고유 사용자 ID (예: 구글 sub). 일반 회원은 NULL */
+    @Column(name = "provider_id", length = 100)
+    private String providerId;
+
+    /** 이메일 (소셜 로그인 시 제공자에서 수집). 일반 회원은 NULL 가능 */
+    @Column(length = 200)
+    private String email;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private Role role;
@@ -92,6 +104,11 @@ public class Member {
         this.phone = phone;
     }
 
+    /** 소셜(OAuth2) 회원 추가정보 입력 완료 — 휴대폰 등록. (phone 이 채워지면 가입 완료로 간주) */
+    public void completeProfile(String phone) {
+        this.phone = phone;
+    }
+
     public void changePassword(String encodedPassword) {
         this.password = encodedPassword;
     }
@@ -107,5 +124,23 @@ public class Member {
         this.address = address;
         this.role = role != null ? role : Role.USER;
         this.status = status != null ? status : Status.ACTIVE;
+    }
+
+    /**
+     * 소셜(OAuth2) 회원 생성.
+     * password 는 로그인에 쓰이지 않는 랜덤 해시로 채우고, provider/providerId 로 계정을 식별한다.
+     */
+    public static Member ofOAuth(String userId, String encodedRandomPassword, String name,
+                                 String email, String provider, String providerId) {
+        Member m = new Member();
+        m.userId = userId;
+        m.password = encodedRandomPassword;
+        m.name = name;
+        m.email = email;
+        m.provider = provider;
+        m.providerId = providerId;
+        m.role = Role.USER;
+        m.status = Status.ACTIVE;
+        return m;
     }
 }
