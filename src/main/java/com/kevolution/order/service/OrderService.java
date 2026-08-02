@@ -16,6 +16,7 @@ import com.kevolution.order.entity.Payment;
 import com.kevolution.order.repository.DeliveryRepository;
 import com.kevolution.order.repository.OrderRepository;
 import com.kevolution.order.repository.PaymentRepository;
+import com.kevolution.pointhistory.service.PointService;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.service.ProductService;
 
@@ -48,6 +49,7 @@ public class OrderService {
     private final CartService cartService;
     private final ProductService productService;
     private final TossPaymentClient tossPaymentClient;
+    private final PointService pointService;
 
     // ── 주문 생성 ──────────────────────────────────────────────
 
@@ -170,17 +172,17 @@ public class OrderService {
 
     /**
      * 결제 직전 쿠폰 적용/해제. issuedCouponId 가 null 이면 해제한다.
-     * 할인은 상품 합계(totalPrice)에만 적용하고, 배송비는 그대로 더한다.
-     * 실제 쿠폰 사용 처리(use)는 결제 승인 성공 시점에 한다. 갱신된 최종 결제금액을 돌려준다.
+     * 할인은 상품 합계(totalPrice)에만 적용하고, 이미 적용된 적립금·배송비를 함께 반영해 최종금액을 다시 계산한다.
+     * 실제 쿠폰 사용 처리(use)는 결제 승인 성공 시점에 한다. 갱신된 주문을 돌려준다.
      */
     @Transactional
-    public int applyCoupon(String userId, Long orderId, Long issuedCouponId) {
+    public Order applyCoupon(String userId, Long orderId, Long issuedCouponId) {
         Order order = getPayableOrder(userId, orderId);
         int shippingFee = shippingFeeFor(order.getTotalPrice());
 
         if (issuedCouponId == null) {
-            order.applyCoupon(null, 0, order.getTotalPrice() + shippingFee);
-            return order.getFinalPrice();
+            order.applyCoupon(null, 0, order.getTotalPrice() - order.getPointUsed() + shippingFee);
+            return order;
         }
 
         IssuedCoupon issued = issuedCouponRepository.findById(issuedCouponId)
@@ -200,8 +202,43 @@ public class OrderService {
         }
 
         int discount = coupon.calculateDiscount(order.getTotalPrice());
-        order.applyCoupon(issued, discount, order.getTotalPrice() - discount + shippingFee);
-        return order.getFinalPrice();
+        order.applyCoupon(issued, discount,
+            order.getTotalPrice() - discount - order.getPointUsed() + shippingFee);
+        return order;
+    }
+
+    // ── 적립금 ─────────────────────────────────────────────────
+
+    /** 결제 페이지에서 쓸, 본인의 사용 가능 적립금 잔액 */
+    public int getUsablePoint(String userId, Long orderId) {
+        Order order = getPayableOrder(userId, orderId);
+        return pointService.getBalance(order.getMember());
+    }
+
+    /**
+     * 결제 직전 적립금 사용/해제. point 가 0 이면 해제한다.
+     * 상품금액(할인 적용 후)을 넘지 못하며, 배송비는 적립금으로 결제하지 않는다.
+     * 실제 차감(use)은 결제 승인 성공 시점에 한다. 갱신된 주문을 돌려준다.
+     */
+    @Transactional
+    public Order applyPoint(String userId, Long orderId, int point) {
+        Order order = getPayableOrder(userId, orderId);
+        if (point < 0) {
+            throw new IllegalStateException("적립금은 0 이상이어야 합니다.");
+        }
+        if (point > pointService.getBalance(order.getMember())) {
+            throw new IllegalStateException("적립금 잔액이 부족합니다.");
+        }
+        // 상품금액(쿠폰 할인 적용 후)을 초과해 사용 불가. (TODO 정책: 최소 사용단위/상한 등)
+        int maxUsable = order.getTotalPrice() - order.getDiscountAmount();
+        if (point > maxUsable) {
+            throw new IllegalStateException("상품 금액을 초과해 사용할 수 없습니다.");
+        }
+
+        int shippingFee = shippingFeeFor(order.getTotalPrice());
+        order.applyPoint(point,
+            order.getTotalPrice() - order.getDiscountAmount() - point + shippingFee);
+        return order;
     }
 
     // ── 결제 승인 ──────────────────────────────────────────────
@@ -228,13 +265,23 @@ public class OrderService {
 
         TossConfirmResponse res = tossPaymentClient.confirm(paymentKey, tossOrderId, amount);
 
-        // 승인 성공 → 재고 차감 + 쿠폰 사용 처리
+        // 승인 성공 → 재고 차감 + 쿠폰 사용 + 적립금 사용/적립 처리
         for (OrderItem item : order.getOrderItems()) {
             productService.decreaseStock(item.getProduct(), item.getQuantity());
         }
         if (order.getIssuedCoupon() != null) {
             order.getIssuedCoupon().use();
         }
+
+        Member member = order.getMember();
+        // 사용한 적립금 차감
+        if (order.getPointUsed() > 0) {
+            pointService.use(member, order.getPointUsed(), "주문 결제 사용 (" + order.getTossOrderId() + ")");
+        }
+        // 구매 적립 — 상품 실결제액(상품합계 - 쿠폰할인 - 적립금사용) 기준. (TODO 정책: 적립 기준금액 확정)
+        int earnBase = order.getTotalPrice() - order.getDiscountAmount() - order.getPointUsed();
+        pointService.earn(member, pointService.calculateEarnPoints(earnBase),
+            "구매 적립 (" + order.getTossOrderId() + ")");
 
         order.markAsPaid();
         paymentRepository.save(Payment.builder()

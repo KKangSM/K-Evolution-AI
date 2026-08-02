@@ -46,6 +46,10 @@ public class Order {
     @Column(nullable = false)
     private int discountAmount;
 
+    /** 사용한 적립금 (결제 시 상품금액에서 차감) */
+    @Column(nullable = false)
+    private int pointUsed;
+
     @Column(nullable = false)
     private int finalPrice;
 
@@ -99,6 +103,12 @@ public class Order {
     public void applyCoupon(IssuedCoupon issuedCoupon, int discountAmount, int finalPrice) {
         this.issuedCoupon = issuedCoupon;
         this.discountAmount = discountAmount;
+        this.finalPrice = finalPrice;
+    }
+
+    /** 결제 직전 적립금 사용/해제. 사용액과 최종 결제금액을 함께 갱신한다. */
+    public void applyPoint(int pointUsed, int finalPrice) {
+        this.pointUsed = pointUsed;
         this.finalPrice = finalPrice;
     }
 

@@ -64,6 +64,7 @@ public class OrderController {
             model.addAttribute("clientKey", tossClientKey);
             model.addAttribute("customerKey", order.getMember().getMemberId());
             model.addAttribute("coupons", orderService.getSelectableCoupons(user.getUsername(), orderId));
+            model.addAttribute("pointBalance", orderService.getUsablePoint(user.getUsername(), orderId));
             return "order/pay";
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
@@ -83,18 +84,40 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    /** 결제 직전 쿠폰 적용/해제 (결제 페이지에서 fetch 로 호출). 갱신된 최종 결제금액을 돌려준다. */
+    /** 결제 직전 쿠폰 적용/해제 (결제 페이지에서 fetch 로 호출). 갱신된 금액 내역을 돌려준다. */
     @PostMapping("/{orderId}/coupon")
     @ResponseBody
     public ResponseEntity<?> applyCoupon(@PathVariable Long orderId,
                                          @RequestParam(required = false) Long issuedCouponId,
                                          @AuthenticationPrincipal UserDetails user) {
         try {
-            int finalPrice = orderService.applyCoupon(user.getUsername(), orderId, issuedCouponId);
-            return ResponseEntity.ok(java.util.Map.of("finalPrice", finalPrice));
+            Order order = orderService.applyCoupon(user.getUsername(), orderId, issuedCouponId);
+            return ResponseEntity.ok(pricingOf(order));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }
+    }
+
+    /** 결제 직전 적립금 적용/해제 (결제 페이지에서 fetch 로 호출). 갱신된 금액 내역을 돌려준다. */
+    @PostMapping("/{orderId}/point")
+    @ResponseBody
+    public ResponseEntity<?> applyPoint(@PathVariable Long orderId,
+                                        @RequestParam(defaultValue = "0") int point,
+                                        @AuthenticationPrincipal UserDetails user) {
+        try {
+            Order order = orderService.applyPoint(user.getUsername(), orderId, point);
+            return ResponseEntity.ok(pricingOf(order));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    /** 결제 페이지 금액 갱신 응답: 최종금액 + 쿠폰할인 + 적립금사용 */
+    private java.util.Map<String, Integer> pricingOf(Order order) {
+        return java.util.Map.of(
+            "finalPrice", order.getFinalPrice(),
+            "discountAmount", order.getDiscountAmount(),
+            "pointUsed", order.getPointUsed());
     }
 
     // ── 결제 결과 콜백 ─────────────────────────────────────────

@@ -8,7 +8,7 @@
     <title>결제 — K-Evolution</title>
     <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
     <c:set var="ctx" value="${pageContext.request.contextPath}" />
-    <c:set var="shipping" value="${order.finalPrice - order.totalPrice + order.discountAmount}" />
+    <c:set var="shipping" value="${order.finalPrice - order.totalPrice + order.discountAmount + order.pointUsed}" />
 </head>
 <body class="bg-light">
 
@@ -97,6 +97,21 @@
         </div>
     </div>
 
+    <%-- 적립금 --%>
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <h6 class="fw-bold mb-1">적립금</h6>
+            <p class="text-muted small mb-2">보유
+                <b id="pointBalanceLabel"><fmt:formatNumber value="${pointBalance}" type="number" groupingUsed="true"/></b>P</p>
+            <div class="input-group">
+                <input type="number" id="pointInput" class="form-control" min="0" step="1"
+                       value="${order.pointUsed}" placeholder="사용할 적립금">
+                <button type="button" class="btn btn-outline-secondary" id="pointAllBtn">전액</button>
+                <button type="button" class="btn btn-dark" id="pointApplyBtn">적용</button>
+            </div>
+        </div>
+    </div>
+
     <%-- 금액 --%>
     <div class="card shadow-sm mb-3">
         <div class="card-body">
@@ -107,6 +122,10 @@
             <div id="discountRow" class="d-flex justify-content-between mb-2 text-danger ${order.discountAmount > 0 ? '' : 'd-none'}">
                 <span>쿠폰 할인</span>
                 <span>-<span id="discountValue"><fmt:formatNumber value="${order.discountAmount}" type="number" groupingUsed="true"/></span>원</span>
+            </div>
+            <div id="pointRow" class="d-flex justify-content-between mb-2 text-danger ${order.pointUsed > 0 ? '' : 'd-none'}">
+                <span>적립금 사용</span>
+                <span>-<span id="pointValue"><fmt:formatNumber value="${order.pointUsed}" type="number" groupingUsed="true"/></span>원</span>
             </div>
             <div class="d-flex justify-content-between mb-2">
                 <span class="text-muted">배송비</span>
@@ -185,45 +204,80 @@
     }
     init();
 
-    // 쿠폰 선택 → 서버에서 할인·최종금액 재계산 후 위젯 금액 갱신
+    // ── 쿠폰·적립금 공통 처리 ──────────────────────────────
+    const productTotal = ${order.totalPrice};
+    const pointBalance = ${pointBalance};
+    let curDiscount = ${order.discountAmount};
+    let curPoint = ${order.pointUsed};
+
+    // 서버가 돌려준 금액 내역({finalPrice, discountAmount, pointUsed})을 화면·위젯에 반영
+    async function reflect(data) {
+        curDiscount = data.discountAmount;
+        curPoint = data.pointUsed;
+
+        const discountRow = document.getElementById("discountRow");
+        if (data.discountAmount > 0) {
+            document.getElementById("discountValue").textContent = nf.format(data.discountAmount);
+            discountRow.classList.remove("d-none");
+        } else discountRow.classList.add("d-none");
+
+        const pointRow = document.getElementById("pointRow");
+        if (data.pointUsed > 0) {
+            document.getElementById("pointValue").textContent = nf.format(data.pointUsed);
+            pointRow.classList.remove("d-none");
+        } else pointRow.classList.add("d-none");
+        document.getElementById("pointInput").value = data.pointUsed;
+
+        document.getElementById("finalPrice").textContent = nf.format(data.finalPrice);
+        amount.value = data.finalPrice;
+        await widgets.setAmount(amount);
+    }
+
+    async function postPricing(path, body, onError) {
+        const resp = await fetch(ctx + "/order/" + orderId + path, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                [csrfHeader]: csrfToken,
+            },
+            body: body.toString(),
+        });
+        const data = await resp.json();
+        if (!resp.ok) { onError(data); return; }
+        await reflect(data);
+    }
+
+    // 쿠폰 선택 → 재계산
     const couponSelect = document.getElementById("couponSelect");
     if (couponSelect) {
-        couponSelect.addEventListener("change", async () => {
-            const issuedCouponId = couponSelect.value;
+        couponSelect.addEventListener("change", () => {
             const body = new URLSearchParams();
-            if (issuedCouponId) body.append("issuedCouponId", issuedCouponId);
-
-            const resp = await fetch(ctx + "/order/" + orderId + "/coupon", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-                    [csrfHeader]: csrfToken,
-                },
-                body: body.toString(),
-            });
-            const data = await resp.json();
-            if (!resp.ok) {
-                alert(data.message || "쿠폰 적용에 실패했습니다.");
+            if (couponSelect.value) body.append("issuedCouponId", couponSelect.value);
+            postPricing("/coupon", body, (d) => {
+                alert(d.message || "쿠폰 적용에 실패했습니다.");
                 couponSelect.value = "";
-                return;
-            }
-
-            // 화면 금액 갱신
-            const discount = ${order.totalPrice} + (${shipping}) - data.finalPrice;
-            const discountRow = document.getElementById("discountRow");
-            if (discount > 0) {
-                document.getElementById("discountValue").textContent = nf.format(discount);
-                discountRow.classList.remove("d-none");
-            } else {
-                discountRow.classList.add("d-none");
-            }
-            document.getElementById("finalPrice").textContent = nf.format(data.finalPrice);
-
-            // 토스 위젯 결제금액 갱신
-            amount.value = data.finalPrice;
-            await widgets.setAmount(amount);
+            });
         });
     }
+
+    // 적립금 적용
+    const pointInput = document.getElementById("pointInput");
+    function applyPoint(p) {
+        const body = new URLSearchParams();
+        body.append("point", String(p));
+        postPricing("/point", body, (d) => {
+            alert(d.message || "적립금 적용에 실패했습니다.");
+            pointInput.value = curPoint;
+        });
+    }
+    document.getElementById("pointApplyBtn").addEventListener("click", () => {
+        applyPoint(Math.max(0, parseInt(pointInput.value || "0", 10)));
+    });
+    document.getElementById("pointAllBtn").addEventListener("click", () => {
+        // 사용 가능 최대치 = min(보유 잔액, 상품금액 - 쿠폰할인)
+        const maxUsable = Math.min(pointBalance, productTotal - curDiscount);
+        applyPoint(Math.max(0, maxUsable));
+    });
 
     payButton.addEventListener("click", async () => {
         const form = document.getElementById("shippingForm");
