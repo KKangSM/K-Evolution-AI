@@ -1,6 +1,7 @@
 package com.kevolution.pointhistory.service;
 
 import com.kevolution.member.entity.Member;
+import com.kevolution.member.repository.MemberRepository;
 import com.kevolution.pointhistory.entity.PointHistory;
 import com.kevolution.pointhistory.repository.PointHistoryRepository;
 
@@ -27,6 +28,7 @@ public class PointService {
     private static final double EARN_RATE = 0.01;
 
     private final PointHistoryRepository pointHistoryRepository;
+    private final MemberRepository memberRepository;
 
     /** 현재 적립금 잔액 (가장 최근 내역의 잔액 스냅샷, 없으면 0) */
     public int getBalance(Member member) {
@@ -34,9 +36,19 @@ public class PointService {
         return latest != null ? latest.getBalance() : 0;
     }
 
-    /** 적립금 내역 (마이페이지 조회용) */
-    public Page<PointHistory> getHistory(Member member, Pageable pageable) {
-        return pointHistoryRepository.findByMemberOrderByCreatedAtDesc(member, pageable);
+    /** 현재 적립금 잔액 (마이페이지 조회용 — 로그인 아이디 기준) */
+    public int getBalance(String userId) {
+        return getBalance(member(userId));
+    }
+
+    /** 적립금 내역 (마이페이지 조회용 — 로그인 아이디 기준) */
+    public Page<PointHistory> getHistory(String userId, Pageable pageable) {
+        return pointHistoryRepository.findByMemberOrderByCreatedAtDesc(member(userId), pageable);
+    }
+
+    private Member member(String userId) {
+        return memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
     }
 
     /** 결제금액 기준 적립 포인트 계산 (원 단위 버림) */
