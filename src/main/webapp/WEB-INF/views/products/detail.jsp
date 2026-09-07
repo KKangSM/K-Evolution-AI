@@ -264,6 +264,20 @@
             </c:if>
         </div>
 
+        <%-- AI 리뷰 요약: 후기가 충분히 쌓였고 요약이 생성된 경우에만 노출 --%>
+        <c:if test="${not empty reviewSummary}">
+            <div class="card border-0 shadow-sm mb-4" style="background:#f6f5ff;border-left:4px solid #5b5bd6 !important;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-stars" style="color:#5b5bd6;font-size:1.1rem"></i>
+                        <span class="fw-bold" style="color:#5b5bd6">AI 리뷰 요약</span>
+                        <span class="badge rounded-pill text-bg-light text-muted">구매 후기 기반</span>
+                    </div>
+                    <div style="white-space:pre-wrap; font-size:.92rem; line-height:1.7;"><c:out value="${reviewSummary}"/></div>
+                </div>
+            </div>
+        </c:if>
+
         <c:choose>
             <c:when test="${empty reviews}">
                 <div class="text-center text-muted py-5">

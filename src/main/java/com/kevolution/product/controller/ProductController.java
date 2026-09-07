@@ -65,6 +65,7 @@ public class ProductController {
         model.addAttribute("reviews", reviewService.getProductReviews(product, PageRequest.of(0, 20)).getContent());
         model.addAttribute("reviewCount", reviewService.countByProduct(product));
         model.addAttribute("reviewAvg", reviewService.averageRating(product));
+        model.addAttribute("reviewSummary", reviewService.getReviewSummary(product));
         return "products/detail";
     }
 
