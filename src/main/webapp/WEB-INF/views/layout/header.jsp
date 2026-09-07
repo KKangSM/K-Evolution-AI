@@ -61,3 +61,8 @@
         </div>
     </div>
 </nav>
+
+<%-- AI 상담 챗봇: 엔드포인트(/api/ai/**) 권한과 동일하게 로그인 고객·SYSTEM 에게만 노출 --%>
+<sec:authorize access="isAuthenticated() and (!hasRole('ROLE_ADMIN') or hasRole('ROLE_SYSTEM'))">
+    <%@ include file="/WEB-INF/views/layout/chatbot.jsp" %>
+</sec:authorize>
