@@ -1,5 +1,6 @@
 package com.kevolution.review.service;
 
+import com.kevolution.ai.service.AiService;
 import com.kevolution.member.entity.Member;
 import com.kevolution.member.repository.MemberRepository;
 import com.kevolution.order.entity.Order;
@@ -8,12 +9,15 @@ import com.kevolution.order.repository.OrderItemRepository;
 import com.kevolution.product.entity.Product;
 import com.kevolution.review.entity.Review;
 import com.kevolution.review.entity.ReviewImage;
+import com.kevolution.review.entity.ReviewSummary;
 import com.kevolution.review.repository.ReviewImageRepository;
 import com.kevolution.review.repository.ReviewRepository;
+import com.kevolution.review.repository.ReviewSummaryRepository;
 import com.kevolution.storage.SupabaseStorageService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,11 +39,20 @@ public class ReviewService {
     /** 리뷰당 첨부 이미지 최대 장수 */
     private static final int MAX_IMAGES = 5;
 
+    /** 요약을 생성하기 위한 최소 리뷰 수 (너무 적으면 요약 의미가 없음) */
+    private static final int MIN_REVIEWS_FOR_SUMMARY = 3;
+    /** 마지막 요약 이후 리뷰가 이만큼 늘면 다시 요약한다 */
+    private static final int REGENERATE_EVERY = 5;
+    /** 요약에 반영할 최근 리뷰 수 */
+    private static final int SUMMARY_SAMPLE_SIZE = 30;
+
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final OrderItemRepository orderItemRepository;
     private final MemberRepository memberRepository;
     private final SupabaseStorageService storageService;
+    private final ReviewSummaryRepository reviewSummaryRepository;
+    private final AiService aiService;
 
     // ── 상품 상세 노출용 ──────────────────────────────
     public Page<Review> getProductReviews(Product product, Pageable pageable) {
@@ -54,6 +67,45 @@ public class ReviewService {
     public double averageRating(Product product) {
         Double avg = reviewRepository.averageRatingByProduct(product);
         return avg == null ? 0 : Math.round(avg * 10) / 10.0;
+    }
+
+    /**
+     * 상품 상세용 AI 리뷰 요약. 저장된 요약을 재사용하고, 리뷰가 충분히 늘었을 때만 다시 생성한다.
+     * 리뷰가 적거나(임계치 미만) AI 미설정/실패면 null 을 반환한다(화면에서 요약 영역 숨김).
+     * (쓰기가 있어 클래스 기본 readOnly 를 이 메서드에서 해제한다. AI 호출은 캐시 미스 때만 발생)
+     */
+    @Transactional
+    public String getReviewSummary(Product product) {
+        long count = reviewRepository.countByProduct(product);
+        if (count < MIN_REVIEWS_FOR_SUMMARY) return null;
+
+        ReviewSummary cached = reviewSummaryRepository.findById(product.getProductId()).orElse(null);
+        if (cached != null && count - cached.getReviewCount() < REGENERATE_EVERY) {
+            return cached.getSummary(); // 최신이면 캐시 그대로 사용 (API 호출 없음)
+        }
+
+        List<String> contents = reviewRepository
+                .findByProductOrderByCreatedAtDesc(product, PageRequest.of(0, SUMMARY_SAMPLE_SIZE))
+                .getContent().stream()
+                .map(r -> "[" + r.getRating() + "점] " + (r.getContent() == null ? "" : r.getContent().trim()))
+                .filter(s -> s.length() > 4)
+                .toList();
+
+        String summary = aiService.summarizeReviews(contents);
+        if (summary == null || summary.isBlank()) {
+            return cached == null ? null : cached.getSummary(); // 실패 시 있으면 옛 요약 유지
+        }
+
+        if (cached == null) {
+            reviewSummaryRepository.save(ReviewSummary.builder()
+                    .productId(product.getProductId())
+                    .summary(summary)
+                    .reviewCount((int) count)
+                    .build());
+        } else {
+            cached.update(summary, (int) count);
+        }
+        return summary;
     }
 
     // ── 주문내역 표시용 ────────────────────────────────
