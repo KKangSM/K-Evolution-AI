@@ -10,7 +10,7 @@
     <c:set var="ctx" value="${pageContext.request.contextPath}" />
     <c:set var="shipping" value="${order.finalPrice - order.totalPrice + order.discountAmount + order.pointUsed}" />
 </head>
-<body class="bg-light">
+<body class="bg-light theme-popart">
 
 <%@ include file="/WEB-INF/views/layout/header.jsp" %>
 <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>

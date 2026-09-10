@@ -26,7 +26,7 @@
         }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light theme-popart">
 
 <div class="signup-wrap px-3">
 

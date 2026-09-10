@@ -48,7 +48,7 @@
         }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light theme-popart">
 
 <%@ include file="/WEB-INF/views/layout/header.jsp" %>
 

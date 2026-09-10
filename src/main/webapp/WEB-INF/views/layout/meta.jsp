@@ -12,3 +12,5 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <%-- 전역 테마 (Bootstrap 다음에 로드) --%>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/theme.css">
+<%-- 전역 팝아트 레이어 (.theme-popart 스코프 — admin-body 페이지엔 미적용) --%>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/popart.css">

@@ -12,7 +12,7 @@
         .qty-input { width: 56px; text-align: center; }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light theme-popart">
 
 <%@ include file="/WEB-INF/views/layout/header.jsp" %>
 <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>

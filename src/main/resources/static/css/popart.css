@@ -1,0 +1,189 @@
+/* 팝아트 만화체 폰트 (@import 는 반드시 파일 최상단이어야 유효) */
+@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+
+/* =====================================================================
+ * popart.css — 전역 팝아트 테마 레이어
+ * ---------------------------------------------------------------------
+ * meta.jsp 에서 theme.css 다음에 전역 로드된다(모든 페이지).
+ * 단, 모든 규칙을 `.theme-popart` 스코프로 한정하므로
+ *   - <body class="... theme-popart"> 인 고객 페이지에만 적용되고
+ *   - 관리자(admin-body) 페이지에는 전혀 영향이 없다.
+ * 메인 전용 히어로/레일 등 세부는 main.css 가 뒤에서 덮어써 그대로 유지된다.
+ * ===================================================================== */
+
+.theme-popart {
+    --pop-red:    #ff2e4d;
+    --pop-yellow: #ffd23f;
+    --pop-blue:   #2d7dd2;
+    --pop-green:  #2bb673;
+    --pop-ink:    #10121a;
+    --pop-line:   3px solid var(--pop-ink);
+    --pop-hard:   6px 6px 0 var(--pop-ink);
+    --pop-soft:   3px 3px 0 var(--pop-ink);
+    --pop-font:   'Bangers', var(--kv-font-sans);
+
+    /* 은은한 하프톤 도트 배경 (원색 점무늬) */
+    background-color: #fff8ec !important;
+    background-image: radial-gradient(var(--pop-yellow) 1.5px, transparent 1.6px);
+    background-size: 22px 22px;
+}
+
+/* ---- 큰 제목: 만화 폰트(영문만 Bangers, 한글은 자동 폴백) ---- */
+.theme-popart h1,
+.theme-popart h2,
+.theme-popart .page-title,
+.theme-popart .section-title {
+    font-family: var(--pop-font);
+    font-weight: 400;
+    letter-spacing: .02em;
+}
+.theme-popart .section-title { border-left: 6px solid var(--pop-red); padding-left: 12px; }
+
+/* =====================================================================
+ * 공통 네비게이션 (header.jsp 의 .site-navbar) — 흰 바탕 + 굵은 검은 밑줄
+ * ===================================================================== */
+.theme-popart .site-navbar {
+    background-color: #fff !important;
+    backdrop-filter: none;
+    border-bottom: 4px solid var(--pop-ink);
+}
+.theme-popart .site-navbar .navbar-brand {
+    font-family: var(--pop-font);
+    font-weight: 400;
+    font-size: 1.7rem;
+    letter-spacing: .04em;
+    color: var(--pop-ink);
+    -webkit-text-stroke: .4px var(--pop-ink);
+}
+.theme-popart .site-navbar .nav-link { color: var(--pop-ink); font-weight: 700; }
+.theme-popart .site-navbar .nav-link:hover { color: var(--pop-red); }
+
+/* =====================================================================
+ * 버튼 — 각진 모서리 + 검은 외곽선 + 하드 섀도우(눌리는 인터랙션)
+ * ===================================================================== */
+.theme-popart .btn {
+    border-radius: 0 !important;
+    font-weight: 800;
+    border: var(--pop-line);
+    box-shadow: var(--pop-soft);
+    transition: transform .1s ease, box-shadow .1s ease;
+}
+.theme-popart .btn:hover      { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--pop-ink); }
+.theme-popart .btn:active     { transform: translate(1px,1px);   box-shadow: 1px 1px 0 var(--pop-ink); }
+.theme-popart .btn-dark              { background: var(--pop-ink)    !important; color: #fff !important; }
+.theme-popart .btn-primary           { background: var(--pop-blue)   !important; color: #fff !important; }
+.theme-popart .btn-success           { background: var(--pop-green)  !important; color: #fff !important; }
+.theme-popart .btn-outline-secondary { background: #fff              !important; color: var(--pop-ink) !important; }
+.theme-popart .btn-outline-primary   { background: var(--pop-yellow) !important; color: var(--pop-ink) !important; }
+.theme-popart .btn-outline-danger    { background: var(--pop-red)    !important; color: #fff !important; }
+.theme-popart .btn-close { border: none; box-shadow: none; }
+
+/* =====================================================================
+ * 카드 — 각진 모서리 + 두꺼운 검은 외곽선 + 하드 섀도우
+ * ===================================================================== */
+.theme-popart .card {
+    border: var(--pop-line) !important;
+    border-radius: 0 !important;
+    box-shadow: var(--pop-hard) !important;
+    background: #fff;
+}
+.theme-popart .card-header {
+    background: #fff;
+    border-bottom: var(--pop-line);
+    font-weight: 800;
+}
+
+/* 상품 카드(상품목록) — 카드 위에 호버 리프트 */
+.theme-popart .product-card {
+    border: var(--pop-line) !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 4px 0 var(--pop-ink) !important;
+}
+.theme-popart .product-card:hover {
+    transform: translate(-2px,-4px);
+    box-shadow: 7px 8px 0 var(--pop-ink) !important;
+}
+
+/* =====================================================================
+ * 폼 컨트롤 — 각진 검은 테두리 + 노란 포커스 섀도우
+ * ===================================================================== */
+.theme-popart .form-control,
+.theme-popart .form-select {
+    border: 2.5px solid var(--pop-ink) !important;
+    border-radius: 0 !important;
+}
+.theme-popart .form-control:focus,
+.theme-popart .form-select:focus {
+    border-color: var(--pop-ink) !important;
+    box-shadow: 3px 3px 0 var(--pop-yellow);
+}
+.theme-popart .input-group > .btn { box-shadow: var(--pop-soft); }
+
+/* =====================================================================
+ * 배지 / 알림
+ * ===================================================================== */
+.theme-popart .badge { border: 2px solid var(--pop-ink); border-radius: 0 !important; }
+.theme-popart .alert {
+    border: var(--pop-line);
+    border-radius: 0;
+    box-shadow: var(--pop-soft);
+    font-weight: 600;
+}
+.theme-popart .alert-danger  { background: var(--pop-red);   color: #fff; }
+.theme-popart .alert-success { background: var(--pop-green); color: #fff; }
+.theme-popart .alert-warning { background: var(--pop-yellow); color: var(--pop-ink); }
+
+/* =====================================================================
+ * 페이지네이션 — 각 항목을 팝 스티커처럼 (간격 + 외곽선 + 섀도우)
+ * ===================================================================== */
+.theme-popart .pagination { gap: 6px; }
+.theme-popart .page-link {
+    border: 2.5px solid var(--pop-ink) !important;
+    border-radius: 0 !important;
+    color: var(--pop-ink);
+    font-weight: 800;
+    box-shadow: 2px 2px 0 var(--pop-ink);
+    margin: 0;
+}
+.theme-popart .page-link:hover { background: var(--pop-yellow); }
+.theme-popart .page-item.active .page-link { background: var(--pop-red) !important; color: #fff; border-color: var(--pop-ink); }
+.theme-popart .page-item.disabled .page-link { opacity: .45; box-shadow: none; }
+
+/* =====================================================================
+ * 표 — 검은 외곽선 + 잉크 헤더
+ * ===================================================================== */
+.theme-popart .table { border: var(--pop-line); background: #fff; }
+.theme-popart .table > :not(caption) > * > * { border-color: var(--pop-ink); }
+.theme-popart .table > thead th,
+.theme-popart .table-light > thead th { background: var(--pop-ink); color: #fff; font-weight: 800; }
+
+/* =====================================================================
+ * 뒤로가기 pill / 리스트 그룹 / 모달
+ * ===================================================================== */
+.theme-popart .back-link {
+    border: 2.5px solid var(--pop-ink);
+    border-radius: 0;
+    color: var(--pop-ink);
+    font-weight: 700;
+    background: #fff;
+    box-shadow: 2px 2px 0 var(--pop-ink);
+}
+.theme-popart .back-link:hover { background: var(--pop-yellow); color: var(--pop-ink); border-color: var(--pop-ink); }
+.theme-popart .list-group-item { border-color: var(--pop-ink); }
+.theme-popart .modal-content {
+    border: var(--pop-line);
+    border-radius: 0;
+    box-shadow: var(--pop-hard);
+}
+
+/* =====================================================================
+ * 로그인 로고 (auth/login.jsp 전용 커스텀) — 만화 타이틀
+ * ===================================================================== */
+.theme-popart .login-logo {
+    font-family: var(--pop-font);
+    font-weight: 400;
+    color: var(--pop-yellow);
+    -webkit-text-stroke: 2px var(--pop-ink);
+    text-shadow: 4px 4px 0 var(--pop-red);
+}
+.theme-popart .login-logo:hover { color: var(--pop-yellow); }

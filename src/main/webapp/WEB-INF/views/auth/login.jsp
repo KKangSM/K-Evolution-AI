@@ -17,7 +17,7 @@
         .login-logo:hover { color: #16213e; }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light theme-popart">
 
 <div class="login-wrap px-3">
 

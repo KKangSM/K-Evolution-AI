@@ -11,7 +11,7 @@
         .wrap { width: 100%; max-width: 440px; }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light theme-popart">
 
 <div class="wrap px-3">
     <div class="text-center mb-4">

@@ -10,7 +10,7 @@
     <title>적립금 - K-Evolution</title>
     <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
 </head>
-<body class="bg-light">
+<body class="bg-light theme-popart">
 <%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
 <div class="container py-5" style="max-width:720px">

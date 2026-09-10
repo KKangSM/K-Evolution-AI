@@ -7,7 +7,7 @@
     <title>내 정보 수정 - K-Evolution</title>
     <%@ include file="/WEB-INF/views/layout/meta.jsp" %>
 </head>
-<body class="bg-light">
+<body class="bg-light theme-popart">
 <%@ include file="/WEB-INF/views/layout/header.jsp" %>
 
 <%@ include file="/WEB-INF/views/layout/flash-toast.jsp" %>
