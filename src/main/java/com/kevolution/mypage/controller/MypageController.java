@@ -3,6 +3,7 @@ package com.kevolution.mypage.controller;
 import com.kevolution.mypage.service.MypageService;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.service.ProductService;
+import com.kevolution.recommendation.dto.RecommendedProduct;
 import com.kevolution.recommendation.service.RecommendationService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,8 +32,11 @@ public class MypageController {
     public String index(@AuthenticationPrincipal UserDetails user, Model model) {
         model.addAttribute("member", mypageService.getMember(user.getUsername()));
 
-        List<Product> recommendedProducts = recommendationService.getPersonalized(user.getUsername(), RECOMMEND_SIZE);
-        model.addAttribute("recommendedProducts", recommendedProducts);
+        // LLM 이 선별한 개인화 추천(상품 + 추천 이유). 실패 시 규칙 기반으로 폴백된다.
+        List<RecommendedProduct> recommendations =
+                recommendationService.getPersonalizedWithReasons(user.getUsername(), RECOMMEND_SIZE);
+        List<Product> recommendedProducts = recommendations.stream().map(RecommendedProduct::product).toList();
+        model.addAttribute("recommendations", recommendations);
         model.addAttribute("stockMap", productService.getStockMap(recommendedProducts));
         return "mypage/index";
     }

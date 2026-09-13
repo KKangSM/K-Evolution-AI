@@ -110,15 +110,16 @@
 </div>
 
 <%-- 취향 저격 추천 (개인화) --%>
-<c:if test="${not empty recommendedProducts}">
+<c:if test="${not empty recommendations}">
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <div class="container pb-5" style="max-width:960px">
     <div class="rail-head">
-        <h5 class="rail-title fw-bold mb-0">${member.name}님 취향 저격 <span class="rail-sub">구매·찜 이력 기반 추천</span></h5>
+        <h5 class="rail-title fw-bold mb-0">${member.name}님 취향 저격 <span class="rail-sub">AI가 골라드린 추천</span></h5>
         <a href="${ctx}/products" class="rail-more">더보기 <i class="bi bi-chevron-right"></i></a>
     </div>
     <div class="product-rail">
-        <c:forEach var="product" items="${recommendedProducts}">
+        <c:forEach var="rec" items="${recommendations}">
+            <c:set var="product" value="${rec.product}"/>
             <div class="rail-card">
                 <div class="card product-card h-100"
                      onclick="location.href='${ctx}/products/${product.productId}'">
@@ -127,6 +128,9 @@
                     <div class="card-body d-flex flex-column">
                         <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.label : ''}</p>
                         <h6 class="card-title flex-grow-1">${product.name}</h6>
+                        <c:if test="${rec.hasReason()}">
+                            <p class="rec-reason small mb-1"><i class="bi bi-stars"></i> <c:out value="${rec.reason}"/></p>
+                        </c:if>
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <span class="fw-bold">
                                 <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원

@@ -4,11 +4,14 @@ import com.kevolution.ai.client.AnthropicClient;
 import com.kevolution.ai.dto.AnthropicRequest;
 import com.kevolution.ai.dto.ChatResponse;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -57,8 +60,21 @@ public class AiService {
     /** 리뷰 요약 시 프롬프트에 넣을 후기 총 길이 상한(토큰/비용 관리) */
     private static final int MAX_REVIEW_CHARS = 4000;
 
+    private static final String RECOMMEND_SYSTEM = """
+        너는 K-Evolution 쇼핑몰의 개인화 추천 큐레이터야.
+        아래 [고객 프로필]과 [추천 후보 상품]을 보고, 이 고객에게 가장 잘 맞는 상품을 골라 추천해.
+
+        규칙:
+        - 반드시 [추천 후보 상품] 목록 안에서만 골라. 목록에 없는 상품(id)을 지어내지 마.
+        - 고객의 구매·찜 이력과 연결지어 왜 어울리는지 우리말 한 문장(30자 이내)으로 설명해.
+        - 잘 맞는 순서대로 정렬해.
+        - 반드시 아래 JSON 배열로만 답해(설명·코드블록·마크다운 없이):
+        [{"id": 상품ID(숫자), "reason": "추천 이유"}, ...]
+        """;
+
     private final AnthropicClient anthropicClient;
     private final ChatContextBuilder contextBuilder;
+    private final ObjectMapper objectMapper;
 
     /**
      * 챗봇 답변 생성. 관련 컨텍스트 수집 → 프롬프트 조립 → 호출.
@@ -111,5 +127,50 @@ public class AiService {
             log.warn("AI 리뷰 요약 생성 실패", e);
             return null;
         }
+    }
+
+    /**
+     * 고객 프로필과 추천 후보 상품 목록을 LLM 에 주고, 잘 맞는 상품을 선별 + 추천 이유를 받아온다.
+     * 반환은 상품ID→추천이유 (LLM 이 고른 순서 유지). 키 미설정·후보 없음·호출/파싱 실패 시 null
+     * (호출 측에서 규칙 기반 추천으로 폴백).
+     *
+     * @param profile    고객 프로필 텍스트(선호 카테고리·최근 구매·찜 등)
+     * @param candidates 후보 상품 텍스트("- id 123 / 상품명 / 카테고리 / 가격" 형식)
+     * @param max        최대 추천 개수
+     */
+    public LinkedHashMap<Long, String> recommendPersonalized(String profile, String candidates, int max) {
+        if (!anthropicClient.isConfigured() || candidates == null || candidates.isBlank()) {
+            return null;
+        }
+        try {
+            String userMsg = "[고객 프로필]\n" + profile + "\n\n[추천 후보 상품]\n" + candidates
+                    + "\n\n위 후보 중 이 고객에게 잘 맞는 순서로 최대 " + max + "개를 골라 JSON 으로만 답해.";
+            List<AnthropicRequest.Message> messages =
+                    List.of(new AnthropicRequest.Message("user", userMsg));
+            String json = anthropicClient.complete(RECOMMEND_SYSTEM, messages);
+            return parseRecommendations(json);
+        } catch (Exception e) {
+            log.warn("AI 개인화 추천 생성 실패", e);
+            return null;
+        }
+    }
+
+    /** LLM 응답(JSON 배열)을 상품ID→이유 맵으로 파싱한다. 형식이 어긋나면 null. */
+    private LinkedHashMap<Long, String> parseRecommendations(String raw) throws Exception {
+        if (raw == null || raw.isBlank()) return null;
+        String json = raw.trim();
+        // 모델이 가끔 ```json ... ``` 코드블록으로 감싸는 경우를 벗겨낸다.
+        if (json.startsWith("```")) {
+            json = json.replaceAll("^```[a-zA-Z]*\\s*", "").replaceAll("```\\s*$", "").trim();
+        }
+        JsonNode arr = objectMapper.readTree(json);
+        if (arr == null || !arr.isArray()) return null;
+
+        LinkedHashMap<Long, String> out = new LinkedHashMap<>();
+        for (JsonNode node : arr) {
+            if (!node.hasNonNull("id")) continue;
+            out.put(node.get("id").asLong(), node.path("reason").asText("").trim());
+        }
+        return out.isEmpty() ? null : out;
     }
 }
