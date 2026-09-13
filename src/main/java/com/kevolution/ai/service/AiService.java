@@ -1,7 +1,7 @@
 package com.kevolution.ai.service;
 
-import com.kevolution.ai.client.AnthropicClient;
-import com.kevolution.ai.dto.AnthropicRequest;
+import com.kevolution.ai.client.GeminiClient;
+import com.kevolution.ai.dto.ChatMessage;
 import com.kevolution.ai.dto.ChatResponse;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * AI 기능 공통 오케스트레이션. 지금은 상담 챗봇만 담당하지만,
- * 리뷰 요약·상품 설명 생성 등도 여기에 메서드로 추가해 AnthropicClient 를 공유한다.
+ * 리뷰 요약·상품 설명 생성 등도 여기에 메서드로 추가해 GeminiClient 를 공유한다.
  */
 @Service
 @RequiredArgsConstructor
@@ -72,7 +72,7 @@ public class AiService {
         [{"id": 상품ID(숫자), "reason": "추천 이유"}, ...]
         """;
 
-    private final AnthropicClient anthropicClient;
+    private final GeminiClient geminiClient;
     private final ChatContextBuilder contextBuilder;
     private final ObjectMapper objectMapper;
 
@@ -82,8 +82,8 @@ public class AiService {
      *
      * @param history 이전 대화(오래된→최근 순). null 이면 빈 대화로 시작.
      */
-    public ChatResponse chat(String question, List<AnthropicRequest.Message> history) {
-        if (!anthropicClient.isConfigured()) {
+    public ChatResponse chat(String question, List<ChatMessage> history) {
+        if (!geminiClient.isConfigured()) {
             return new ChatResponse(FALLBACK, true);
         }
         try {
@@ -91,11 +91,11 @@ public class AiService {
             String system = SYSTEM_TEMPLATE.formatted(
                     context.isBlank() ? "(질문과 직접 연결되는 상품/정책 정보 없음)" : context);
 
-            List<AnthropicRequest.Message> messages =
+            List<ChatMessage> messages =
                     (history == null) ? new ArrayList<>() : new ArrayList<>(history);
-            messages.add(new AnthropicRequest.Message("user", question));
+            messages.add(new ChatMessage("user", question));
 
-            String answer = anthropicClient.complete(system, messages);
+            String answer = geminiClient.complete(system, messages);
             if (answer.isBlank()) return new ChatResponse(FALLBACK, true);
 
             boolean escalate = answer.contains("1:1 문의");
@@ -111,7 +111,7 @@ public class AiService {
      * 키 미설정·후기 없음·호출 실패 시 null 을 반환한다(호출 측에서 "요약 없음"으로 처리).
      */
     public String summarizeReviews(List<String> reviewContents) {
-        if (!anthropicClient.isConfigured() || reviewContents == null || reviewContents.isEmpty()) {
+        if (!geminiClient.isConfigured() || reviewContents == null || reviewContents.isEmpty()) {
             return null;
         }
         try {
@@ -119,9 +119,9 @@ public class AiService {
             if (joined.length() > MAX_REVIEW_CHARS) {
                 joined = joined.substring(0, MAX_REVIEW_CHARS);
             }
-            List<AnthropicRequest.Message> messages = List.of(
-                    new AnthropicRequest.Message("user", "다음은 이 상품의 구매 후기들이야. 요약해줘:\n\n" + joined));
-            String summary = anthropicClient.complete(REVIEW_SUMMARY_SYSTEM, messages);
+            List<ChatMessage> messages = List.of(
+                    new ChatMessage("user", "다음은 이 상품의 구매 후기들이야. 요약해줘:\n\n" + joined));
+            String summary = geminiClient.complete(REVIEW_SUMMARY_SYSTEM, messages);
             return summary.isBlank() ? null : summary;
         } catch (Exception e) {
             log.warn("AI 리뷰 요약 생성 실패", e);
@@ -139,15 +139,15 @@ public class AiService {
      * @param max        최대 추천 개수
      */
     public LinkedHashMap<Long, String> recommendPersonalized(String profile, String candidates, int max) {
-        if (!anthropicClient.isConfigured() || candidates == null || candidates.isBlank()) {
+        if (!geminiClient.isConfigured() || candidates == null || candidates.isBlank()) {
             return null;
         }
         try {
             String userMsg = "[고객 프로필]\n" + profile + "\n\n[추천 후보 상품]\n" + candidates
                     + "\n\n위 후보 중 이 고객에게 잘 맞는 순서로 최대 " + max + "개를 골라 JSON 으로만 답해.";
-            List<AnthropicRequest.Message> messages =
-                    List.of(new AnthropicRequest.Message("user", userMsg));
-            String json = anthropicClient.complete(RECOMMEND_SYSTEM, messages);
+            List<ChatMessage> messages =
+                    List.of(new ChatMessage("user", userMsg));
+            String json = geminiClient.complete(RECOMMEND_SYSTEM, messages);
             return parseRecommendations(json);
         } catch (Exception e) {
             log.warn("AI 개인화 추천 생성 실패", e);

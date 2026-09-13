@@ -1,6 +1,6 @@
 package com.kevolution.ai.controller;
 
-import com.kevolution.ai.dto.AnthropicRequest;
+import com.kevolution.ai.dto.ChatMessage;
 import com.kevolution.ai.dto.ChatRequest;
 import com.kevolution.ai.dto.ChatResponse;
 import com.kevolution.ai.service.AiService;
@@ -36,11 +36,11 @@ public class ChatController {
         }
         String question = req.message().trim();
 
-        List<AnthropicRequest.Message> history = loadHistory(session);
+        List<ChatMessage> history = loadHistory(session);
         ChatResponse res = aiService.chat(question, history);
 
-        history.add(new AnthropicRequest.Message("user", question));
-        history.add(new AnthropicRequest.Message("assistant", res.answer()));
+        history.add(new ChatMessage("user", question));
+        history.add(new ChatMessage("assistant", res.answer()));
         trim(history);
         session.setAttribute(SESSION_KEY, history);
 
@@ -48,15 +48,15 @@ public class ChatController {
     }
 
     @SuppressWarnings("unchecked")
-    private List<AnthropicRequest.Message> loadHistory(HttpSession session) {
+    private List<ChatMessage> loadHistory(HttpSession session) {
         Object stored = session.getAttribute(SESSION_KEY);
         return (stored instanceof List)
-                ? new ArrayList<>((List<AnthropicRequest.Message>) stored)
+                ? new ArrayList<>((List<ChatMessage>) stored)
                 : new ArrayList<>();
     }
 
     /** 오래된 메시지부터 잘라 최근 MAX_HISTORY 개만 남긴다. */
-    private void trim(List<AnthropicRequest.Message> history) {
+    private void trim(List<ChatMessage> history) {
         while (history.size() > MAX_HISTORY) {
             history.remove(0);
         }

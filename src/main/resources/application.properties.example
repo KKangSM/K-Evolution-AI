@@ -64,6 +64,13 @@ SUPABASE_JWKS_URL=https://YOUR-PROJECT.supabase.co/auth/v1/.well-known/jwks.json
 # 반드시 Public 버킷이어야 업로드한 이미지가 화면에 표시됩니다.
 supabase.storage.bucket=YOUR_BUCKET_NAME
 
+# AI (Google Gemini) — 챗봇·리뷰요약·개인화추천에 사용
+# 키는 Google AI Studio(aistudio.google.com)에서 발급. 미설정 시 AI 기능은 폴백으로 동작.
+# 실제 키는 여기(example)에 적지 말고 복사한 application.properties 에만 입력.
+gemini.api-key=여기에입력
+gemini.model=gemini-3.6-flash
+gemini.max-tokens=2048
+
 # 파일 업로드 크기 제한 (배너/상품 이미지)
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=10MB
