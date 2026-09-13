@@ -151,6 +151,39 @@
     </c:forEach>
 </nav>
 
+<!-- 회원님을 위한 추천 (개인화) — 로그인 + 추천 상품이 있을 때만 노출 -->
+<c:if test="${not empty recommendedProducts}">
+<section class="container mt-4 mt-lg-5">
+    <div class="rail-head">
+        <h2 class="rail-title">회원님을 위한 추천 <span class="rail-sub">취향을 담은 맞춤 셀렉트</span></h2>
+        <a href="${ctx}/products" class="rail-more">더보기 <i class="bi bi-chevron-right"></i></a>
+    </div>
+    <div class="product-rail">
+        <c:forEach var="product" items="${recommendedProducts}">
+            <div class="rail-card">
+                <div class="card product-card h-100"
+                     onclick="location.href='${ctx}/products/${product.productId}'">
+                    <img src="${empty product.imageUrl ? 'https://placehold.co/300x360?text=No+Image' : product.imageUrl}"
+                         class="card-img-top product-img" alt="상품 이미지">
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.label : ''}</p>
+                        <h6 class="card-title flex-grow-1">${product.name}</h6>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="fw-bold">
+                                <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
+                            </span>
+                            <c:if test="${stockMap[product.productId] == 0}">
+                                <span class="badge bg-secondary">품절</span>
+                            </c:if>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </c:forEach>
+    </div>
+</section>
+</c:if>
+
 <!-- MD's PICK (인기상품) — 가로 스크롤 레일 -->
 <section class="container mt-4 mt-lg-5">
     <div class="rail-head">

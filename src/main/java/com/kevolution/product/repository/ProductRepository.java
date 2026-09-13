@@ -30,4 +30,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p LEFT JOIN OrderItem oi ON oi.product = p " +
            "GROUP BY p ORDER BY COALESCE(SUM(oi.quantity), 0) DESC, p.createdAt DESC")
     List<Product> findPopularProducts(Pageable pageable);
+
+    // 개인화 추천: 선호 카테고리 안에서 판매량 순 (이미 산 상품 제외). excludeIds 는 비어 있으면 안 됨(서비스에서 보장).
+    @Query("SELECT p FROM Product p LEFT JOIN OrderItem oi ON oi.product = p " +
+           "WHERE p.category IN :categories AND p.productId NOT IN :excludeIds " +
+           "GROUP BY p ORDER BY COALESCE(SUM(oi.quantity), 0) DESC, p.createdAt DESC")
+    List<Product> findPopularInCategories(@Param("categories") List<Category> categories,
+                                          @Param("excludeIds") List<Long> excludeIds,
+                                          Pageable pageable);
+
+    // 상품 상세 연관상품: 같은 카테고리 판매량 순 (현재 상품 제외)
+    @Query("SELECT p FROM Product p LEFT JOIN OrderItem oi ON oi.product = p " +
+           "WHERE p.category = :category AND p.productId <> :excludeId " +
+           "GROUP BY p ORDER BY COALESCE(SUM(oi.quantity), 0) DESC, p.createdAt DESC")
+    List<Product> findRelatedInCategory(@Param("category") Category category,
+                                        @Param("excludeId") Long excludeId,
+                                        Pageable pageable);
 }

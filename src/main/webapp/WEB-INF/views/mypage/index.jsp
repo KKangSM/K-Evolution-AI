@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -107,6 +108,40 @@
         </div>
     </div>
 </div>
+
+<%-- 취향 저격 추천 (개인화) --%>
+<c:if test="${not empty recommendedProducts}">
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<div class="container pb-5" style="max-width:960px">
+    <div class="rail-head">
+        <h5 class="rail-title fw-bold mb-0">${member.name}님 취향 저격 <span class="rail-sub">구매·찜 이력 기반 추천</span></h5>
+        <a href="${ctx}/products" class="rail-more">더보기 <i class="bi bi-chevron-right"></i></a>
+    </div>
+    <div class="product-rail">
+        <c:forEach var="product" items="${recommendedProducts}">
+            <div class="rail-card">
+                <div class="card product-card h-100"
+                     onclick="location.href='${ctx}/products/${product.productId}'">
+                    <img src="${empty product.imageUrl ? 'https://placehold.co/300x360?text=No+Image' : product.imageUrl}"
+                         class="card-img-top product-img" alt="상품 이미지">
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text text-muted small mb-1">${not empty product.category ? product.category.label : ''}</p>
+                        <h6 class="card-title flex-grow-1">${product.name}</h6>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="fw-bold">
+                                <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>원
+                            </span>
+                            <c:if test="${stockMap[product.productId] == 0}">
+                                <span class="badge bg-secondary">품절</span>
+                            </c:if>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </c:forEach>
+    </div>
+</div>
+</c:if>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

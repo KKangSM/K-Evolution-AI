@@ -1,8 +1,13 @@
 package com.kevolution.mypage.controller;
 
 import com.kevolution.mypage.service.MypageService;
+import com.kevolution.product.entity.Product;
+import com.kevolution.product.service.ProductService;
+import com.kevolution.recommendation.service.RecommendationService;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -16,10 +21,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class MypageController {
 
     private final MypageService mypageService;
+    private final RecommendationService recommendationService;
+    private final ProductService productService;
+
+    // 마이페이지 개인화 추천 노출 개수
+    private static final int RECOMMEND_SIZE = 8;
 
     @GetMapping
     public String index(@AuthenticationPrincipal UserDetails user, Model model) {
         model.addAttribute("member", mypageService.getMember(user.getUsername()));
+
+        List<Product> recommendedProducts = recommendationService.getPersonalized(user.getUsername(), RECOMMEND_SIZE);
+        model.addAttribute("recommendedProducts", recommendedProducts);
+        model.addAttribute("stockMap", productService.getStockMap(recommendedProducts));
         return "mypage/index";
     }
 

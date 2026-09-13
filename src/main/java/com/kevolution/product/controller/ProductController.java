@@ -4,6 +4,7 @@ import com.kevolution.product.dto.ProductOptionForm;
 import com.kevolution.product.entity.Category;
 import com.kevolution.product.entity.Product;
 import com.kevolution.product.service.ProductService;
+import com.kevolution.recommendation.service.RecommendationService;
 import com.kevolution.review.service.ReviewService;
 import com.kevolution.storage.SupabaseStorageService;
 import com.kevolution.wishlist.service.WishlistService;
@@ -30,6 +31,10 @@ public class ProductController {
     private final SupabaseStorageService storageService;
     private final WishlistService wishlistService;
     private final ReviewService reviewService;
+    private final RecommendationService recommendationService;
+
+    // 상세 하단 "연관 상품" 노출 개수
+    private static final int RELATED_SIZE = 8;
 
     // ── 공개 조회 ─────────────────────────────────
     @GetMapping("/products")
@@ -66,6 +71,11 @@ public class ProductController {
         model.addAttribute("reviewCount", reviewService.countByProduct(product));
         model.addAttribute("reviewAvg", reviewService.averageRating(product));
         model.addAttribute("reviewSummary", reviewService.getReviewSummary(product));
+
+        // 연관 상품 (같은 카테고리 인기순, 부족하면 인기상품 보충) + 품절 배지용 재고 맵
+        List<Product> relatedProducts = recommendationService.getRelated(product, RELATED_SIZE);
+        model.addAttribute("relatedProducts", relatedProducts);
+        model.addAttribute("stockMap", productService.getStockMap(relatedProducts));
         return "products/detail";
     }
 

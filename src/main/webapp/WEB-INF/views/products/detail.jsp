@@ -317,6 +317,41 @@
             </c:otherwise>
         </c:choose>
     </div>
+
+    <%-- ── 연관 상품 (같은 카테고리 인기순) ── --%>
+    <c:if test="${not empty relatedProducts}">
+    <c:set var="ctx" value="${pageContext.request.contextPath}"/>
+    <div class="mt-5 pt-4 border-top">
+        <div class="rail-head">
+            <h5 class="rail-title fw-bold mb-0">이런 상품은 어때요?
+                <span class="rail-sub">${not empty product.category ? product.category.label : '인기'} 카테고리 추천</span>
+            </h5>
+        </div>
+        <div class="product-rail">
+            <c:forEach var="rp" items="${relatedProducts}">
+                <div class="rail-card">
+                    <div class="card product-card h-100"
+                         onclick="location.href='${ctx}/products/${rp.productId}'">
+                        <img src="${empty rp.imageUrl ? 'https://placehold.co/300x360?text=No+Image' : rp.imageUrl}"
+                             class="card-img-top product-img" alt="상품 이미지">
+                        <div class="card-body d-flex flex-column">
+                            <p class="card-text text-muted small mb-1">${not empty rp.category ? rp.category.label : ''}</p>
+                            <h6 class="card-title flex-grow-1">${rp.name}</h6>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="fw-bold">
+                                    <fmt:formatNumber value="${rp.price}" type="number" groupingUsed="true"/>원
+                                </span>
+                                <c:if test="${stockMap[rp.productId] == 0}">
+                                    <span class="badge bg-secondary">품절</span>
+                                </c:if>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </c:forEach>
+        </div>
+    </div>
+    </c:if>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
